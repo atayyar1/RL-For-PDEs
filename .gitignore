@@ -1,0 +1,6 @@
+# Trained models
+*.pth
+
+# Cached rollouts / data
+rollout_cache/
+
