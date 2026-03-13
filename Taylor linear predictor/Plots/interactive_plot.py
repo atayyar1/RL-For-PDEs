@@ -1,5 +1,6 @@
-
-
+import numpy as np 
+import matplotlib.pyplot as plt 
+import matplotlib.gridspec as gridspec
 def interactive_plot(point_data, visited, u_true, fd_interp,
                      T, dt_sc, ic_x, ic_t,
                      bc_x=None, bc_t=None,
@@ -68,8 +69,22 @@ def interactive_plot(point_data, visited, u_true, fd_interp,
     style_ax(ax_right)
 
     # IC points
+    # IC points
     ax_left.scatter(ic_x, ic_t, s=12, color=GREEN, zorder=3, label='IC', alpha=0.7)
 
+    # BC points (always visible like IC)
+    if bc_x is not None:
+        ax_left.scatter(
+            bc_x, bc_t,
+            s=25,
+            color='purple',
+            marker='D',
+            edgecolors='white',
+            linewidths=0.5,
+            zorder=4,
+            alpha=0.8,
+            label='BC'
+        )
     sc = ax_left.scatter(
         px, pt,
         c=perr,
@@ -256,18 +271,7 @@ def interactive_plot(point_data, visited, u_true, fd_interp,
             alpha=0.7,
             label='Neighbours used'
         )
-
-        if bc_x is not None:
-            ax_left.scatter(
-                bc_x, bc_t,
-                s=40,
-                color='purple',
-                marker='D',
-                edgecolors='white',
-                linewidths=0.5,
-                zorder=5,
-                label='BC visited'
-            )
+ 
 
         ax_right.set_xlabel('$x$', fontsize=11)
         ax_right.set_ylabel('$u$', fontsize=11)
