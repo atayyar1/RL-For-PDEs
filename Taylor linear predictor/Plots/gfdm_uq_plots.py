@@ -22,6 +22,12 @@ def _coerce_point_data(run):
             run = run["point_data"]
         else:
             raise ValueError("Run dictionary must contain a 'point_data' key.")
+    elif isinstance(run, (list, tuple)) and len(run) == 2:
+        maybe_visited, maybe_point_data = run
+        if isinstance(maybe_point_data, (list, tuple)) and len(maybe_point_data) > 0:
+            first_point = maybe_point_data[0]
+            if isinstance(first_point, dict) and "x" in first_point and "t" in first_point and "u" in first_point:
+                run = maybe_point_data
 
     if not isinstance(run, (list, tuple)) or len(run) == 0:
         raise ValueError("Each run must be a non-empty list of point dictionaries.")
@@ -45,7 +51,8 @@ def collect_runs(run_once, n_runs, seeds=None, base_seed=0):
     ----------
     run_once : callable
         Callable with signature run_once() or run_once(seed). It must return
-        either point_data directly or a dictionary containing 'point_data'.
+        either point_data directly, a dictionary containing 'point_data', or
+        a tuple of the form (visited, point_data).
     n_runs : int
         Number of Monte Carlo repetitions.
     seeds : sequence[int] | None
@@ -69,7 +76,12 @@ def collect_runs(run_once, n_runs, seeds=None, base_seed=0):
             result = run_once(seed)
         except TypeError:
             result = run_once()
-        runs.append(result["point_data"] if isinstance(result, dict) and "point_data" in result else result)
+        if isinstance(result, dict) and "point_data" in result:
+            runs.append(result["point_data"])
+        elif isinstance(result, (list, tuple)) and len(result) == 2:
+            runs.append(result)
+        else:
+            runs.append(result)
 
     return runs
 
@@ -97,7 +109,7 @@ def _bin_single_run(run_arrays, x_edges, t_edges):
     return grid_mean
 
 
-def prepare_uq_grid(runs, nx=40, nt=40, xlim=(0.0, 1.0), tlim=None):
+def prepare_uq_grid(runs, nx=40, nt=40, xlim=(0.0, 1.0), tlim=None, u_true=None):
     """
     Maps each scattered run onto the same coarse (x, t) grid, then computes
     run-to-run statistics in each cell.
@@ -125,6 +137,14 @@ def prepare_uq_grid(runs, nx=40, nt=40, xlim=(0.0, 1.0), tlim=None):
         u_q05 = np.nanquantile(stacked, 0.05, axis=0)
         u_q95 = np.nanquantile(stacked, 0.95, axis=0)
 
+    true_grid = None
+    mean_abs_error = None
+    if u_true is not None:
+        X, T = np.meshgrid(x_centers, t_centers)
+        true_grid = u_true(X, T)
+        with np.errstate(invalid="ignore"):
+            mean_abs_error = np.nanmean(np.abs(stacked - true_grid[None, :, :]), axis=0)
+
     return {
         "stacked": stacked,
         "run_count": run_count,
@@ -136,11 +156,13 @@ def prepare_uq_grid(runs, nx=40, nt=40, xlim=(0.0, 1.0), tlim=None):
         "u_std": u_std,
         "u_q05": u_q05,
         "u_q95": u_q95,
+        "true_grid": true_grid,
+        "mean_abs_error": mean_abs_error,
     }
 
 
-def plot_uq_slice(runs, t_value, nx=50, nt=50, band_sigma=2.0, ax=None):
-    stats = prepare_uq_grid(runs, nx=nx, nt=nt)
+def plot_uq_slice(runs, t_value, nx=50, nt=50, band_sigma=2.0, ax=None, u_true=None):
+    stats = prepare_uq_grid(runs, nx=nx, nt=nt, u_true=u_true)
     time_idx = int(np.argmin(np.abs(stats["t_centers"] - t_value)))
 
     if ax is None:
@@ -174,6 +196,17 @@ def plot_uq_slice(runs, t_value, nx=50, nt=50, band_sigma=2.0, ax=None):
         label="5%-95% band",
     )
 
+    if u_true is not None:
+        t_slice = float(stats["t_centers"][time_idx])
+        ax.plot(
+            x[valid],
+            u_true(x[valid], t_slice),
+            color=RED,
+            linewidth=2.0,
+            linestyle="--",
+            label="Theoretical",
+        )
+
     ax.set_xlabel("$x$")
     ax.set_ylabel("$u$")
     ax.set_title(f"Run-to-run spread at t = {stats['t_centers'][time_idx]:.4f}", fontsize=10, fontweight="bold")
@@ -182,14 +215,17 @@ def plot_uq_slice(runs, t_value, nx=50, nt=50, band_sigma=2.0, ax=None):
     return ax, stats
 
 
-def plot_uq_std_heatmap(runs, nx=50, nt=50, ax=None):
-    stats = prepare_uq_grid(runs, nx=nx, nt=nt)
+def plot_uq_mean_error_heatmap(runs, nx=50, nt=50, ax=None, u_true=None):
+    stats = prepare_uq_grid(runs, nx=nx, nt=nt, u_true=u_true)
+
+    if stats["mean_abs_error"] is None:
+        raise ValueError("u_true must be provided to plot the mean error heatmap.")
 
     if ax is None:
         _, ax = plt.subplots(figsize=(7, 4.5))
 
     im = ax.imshow(
-        stats["u_std"],
+        stats["mean_abs_error"],
         origin="lower",
         aspect="auto",
         extent=[
@@ -200,11 +236,11 @@ def plot_uq_std_heatmap(runs, nx=50, nt=50, ax=None):
         ],
         cmap="Reds",
     )
-    plt.colorbar(im, ax=ax, shrink=0.85, label="Std(u)")
+    plt.colorbar(im, ax=ax, shrink=0.85, label="Mean |u - u_true|")
 
     ax.set_xlabel("$x$")
     ax.set_ylabel("$t$")
-    ax.set_title("Where u varies most across runs", fontsize=10, fontweight="bold")
+    ax.set_title("Mean error across runs", fontsize=10, fontweight="bold")
 
     return ax, stats
 
@@ -270,8 +306,8 @@ def plot_probe_histograms(runs, probes, bins=15, axes=None, u_true=None):
 def plot_uq_dashboard(runs, t_value=None, probes=None, nx=50, nt=50, bins=15, u_true=None):
     """
     One-call dashboard with three practical first-pass UQ plots:
-    1. Mean and spread of u(x, t_value)
-    2. Std(u) heatmap over the full domain
+    1. Mean and spread of u(x, t_value) with theoretical comparison
+    2. Mean absolute error heatmap over the full domain
     3. Histograms at selected probe locations
     """
     runs_arr = [_coerce_point_data(run) for run in runs]
@@ -290,8 +326,8 @@ def plot_uq_dashboard(runs, t_value=None, probes=None, nx=50, nt=50, bins=15, u_
     top_axes = np.atleast_1d(axes[0])
     bottom_axes = np.atleast_1d(axes[1])
 
-    plot_uq_slice(runs, t_value=t_value, nx=nx, nt=nt, ax=top_axes[0])
-    plot_uq_std_heatmap(runs, nx=nx, nt=nt, ax=top_axes[1])
+    plot_uq_slice(runs, t_value=t_value, nx=nx, nt=nt, ax=top_axes[0], u_true=u_true)
+    plot_uq_mean_error_heatmap(runs, nx=nx, nt=nt, ax=top_axes[1], u_true=u_true)
 
     for extra_ax in top_axes[2:]:
         extra_ax.axis("off")

@@ -4,7 +4,7 @@ import matplotlib.gridspec as gridspec
 def interactive_plot(point_data, visited, u_true, fd_interp,
                      T, dt_sc, ic_x, ic_t,
                      bc_x=None, bc_t=None,
-                     alpha=1.0, n_exact=None):
+                     alpha=0.05, n_exact=None):
     import numpy as np
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
@@ -14,6 +14,29 @@ def interactive_plot(point_data, visited, u_true, fd_interp,
     pt = np.array([p['t'] for p in point_data])
     pu = np.array([p['u'] for p in point_data])
     perr = np.array([p['err'] for p in point_data])
+
+    time_tol = max(float(dt_sc) * 1e-9, 1e-12) if dt_sc is not None else 1e-12
+
+    def eval_fd(x_vals, t_val):
+        x_arr = np.atleast_1d(np.asarray(x_vals, dtype=float))
+        t_arr = np.full(x_arr.shape, float(t_val), dtype=float)
+        pts = np.column_stack([x_arr, t_arr])
+
+        try:
+            vals = np.asarray(fd_interp(pts), dtype=float).reshape(-1)
+            if vals.size == x_arr.size:
+                return vals
+        except Exception:
+            pass
+
+        try:
+            vals = np.array([float(fd_interp((xi, float(t_val)))) for xi in x_arr], dtype=float)
+            if vals.size == x_arr.size:
+                return vals
+        except Exception:
+            pass
+
+        return np.array([float(fd_interp(float(xi), float(t_val))) for xi in x_arr], dtype=float)
 
     # ─────────────────────────────────────────────
     # Interactive figure
@@ -117,12 +140,6 @@ def interactive_plot(point_data, visited, u_true, fd_interp,
 
     x_plot = np.linspace(0, 1, 300)
 
-    ax_right.plot(
-        x_plot, u_true(x_plot, T),
-        '-', color=BLUE, linewidth=2,
-        label=f'True $u(x, T={T})$'
-    )
-
     ax_right.set_xlabel('$x$', fontsize=11)
     ax_right.set_ylabel('$u$', fontsize=11)
 
@@ -167,6 +184,7 @@ def interactive_plot(point_data, visited, u_true, fd_interp,
 
         p = point_data[idx]
         xq, tq, uq, eq = p['x'], p['t'], p['u'], p['err']
+        u_fd_q = float(eval_fd([xq], tq)[0])
 
         clear_interactive()
 
@@ -210,7 +228,7 @@ def interactive_plot(point_data, visited, u_true, fd_interp,
         text_display.set_text(
             f'Point: ({xq:.3f}, {tq:.4f})  |  '
             f'Predicted: {uq:.5f}  |  '
-            f'True: {u_true(xq, tq):.5f}  |  '
+            f'FD: {u_fd_q:.5f}  |  '
             f'Error: {eq:.2e}  |  '
             f'||w||_1: {p["w1"]:.3f}  |  '
             f'cond(A): {p["cond"]:.1e}  |  '
@@ -220,24 +238,17 @@ def interactive_plot(point_data, visited, u_true, fd_interp,
         ax_right.cla()
         style_ax(ax_right)
 
-        ax_right.plot(
-            x_plot, u_true(x_plot, tq),
-            '-', color=BLUE, linewidth=2,
-            label=f'True $u(x, t={tq:.3f})$'
-        )
-
-        u_fd_slice = np.array([fd_interp(xi, tq) for xi in x_plot])
+        u_fd_slice = eval_fd(x_plot, tq)
 
         ax_right.plot(
             x_plot, u_fd_slice,
-            '--', color=GREEN, linewidth=1.8,
+            '-', color=GREEN, linewidth=2.2,
             label='FD reference'
         )
 
-        tol = dt_sc * 0.6
-        mask = np.abs(pt - tq) < tol
+        mask = np.isclose(pt, tq, rtol=0.0, atol=time_tol)
 
-        if mask.sum() > 1:
+        if mask.any():
             xs = px[mask]
             us = pu[mask]
 
