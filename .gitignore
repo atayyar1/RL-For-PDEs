@@ -4,3 +4,14 @@
 # Cached rollouts / data
 rollout_cache/
 
+# Experiment outputs / training runs
+Taylor linear predictor/runs*/
+Taylor linear predictor/logs/
+Taylor linear predictor/animation video/*.mp4
+Taylor linear predictor/animation video/media/
+Taylor linear predictor/animation video/qc_frames/
+Taylor linear predictor/prof.out
+Taylor linear predictor/__pycache__/
+**/__pycache__/
+*.pyc
+
