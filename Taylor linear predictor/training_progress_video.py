@@ -9,6 +9,8 @@ Expected input filenames inside img_dir:
     traj_t{t_star_steps}dt_{step}k_timeout.png
     traj_t{t_star_steps}dt_final_reached.png
     traj_t{t_star_steps}dt_final_timeout.png
+    traj_t{t_star_steps}dt_x{x_star_steps}_{step}k_reached.png
+    traj_t{t_star_steps}dt_x{x_star_steps}_final_reached.png
 
 Example:
     from training_progress_video import make_training_progress_video
@@ -30,11 +32,14 @@ import matplotlib.animation as animation
 def make_training_progress_video(
     img_dir,
     t_star_steps,
+    *plot_args,
     fps=3,
     dpi=120,
     outcome_filter=None,
     out_name=None,
     verbose=True,
+    label="final",
+    x_star_steps=None,
 ):
     """
     Stitches the saved trajectory PNGs from training into one MP4 video.
@@ -50,6 +55,11 @@ def make_training_progress_video(
     t_star_steps : int
         The same t_star_steps used during training. This filters the files
         so different target-time runs do not get mixed together.
+
+    *plot_args
+        Optional legacy plot metadata arguments. Some notebooks pass
+        N_particles, lam, beta, K_max, c_shape here to mirror
+        plot_trajectories(...). They are accepted and ignored.
 
     fps : int, default=3
         Frames per second for the output video. Lower = slower and easier
@@ -70,22 +80,65 @@ def make_training_progress_video(
     verbose : bool, default=True
         Print progress messages.
 
+    label : str, default='final'
+        Label used by the final plot_trajectories call. With the default,
+        this includes files like traj_t{t_star_steps}dt_final_reached.png.
+
+    x_star_steps : int or None, default=None
+        Optional x-star schedule tag. If None, the helper prefers untagged
+        files, or auto-selects the only x-tagged set in img_dir.
+
     Returns
     -------
     str
         Path to the saved MP4 file.
     """
 
+    if plot_args:
+        legacy_outcomes = (None, "reached", "timeout")
+        looks_like_old_options = (
+            len(plot_args) <= 2
+            or (len(plot_args) == 3 and plot_args[2] in legacy_outcomes)
+            or (len(plot_args) == 4 and plot_args[2] in legacy_outcomes)
+            or (
+                len(plot_args) == 5
+                and plot_args[2] in legacy_outcomes
+                and isinstance(plot_args[4], bool)
+            )
+        )
+
+        if looks_like_old_options:
+            if len(plot_args) >= 1:
+                fps = plot_args[0]
+            if len(plot_args) >= 2:
+                dpi = plot_args[1]
+            if len(plot_args) >= 3:
+                outcome_filter = plot_args[2]
+            if len(plot_args) >= 4:
+                out_name = plot_args[3]
+            if len(plot_args) >= 5:
+                verbose = plot_args[4]
+        # Otherwise these are plot_trajectories metadata arguments
+        # (N_particles, lam, beta, K_max, c_shape). They are intentionally
+        # ignored because this helper only needs saved PNGs.
+
     if outcome_filter not in (None, "reached", "timeout"):
         raise ValueError("outcome_filter must be None, 'reached', or 'timeout'.")
 
+    if label is None:
+        label = "final"
+    label = str(label)
+
     pattern = re.compile(
-        rf"^traj_t{t_star_steps}dt_(?:(\d+)k|(final))_(reached|timeout)\.png$"
+        rf"^traj_t{re.escape(str(t_star_steps))}dt"
+        rf"(?P<x_tag>_x[^_]+)?_"
+        rf"(?:(?P<step>\d+)k|(?P<label>{re.escape(label)}))_"
+        rf"(?P<outcome>reached|timeout)\.png$"
     )
 
-    candidates = []
+    all_candidates = []
 
-    search_pattern = os.path.join(img_dir, f"traj_t{t_star_steps}dt_*.png")
+    search_pattern = os.path.join(img_dir, f"traj_t{t_star_steps}dt*.png")
     for path in glob.glob(search_pattern):
         fname = os.path.basename(path)
         match = pattern.match(fname)
@@ -93,22 +146,58 @@ def make_training_progress_video(
         if not match:
             continue
 
-        step_str, is_final, outcome = match.groups()
+        x_tag = match.group("x_tag") or ""
+        step_str = match.group("step")
+        is_labelled_final = match.group("label") is not None
+        outcome = match.group("outcome")
 
         if outcome_filter is not None and outcome != outcome_filter:
             continue
 
         # Numeric checkpoints come first in order; final always goes last.
-        sort_key = float("inf") if is_final else int(step_str)
-        candidates.append((sort_key, path))
+        sort_key = float("inf") if is_labelled_final else int(step_str)
+        all_candidates.append((x_tag, sort_key, path))
+
+    requested_x_tag = None
+    if x_star_steps is not None:
+        requested_x_tag = f"_x{x_star_steps}"
+        candidates = [
+            (sort_key, path)
+            for x_tag, sort_key, path in all_candidates
+            if x_tag == requested_x_tag
+        ]
+        selected_x_tag = requested_x_tag
+    else:
+        tags = sorted({x_tag for x_tag, _, _ in all_candidates})
+        if "" in tags:
+            selected_x_tag = ""
+        elif len(tags) == 1:
+            selected_x_tag = tags[0]
+        elif len(tags) > 1:
+            available = ", ".join(tag[1:] for tag in tags)
+            raise RuntimeError(
+                "Found multiple x-star tagged trajectory sets "
+                f"({available}) in {img_dir}. Pass x_star_steps=... "
+                "to choose one."
+            )
+        else:
+            selected_x_tag = ""
+
+        candidates = [
+            (sort_key, path)
+            for x_tag, sort_key, path in all_candidates
+            if x_tag == selected_x_tag
+        ]
 
     if not candidates:
+        x_tag_hint = requested_x_tag or selected_x_tag
+        x_tag_hint = x_tag_hint if x_tag_hint else ""
         raise RuntimeError(
             f"No matching trajectory PNGs found in: {img_dir}\n"
             f"Expected files like:\n"
-            f"  traj_t{t_star_steps}dt_10k_reached.png\n"
-            f"  traj_t{t_star_steps}dt_20k_timeout.png\n"
-            f"  traj_t{t_star_steps}dt_final_reached.png\n"
+            f"  traj_t{t_star_steps}dt{x_tag_hint}_10k_reached.png\n"
+            f"  traj_t{t_star_steps}dt{x_tag_hint}_20k_timeout.png\n"
+            f"  traj_t{t_star_steps}dt{x_tag_hint}_{label}_reached.png\n"
             f"Check img_dir, t_star_steps, and your saved filenames."
         )
 
@@ -142,7 +231,11 @@ def make_training_progress_video(
     )
 
     if out_name is None:
-        out_name = f"traj_t{t_star_steps}dt_training_progress.mp4"
+        label_part = "" if label == "final" else f"_{label}"
+        out_name = (
+            f"traj_t{t_star_steps}dt{selected_x_tag}"
+            f"{label_part}_training_progress.mp4"
+        )
 
     out_path = os.path.join(img_dir, out_name)
 
