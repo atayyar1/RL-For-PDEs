@@ -6,6 +6,7 @@ rollout_cache/
 
 # Experiment outputs / training runs
 Taylor linear predictor/runs*/
+Archives/runs*/
 Taylor linear predictor/logs/
 Taylor linear predictor/animation video/*.mp4
 Taylor linear predictor/animation video/media/

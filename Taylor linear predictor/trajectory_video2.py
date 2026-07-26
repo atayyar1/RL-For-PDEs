@@ -52,13 +52,14 @@ import re
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import matplotlib.animation as animation
 
 
 def make_trajectory_video1(model, PDEEnvironmentClass, t_star_steps, N_particles,
                            img_dir=".", label="final",
                            hold_frames=6, fps=10 / 3, dpi=120,
-                           verbose=True, x_star_steps=None):   # NEW
+                           verbose=True, x_star_steps=None, R_bubble=4):   # NEW
     """
     Parameters
     ----------
@@ -84,7 +85,8 @@ def make_trajectory_video1(model, PDEEnvironmentClass, t_star_steps, N_particles
     # ── 1. Fresh deterministic rollout, recording global acceptance order ──
     env = PDEEnvironmentClass(
             t_star_steps=t_star_steps, N_particles=N_particles,
-            x_star_schedule=None if x_star_steps is None else [x_star_steps])    
+            R_bubble=R_bubble,
+            x_star_schedule=None if x_star_steps is None else [x_star_steps])
     obs, _ = env.reset()
 
     N = env.N
@@ -129,12 +131,14 @@ def make_trajectory_video1(model, PDEEnvironmentClass, t_star_steps, N_particles
         print(f"Rollout done: {outcome}, {n_points} accepted points, "
               f"{env.step_count} total steps.")
 
-    # z*'s own stencil, only meaningful if the episode actually reached z*
+    # z*'s own stencil — the exact solve step() scored: box points on a
+    # bubble-fill, global nearest neighbours on a timeout (both non-causal).
     z_star_nb = None
-    if reached:
-        _, success, nb_coords, _ = env._gfdm_solve(env.x_star, env.t_star)
-        if success:
-            z_star_nb = nb_coords
+    _box_R = env.R_bubble if reached else None
+    _, success, nb_coords, _ = env._gfdm_solve(
+        env.x_star, env.t_star, causal=False, box_R=_box_R)
+    if success:
+        z_star_nb = nb_coords
 
     # ── 2. Static background (IC/BC) ────────────────────────────────────────
     visited_log = [(x, t) for (x, t, _) in env.visited._pts]
@@ -155,6 +159,12 @@ def make_trajectory_video1(model, PDEEnvironmentClass, t_star_steps, N_particles
         for i in range(env.N):
             x0, t0 = trajectories[i][0]
             ax_traj.scatter(x0, t0, s=80, color=colors[i], marker='^', zorder=4)
+        # bubble box around z*
+        Rx = env.R_bubble * env.dx
+        Rt = env.R_bubble * env.dt
+        ax_traj.add_patch(patches.Rectangle(
+            (env.x_star - Rx, env.t_star - Rt), 2 * Rx, 2 * Rt,
+            fill=False, edgecolor='red', linestyle='--', linewidth=1.5, zorder=6))
         ax_traj.scatter(env.x_star, env.t_star, s=150, color='red', marker='*', zorder=7)
         ax_traj.set_xlabel('x')
         ax_traj.set_ylabel('t')
@@ -232,7 +242,7 @@ def make_trajectory_video1(model, PDEEnvironmentClass, t_star_steps, N_particles
                     ax_traj.plot([x_cur, nx_], [t_cur, nt_], '--', color='black',
                                  linewidth=0.6, alpha=0.6, zorder=5)
 
-        if point_idx == n_points - 1 and reached and z_star_nb is not None:
+        if point_idx == n_points - 1 and z_star_nb is not None:
             for (nx_, nt_) in z_star_nb:
                 ax_traj.plot([env.x_star, nx_], [env.t_star, nt_], '--', color='red',
                              linewidth=0.8, alpha=0.7, zorder=6)
