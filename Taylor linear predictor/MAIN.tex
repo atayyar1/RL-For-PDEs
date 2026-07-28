@@ -1,0 +1,1287 @@
+%%  Thesis Progress Document
+%%  Author : Ali Tayyar
+%%  Status : Living document — updated incrementally
+\documentclass[12pt, a4paper, twoside]{report}
+
+%% ---------- Packages ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{bm}           % bold math
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+% hyperref MUST come before cleveref
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\usepackage{fancyhdr}
+\usepackage{emptypage}
+\usepackage{parskip}
+
+%% ---------- Colours ----------
+\definecolor{codeblue}{rgb}{0.13,0.29,0.53}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codegreen}{rgb}{0.0,0.5,0.0}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
+
+%% ---------- Code listing style ----------
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{orange},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+%% ---------- Theorem environments ----------
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+%% ---------- Hyperref setup ----------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=codeblue,
+    citecolor=codegreen,
+    urlcolor=codeblue,
+}
+
+%% ---------- Header / footer ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\textit{\nouppercase{\leftmark}}}
+\fancyhead[LO]{\textit{\nouppercase{\rightmark}}}
+\renewcommand{\headrulewidth}{0.4pt}
+
+%% ---------- Notation macros ----------
+\newcommand{\ux}{u^*}           % target value
+\newcommand{\uhat}{\hat{u}^*}   % predicted value
+\newcommand{\dxi}{\Delta x_i}
+\newcommand{\dti}{\Delta t_i}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bA}{\mathbf{A}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\bI}{\mathbf{I}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Lop}{\mathcal{L}}
+\newcommand{\normone}[1]{\lVert #1 \rVert_1}
+\newcommand{\normtwo}[1]{\lVert #1 \rVert_2}
+
+%% ============================================================
+\begin{document}
+  
+
+%% ---------- Title page ----------
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\LARGE\bfseries Reinforcement Learning for Adaptive
+    PDE Solving:\\[0.4em]
+    A Space--Time Mesh-Free Framework\par}
+    \vspace{1.5cm}
+    {\large Ali Tayyar\par}
+    \vspace{0.5cm}
+    {\large\itshape Thesis Progress Document\par}
+    \vspace{0.3cm}
+    {\large Version 1: \today\par}
+    \vfill
+    {\large Supervised by: Dr. Joseph Bakarji\par}
+    \vspace{0.5cm}
+    {\large American University of Beirut\par}
+\end{titlepage}
+
+%% ---------- Abstract ----------
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This document records the ongoing development of a framework for
+solving partial differential equations (PDEs) using Reinforcement
+Learning (RL) in the context of mesh-free local reconstruction.
+The idea is to treat point placement in the space time
+domain as a sequential decision problem: rather than predefining a
+fixed grid, an agent learns \emph{where} to evaluate the solution
+next starting from the initial condition (IC), guided by a reward signal derived from accuracy and speed of the integration.
+
+The work reported in this document covers the first part of the project, which focuses on building the reconstruction \emph{environment} within which RL will operate within.
+This environment is based on a Taylor-constrained local linear
+predictor closely related to the Generalised Finite Difference
+Method (GFDM).
+We establish an error bound for the predictor, demonstrate that the method recovers classical finite difference (FD) stencils when used on a fixed grid, and validate a full space-time rollout on the advection-diffusion equations against the analytical and FD reference solutions.
+Open questions regarding neighbour selection, computational cost,
+and the RL formulation are identified.
+
+\newpage
+
+%% ---------- Table of contents ----------
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\chapter{Introduction}
+\label{chap:intro}
+\label{sec:motivation}
+\section{Motivation}
+
+Numerical simulation of partial differential equations (PDEs) is a cornerstone of scientific computing, with applications ranging from fluid and solid mechanics to transport phenomena. Classical Eulerian approaches such as finite difference, finite element, and finite volume methods rely on meshing our space-time domain using structured or unstructured meshes. 
+While these methods are well-established and highly accurate, their performance critically depends on the chosen discretisation and mesh structure, often requiring fine grids and small time steps to resolve complex dynamics, which leads to substantial computational cost.
+
+To mitigate this cost, adaptive strategies such as Adaptive Mesh Refinement (AMR) dynamically allocate resolution to regions of interest\cite{plewa2005}. In recent years, AMR has been casted as a sequential decision-making problem with the use of Reinforcement Learning, where the system will start with a coarse grid and start learning where to derefine or refine each cell, demonstrating competitive performance compared to classical heuristics \cite{yang2021rl_amr, FOUCART23}. Despite these advances, such approaches still operate within a predefined mesh structure and do not address the more fundamental question of whether the system can learn the mesh on its own.
+
+Mesh-free methods provide a more flexible alternative by removing the need for a predefined grid \cite{griebel05}. Rather than discretising the domain with a mesh, these methods operate directly on scattered point clouds, approximating differential operators and function values through local stencils from the chosen neighbours. The Generalised Finite Difference Method (GFDM) constructs derivative approximations at each node by enforcing Taylor consistency constraints over a local neighbourhood \cite{benito2001, gavete2003}, and has been successfully applied to a wide range of PDE problems \cite{zheng22}. For function value reconstruction specifically, the same Taylor-moment framework underlies Moving Least Squares (MLS) approximation \cite{lancaster81}, which fits a local polynomial to neighbouring values and is the foundation of several meshless solvers \cite{gambaruto2026}. RBF-based methods offer an alternative reconstruction strategy with favourable approximation properties on scattered data \cite{fornberg2015}, though they introduce a shape parameter that requires careful tuning. These methods naturally support local adaptivity and handle irregular geometries without remeshing. However, in practice, the placement of evaluation points is still determined by heuristic or user-defined sampling strategies, and reconstruction accuracy is sensitive to the local point distribution.
+
+The present work adopts this perspective and proposes a framework for solving PDEs in which point placement in space--time is learned via reinforcement learning. The approach is built on a mesh-free reconstruction environment based on Taylor-consistent local approximations with PDE constraints, closely related to GFDM. This enables a fundamentally different paradigm in which the solver jointly learns both the solution and the discretisation strategy, opening the door to more efficient and adaptive numerical methods.
+Thus, the project can be divided into two tightly coupled components:
+
+\begin{enumerate}
+    \item \textbf{The reconstruction environment:}
+    Given a set of previously evaluated space--time points and their solution values, compute the solution at a new target point using a local weighted stencil. Where it must be
+    accurate, stable, and fast enough to serve as the step function inside an RL training loop.
+
+    \item \textbf{The RL agent:} Given the current cloud of evaluated points and the
+    reconstruction environment, learn a policy that selects the next point to evaluate so as to maximise solution accuracy while minimising the total number of evaluations.
+    This component has not yet been implemented; the work
+    reported here is entirely devoted to component~1.
+\end{enumerate}
+% ============================================================
+\chapter{Mathematical Background}
+\label{chap:theory}
+%% ============================================================
+
+\section{Problem Setup: Local Linear Prediction}
+\label{sec:setup}
+
+Let $u : \R^2 \to \R$ be a smooth scalar field defined on the
+space--time domain $(x,t)$.
+Given a target point $\hat{u}^* (x^*, t^*)$ and $n$ neighbouring
+points $z_i = (x_i, t_i)$ with known values $u_i = u(z_i)$, we
+seek a scalar approximation
+\begin{equation}
+    \uhat = \sum_{i=1}^{n} w_i\, u_i = \bw^\top \bu, 
+    \label{eq:predictor}
+\end{equation}
+i.e. a linear transformation $\R^n \to \R$ that will take $n$ neighbour point values and return the solution at the target coordinate $z^*$, and the weights $w_i$ depend only on the geometry of the
+neighbourhood, i.e.\ on the offsets
+\begin{equation}
+    \dxi = x_i - x^*, \qquad \dti = t_i - t^*.
+\end{equation}
+The prediction error is $e = \uhat - \ux$.
+
+\section{Taylor Consistency Constraints}
+
+Expanding $u_i$ in a Taylor series about $z^*$ up to order $p$
+and substituting into \eqref{eq:predictor}, the error $e$ vanishes
+Expand $u(z_i)$ around $z^*$:
+\begin{equation}
+u(z_i)=u^* + u_x^*\,\Delta x_i + u_t^*\,\Delta t_i
++\frac{1}{2}u_{xx}^*\,\Delta x_i^2 + u_{xt}^*\,\Delta x_i\Delta t_i
++\frac{1}{2}u_{tt}^*\,\Delta t_i^2 + \cdots+R_i
+\end{equation}
+
+Plugging into \eqref{eq:predictor} gives
+\begin{equation*}
+    \hat u(z^*) =
+u(z^*)\sum_i w_i
++ u_x(z^*)\sum_i w_i\Delta x_i
++ u_t(z^*)\sum_i w_i\Delta t_i
++ \frac{1}{2}u_{xx}(z^*)\sum_i w_i\Delta x_i^2 + \cdots+\sum_i w_i R_i \label{eq: taylor_exp}
+\end{equation*}
+
+So if we impose the \emph{moment conditions}
+\begin{equation}\label{eq:moments-value}
+\sum_{i=1}^n w_i = 1,\qquad
+\sum_{i=1}^n w_i\Delta x_i = 0,\qquad
+\sum_{i=1}^n w_i\Delta t_i = 0,\qquad
+\ldots
+\end{equation}
+then all the undesired Taylor terms cancel and $\hat u(z^*)$ becomes accurate.
+\label{sec:taylor}
+
+if and only if the weights satisfy the \emph{moment conditions}:
+\begin{equation}
+    \sum_{i=1}^n w_i\, \dxi^k\, \dti^{\,\ell} =
+    \begin{cases} 1 & k = \ell = 0, \\ 0 & 1 \le k+\ell \le p.
+    \end{cases}
+    \label{eq:moments}
+\end{equation}
+These conditions ensure that the predictor exactly reproduces all
+polynomials of degree $\le p$.
+
+\subsection{Matrix formulation,}
+\label{sec:matrix}
+
+Let $m$ and $n$ be the number of Taylor terms and the number of neighbours, respectively:
+
+Construct matrix $A\in\mathbb{R}^{m\times n}$ where:
+\begin{itemize}
+\item each column corresponds to a neighbour,
+\item each row corresponds to a Taylor term.
+\end{itemize}
+
+
+\[
+\underbrace{
+\begin{bmatrix}
+1 & 1 & \cdots & 1 \\
+\Delta x_1 & \Delta x_2 & \cdots & \Delta x_n \\
+\Delta t_1 & \Delta t_2 & \cdots & \Delta t_n \\
+\Delta x_1^2 & \Delta x_2^2 & \cdots & \Delta x_n^2 \\
+\Delta x_1\Delta t_1 & \Delta x_2\Delta t_2 & \cdots & \Delta x_n\Delta t_n \\
+\Delta t_1^2 & \Delta t_2^2 & \cdots & \Delta t_n^2 \\
+\vdots & \vdots & \ddots & \vdots
+\end{bmatrix}
+}_{A\;\text{(Taylor matrix)}}
+\;
+\underbrace{
+\begin{bmatrix}
+w_1\\
+w_2\\
+w_3\\
+w_4\\
+w_5\\
+\vdots\\
+w_n
+\end{bmatrix}
+}_{w\;\text{(weights)}}
+=
+\underbrace{
+\begin{bmatrix}
+1\\
+0\\
+0\\
+0\\
+0\\
+0\\
+\vdots
+\end{bmatrix}
+}_{b\;\text{(Taylor constraints)}} \label{taylor system}
+\]
+
+\subsection*{Case 1: $n>m$, i.e. more neighbours than terms}
+ Mostly common in the GFDM method. Underdetermined system with infinitely many solutions. Most stable regime.
+\subsection*{Case 2: $n=m$}
+Determined system.
+\[
+Aw=b.
+\]
+Unique interpolation solution if invertible.  
+Sensitive to geometry, if A is not full rank, not invertible, it'll be pushed toward the overdetermined regime.
+\subsection*{Case 3: $n<m$}
+Overconstrained system. Typically unstable for prediction.
+\subsection*{SVD/pseudoinverse unifies all cases}
+Compute the singular value decomposition (SVD):
+\[
+A = U\Sigma V^\top.
+\]
+The pseudoinverse is
+\[
+A^+ = V\Sigma^+U^\top,
+\]
+where $\Sigma^+$ inverts nonzero singular values.
+
+Then the numerical solution used in your code is:
+\begin{equation}\label{eq:pinv-solve}
+\bm w = A^+ \bm b.
+\end{equation}
+This automatically gives:
+\begin{itemize} 
+\item determined: the exact solution (same as $A^{-1}b$ when invertible),
+\item underdetermined: the \textbf{minimum-norm} exact solution,
+\item overdetermined: the \textbf{least-squares} solution minimizing $\|Aw-b\|_2$.
+\end{itemize}
+This is why pseudoinverse is the safest baseline: it never forces you to switch formulas by hand.
+
+
+\subsection{Unifying value and derivative reconstruction}
+\label{sec:unify}
+
+The same matrix $\bA$ governs the approximation of any linear
+functional $\ell$ of $u$ at $z^*$:
+\begin{equation}
+    \ell(u)\big|_{z^*} \approx \sum_{i=1}^n w_i^{(\ell)}\, u_i,
+    \qquad
+    \bA \bw^{(\ell)} = \bb^{(\ell)},
+    \quad
+    b_k^{(\ell)} = (\ell\, p_k)(0,0).
+\end{equation}
+Value reconstruction corresponds to $\ell = \mathrm{id}$ (giving
+$\bb = (1,0,\ldots)^\top$); spatial or temporal derivatives
+correspond to different right-hand sides with the same $\bA$.
+This is the fundamental insight connecting our predictor to GFDM.
+
+
+Examples for the same basis:
+\begin{itemize} 
+\item For $L=\partial_x$ (spatial derivative):
+\[
+\bm b^{(x)}
+= (0,1,0,0,0,0)^\top.
+\]
+\item For $L=\partial_t$:
+\[
+\bm b^{(t)} = (0,0,1,0,0,0)^\top.
+\]
+\item For $L=\partial_{xx}$:
+\[
+\bm b^{(xx)}
+= (0,0,0,2,0,0)^\top,
+\]
+because $\partial_{xx}(\Delta x^2)=2$ and the others vanish.
+\end{itemize}
+\textbf{Same $A$}, different $\bm b$ $\Rightarrow$ different weights.
+
+\section{Error Bound}
+
+\label{sec:error_bound}
+From eq.(\ref{eq: taylor_exp}), let: \[e \;=\; u^* - \hat{u}^* \;=\; -\sum_{i=1}^n w_i R_i\] 
+
+We now derive a bound on the local reconstruction error. Under the Taylor 
+constraints \eqref{eq:moments}, the zeroth- and first-order terms cancel 
+exactly, leaving the error determined entirely by the second-order remainder:
+\[
+    e = u^* - \hat{u}^* = -\sum_{i=1}^n w_i R_i,
+\]
+where $R_i$ collects all terms of order two and higher in the Taylor expansion 
+of $u_i$ about $z^*$. Expanding explicitly:
+\[
+    R_i = \frac{1}{2}u_{xx}\,\Delta x_i^2 
+        + u_{xt}\,\Delta x_i\Delta t_i 
+        + \frac{1}{2}u_{tt}\,\Delta t_i^2 
+        + O(h^3).
+\]
+Assuming all points lie within a ball of radius $h$ around $z^*$, each 
+offset satisfies $|\Delta x_i|,\,|\Delta t_i| \leq h$, so every second-order 
+term is bounded by $Ch^2$ where 
+$C = \max(|u_{xx}|, |u_{xt}|, |u_{tt}|)$ evaluated at $(x^*, t^*)$. 
+Therefore $|R_i| \leq Ch^2$ for all $i$, and applying the triangle inequality:
+\[
+    |e| = \Bigl|\sum_i w_i R_i\Bigr| 
+        \leq \sum_i |w_i|\,|R_i| 
+        \leq \sum_i |w_i| \cdot Ch^2 
+        = \|w\|_1 \cdot C \cdot h^2.
+\]
+This gives the local reconstruction error bound
+\[
+    \boxed{|u^* - \hat{u}^*| \leq \|w\|_1 \cdot C \cdot h^2,} \label{eq: error_bound}
+\]
+where $\|w\|_1 = \sum_i |w_i|$. The bound has a natural interpretation: 
+accuracy depends on two independent factors. The geometric factor $Ch^2$ 
+improves as neighbours are placed closer to the target, while the weight 
+factor $\|w\|_1$ reflects the stability of the stencil, i.e., if the system produces large weights, it amplifies the reminder even if $h$ is relatively small.s
+
+
+\begin{remark}
+The bound generalises directly to any truncation order $p$. Keeping terms up
+to order $p$ gives $m = \tfrac{(p+1)(p+2)}{2}$ constraints in 1D.
+The first discarded terms are of order $p+1$, so
+\[
+  |u^* - \hat{u}^*| \;\leq\; \|w\|_1 \cdot C_p \cdot h^{p+1},
+\]
+where $C_p$ bounds the $(p+1)$-th order derivatives of $u$ near $(x^*,t^*)$.
+The system remains underdetermined as long as $n > m$, i.e.\
+$n > \tfrac{(p+1)(p+2)}{2}$.
+\end{remark}
+
+\begin{remark}
+Adding the PDE as an extra constraint (see \cref{sec:pde_constraint})
+shrinks the feasible set for $\bw$, which in general
+\emph{increases} $\normone{\bw}$ (by the minimum-norm property of
+the pseudoinverse), making the bound looser even though the stencil
+is more physically informed.
+\end{remark}
+\begin{remark}
+    For the numerical results for the error bound please check section (\ref{sec:exp2})
+\end{remark}
+
+\section{Incorporating the PDE as a Constraint}
+\label{sec:pde_constraint}
+The Taylor consistency constraints derived in Section~2.2 are PDE-agnostic: they
+guarantee that the predictor reproduces polynomials up to a given degree, but they
+treat all partial derivatives of $u$ as independent unknowns, and regardless what the PDE is, it will treat them all the same.
+When $u$ satisfies a known PDE, however, the partial derivatives are \emph{not}
+independent, and the PDE links them together.
+Exploiting this linkage allows us to reduce the number of constraints needed and enforcing the weights to be PDE constrained.
+
+We derive the constraint matrices explicitly for two cases: pure diffusion and
+advection diffusion PDE.
+
+% -------------------------------------------------------------------
+\subsubsection*{Case 1: Pure Diffusion \texorpdfstring{($u_t = \alpha u_{xx}$)}{}}
+% -------------------------------------------------------------------
+
+Starting from the Taylor expansion of a neighbour value $u_i$ about the target
+$z^* = (x^*, t^*)$:
+\begin{equation}
+    u_i = u^* + u_x \Delta x_i + u_t \Delta t_i
+          + \tfrac{1}{2} u_{xx} \Delta x_i^2 + u_{xt} \Delta x_i \Delta t_i
+          + \tfrac{1}{2} u_{tt} \Delta t_i^2 + \cdots
+\end{equation}
+Substituting into the predictor $\hat{u}^* = \sum_i w_i u_i$ and grouping
+by derivative gives:
+\begin{equation}
+    \hat{u}^* = u^* \sum_i w_i
+    + u_x    \sum_i w_i \Delta x_i
+    + u_t    \sum_i w_i \Delta t_i
+    + \tfrac{1}{2} u_{xx} \sum_i w_i \Delta x_i^2
+    + \cdots
+\end{equation}
+For this to equal $u^*$ the coefficient of every independent derivative must
+vanish.
+Without any PDE knowledge there are four independent first- and second-order
+derivatives ($u_x$, $u_t$, $u_{xx}$, $u_{xt}$, $u_{tt}$), requiring five constraints.
+
+Now impose $u_t = \alpha u_{xx}$.
+Substituting into the expansion:
+\begin{align}
+    \hat{u}^* &= u^* \sum_i w_i
+    + u_x    \sum_i w_i \Delta x_i
+    + \alpha u_{xx} \sum_i w_i \Delta t_i
+    + \tfrac{1}{2} u_{xx} \sum_i w_i \Delta x_i^2
+    + \cdots \\
+    &= u^* \sum_i w_i
+    + u_x \sum_i w_i \Delta x_i
+    + u_{xx} \sum_i w_i \!\left(\alpha \Delta t_i + \tfrac{1}{2}\Delta x_i^2\right)
+    + \cdots
+\end{align}
+Thus, our constraints become:e
+\begin{align}
+    \sum w_i&=1 \label{eq:diff_row1} \\
+    \sum_i w_i \Delta x_i &= 0 \label{eq:diff_row2}\\
+    \sum_i w_i \!\left(\alpha \Delta t_i + \tfrac{1}{2}\Delta x_i^2\right) &= 0
+    \label{eq:diff_row3}
+\end{align}
+So, the full matrix becomes $R^{3 \times n}$ constraint matrix and right-hand side are:
+\begin{equation}
+    A = \begin{pmatrix}
+        1 & 1 & \cdots & 1 \\
+        \Delta x_1 & \Delta x_2 & \cdots & \Delta x_n \\
+        \alpha \Delta t_1 + \tfrac{1}{2}\Delta x_1^2
+        & \alpha \Delta t_2 + \tfrac{1}{2}\Delta x_2^2
+        & \cdots
+        & \alpha \Delta t_n + \tfrac{1}{2}\Delta x_n^2
+    \end{pmatrix},
+    \qquad
+    b = \begin{pmatrix} 1 \\ 0 \\ 0 \end{pmatrix}.
+\end{equation} 
+\begin{remark}
+    The bound is $O(h^2)$ because we have 3 rows total, which is sufficient
+    to cancel all first-order terms after the PDE substitution.
+    Achieving $O(h^4)$ would require enough rows to cancel all third-order
+    terms as well, which demands at least 10 constraints in 2D space--time
+    regardless of how the PDE is used.
+\end{remark}
+
+% -------------------------------------------------------------------
+\subsubsection*{Case 2: Advection--Diffusion \texorpdfstring{($u_t = \alpha u_{xx} - c\, u_x$)}{}}
+% -------------------------------------------------------------------
+
+For the advection--diffusion equation the procedure is identical but the PDE
+couples $u_t$ to \emph{both} $u_{xx}$ and $u_x$.
+Substituting $u_t = \alpha u_{xx} - c\, u_x$ into the Taylor expansion and
+grouping by $u_x$ and $u_{xx}$:
+
+\begin{align}
+    \hat{u}^* &= u^* \sum_i w_i
+    + u_x \sum_i w_i \Delta x_i
+    + (\alpha u_{xx} - c\, u_x) \sum_i w_i \Delta t_i
+    + \tfrac{1}{2} u_{xx} \sum_i w_i \Delta x_i^2
+    + \cdots \\
+    &= u^* \sum_i w_i
+    + u_x    \sum_i w_i \!\left(\Delta x_i - c\, \Delta t_i\right)
+    + u_{xx} \sum_i w_i \!\left(\alpha \Delta t_i + \tfrac{1}{2}\Delta x_i^2\right)
+    + \cdots
+\end{align}
+
+Again two independent derivatives remain.
+Setting their coefficients to zero:
+\begin{align}
+    \sum_i w_i \!\left(\Delta x_i - c\, \Delta t_i\right) &= 0
+    \label{eq:adv_row2}\\
+    \sum_i w_i \!\left(\alpha \Delta t_i + \tfrac{1}{2}\Delta x_i^2\right) &= 0
+    \label{eq:adv_row3}
+\end{align}
+The full constraint matrix becomes:
+\begin{equation}
+    A = \begin{pmatrix}
+        1 & 1 & \cdots & 1 \\
+        \Delta x_1 - c\,\Delta t_1
+        & \Delta x_2 - c\,\Delta t_2
+        & \cdots
+        & \Delta x_n - c\,\Delta t_n \\
+        \alpha \Delta t_1 + \tfrac{1}{2}\Delta x_1^2
+        & \alpha \Delta t_2 + \tfrac{1}{2}\Delta x_2^2
+        & \cdots
+        & \alpha \Delta t_n + \tfrac{1}{2}\Delta x_n^2
+    \end{pmatrix},
+    \qquad
+    b = \begin{pmatrix} 1 \\ 0 \\ 0 \end{pmatrix}.
+\end{equation}
+This is exactly the matrix used in the implementation (see Section~3.3.3).
+
+\paragraph{Comparison with the augmented-row formulation.}
+Thus, we can think of the matrix $\tilde{A}$ as a combination of the taylor terms in addition to the PDE constraint:
+\begin{equation}
+    \tilde{A} = \begin{pmatrix} A_{\text{Taylor}} \\ \text{PDE row} \end{pmatrix}
+    \in \mathbb{R}^{(m+1)\times n}.
+\end{equation} 
+
+\begin{remark}
+    The weight factor $\|w\|_1$ is the dominant source of practical error
+    growth: even though $O(h^2)$ convergence is guaranteed in order,
+    a poorly conditioned stencil geometry can make $\|w\|_1$ large and
+    effectively destroy the bound.
+    This is discussed later in the computational sections.
+\end{remark}
+ 
+\subsubsection*{Exercise: Recovering the Explicit Heat Equation Scheme 
+via Constrained Reconstruction} 
+Given the heat equation $u_t = \alpha u_{xx}$, we reconstruct $u(x_*, t_*)$ from three values at time $t_* - \Delta t$:
+\[
+u_1 = u(x_* - \Delta x, t_* - \Delta t), \quad
+u_2 = u(x_*, t_* - \Delta t), \quad
+u_3 = u(x_* + \Delta x, t_* - \Delta t).
+\]
+We seek weights $(w_1, w_2, w_3)$ such that:
+\[
+u(x_*, t_*) \approx w_1 u_1 + w_2 u_2 + w_3 u_3.
+\]
+
+For this to equal $u_*$, we impose:
+\begin{align}
+\sum w_i &= 1 \quad \text{(constant reproduction)}, \label{eq:const} \\
+\sum w_i \Delta x_i &= 0 \quad \text{(cancel $u_x$ term)}, \label{eq:linear} \\
+u_t \sum w_i \Delta t_i + \frac{1}{2} u_{xx} \sum w_i \Delta x_i^2 &= 0 \quad \text{(cancel first-order error)}. \label{eq:error}
+\end{align}
+
+Substituting $u_t = \alpha u_{xx}$ into \eqref{eq:error}:
+\[
+\alpha \sum w_i \Delta t_i + \frac{1}{2} \sum w_i \Delta x_i^2 = 0.
+\]
+
+\subsection*{Evaluating the Sums}
+\begin{align*}
+\sum w_i \Delta x_i &= -\Delta x \, w_1 + 0 + \Delta x \, w_3 = \Delta x(w_3 - w_1), \\
+\sum w_i \Delta t_i &= -\Delta t(w_1 + w_2 + w_3) = -\Delta t, \\
+\sum w_i \Delta x_i^2 &= \Delta x^2(w_1 + w_3).
+\end{align*}
+
+\subsection*{Solving the System}
+From \eqref{eq:linear}: $w_3 = w_1$.
+
+From the PDE constraint:
+\[
+\alpha \cdot (-\Delta t) + \frac{1}{2} \cdot \Delta x^2(w_1 + w_3) = 0.
+\]
+Using $w_3 = w_1$:
+\[
+-\alpha \Delta t + w_1 \Delta x^2 = 0 \quad \Rightarrow \quad w_1 = \frac{\alpha \Delta t}{\Delta x^2}.
+\]
+
+From \eqref{eq:const}:
+\[
+w_2 = 1 - 2w_1 = 1 - \frac{2\alpha \Delta t}{\Delta x^2}.
+\]
+
+\subsection*{Solution}
+\[
+\boxed{
+w_1 = w_3 = \frac{\alpha \Delta t}{\Delta x^2}, \quad
+w_2 = 1 - \frac{2\alpha \Delta t}{\Delta x^2}.
+}
+\]
+
+\subsection*{Explicit Scheme}
+\begin{align*}
+u_j^n &= w_1 u_{j-1}^{n-1} + w_2 u_j^{n-1} + w_3 u_{j+1}^{n-1} \\
+&= \frac{\alpha \Delta t}{\Delta x^2} u_{j-1}^{n-1} + \left(1 - \frac{2\alpha \Delta t}{\Delta x^2}\right) u_j^{n-1} + \frac{\alpha \Delta t}{\Delta x^2} u_{j+1}^{n-1}.
+\end{align*}
+
+Rearranging:
+\begin{equation}
+\boxed{
+u_j^n = u_j^{n-1} + \frac{\alpha \Delta t}{\Delta x^2} (u_{j+1}^{n-1} - 2u_j^{n-1} + u_{j-1}^{n-1}).
+} \label{eq: fDStencil}
+\end{equation}
+
+
+This is the classical forward Euler scheme for $u_t = \alpha u_{xx}$.
+
+\subsection*{Stability}
+For non-negative weights:
+\[
+w_2 \geq 0 \quad \Rightarrow \quad \boxed{\frac{\alpha \Delta t}{\Delta x^2} \leq \frac{1}{2}.}
+\]
+This is the CFL stability condition.
+
+For a 5-point symmetric stencil with the same PDE constraint, the
+method recovers the standard 4th-order FD scheme computationally (see
+\cref{sec:fd4_recovery}).
+
+%% ============================================================
+\chapter{Reconstruction Environment}
+\label{chap:reconstruction}
+%% ============================================================
+\section{Overview}
+\label{sec:recon_overview}
+The reconstruction environment is defined as follows: given a growing cloud of evaluated space time points (i.e. neighbours), can it compute the solution at a new query point (i.e. the target point)? It will eventually serve as the step function for the RL agent, but is already fully operational as a standalone solver.
+The design follows a space time formulation: both $x$ and $t$ are treated as unstructured dimensions.
+Time is not marched in regular layers; instead, points are added to the cloud. Also, it is worth noting that the following notes take the diffusion advection equation as an example for the algorithm and later the numerical results.
+
+\section{Algorithm: Space--Time GFDM Rollout}
+\label{alg:algorithm}
+\begin{algorithm}
+\caption{Space--Time GFDM Rollout (current implementation)}
+\begin{algorithmic}[1]
+\State \textbf{Input:} PDE parameters $(\alpha,c)$; reference grid $(x_{\mathrm{FD}},t_{\mathrm{FD}})$; stencil size $n$; maximum number of accepted points $N_{\max}$.
+\State \textbf{Initialise:} evaluate the initial condition at all points $(x_i,0)$ and insert them into the visited set.
+\State Insert boundary-condition points $(0,t_j,0)$ and $(1,t_j,0)$ for all reference times $t_j$.
+\State Build an initial "candidate" set from reference-grid points in a local forward box above the initial condition where the .
+\While{candidate set non-empty and number of accepted interior points $< N_{\max}$}
+    \State Sample randomly a candidate target point from the candidate set (will be replaced with RL later).
+    \If{$z^*$ is too close to an already visited point}
+        \State reject and continue
+        \State\textbf{ might remove this}
+    \EndIf
+    \State Query previously visited points with $t_i < t^*$ using an expanding search in normalised space time coordinates (this should work for any time later).
+    \If{fewer than $n$ admissible neighbours are found (max box size)}
+        \State reject and continue
+    \EndIf
+    \State Form the offsets $\Delta x_i = x_i-x^*$ and $\Delta t_i = t_i-t^*$. 
+    \State Assemble the PDE-informed constraint matrix $A$ and right-hand side $b$.
+    \State Solve for the minimum-norm weight vector $w$.
+    \If{$A$ is ill-conditioned or $w$ fails the weight admissibility tests}
+        \State reject and continue
+    \EndIf
+    \State Compute the predicted value $\hat u^* = \sum_{i=1}^n w_i u_i$. 
+    \State Spawn new forward candidate points from a local box around $z^*$.
+\EndWhile
+\State \textbf{Output:} visited space--time cloud with predicted solution values.
+\end{algorithmic}
+\end{algorithm}
+
+\begin{remark}
+The neighbour search box is \emph{normalised}: the spatial and
+temporal extents are scaled separately because $\Delta x$ and
+$\Delta t$ have different natural sizes.
+The box is expanded geometrically until $n$ neighbours are found
+or a maximum scale is exceeded.
+\end{remark}
+
+\begin{remark}
+The use of FD in the background is a simplification at this stage. It is used for comparison and candidate choosing.
+It means the method is not fully mesh-free yet.
+\end{remark}
+\pagebreak
+\section{Constraint Matrix Choices}
+During implementation, it was noticed that weight construction from the matrix is not sufficient for a stable rollout.
+Thus, we define two additional constraints:
+\begin{enumerate}
+    \item Geometric conditions
+    \item weight conditions 
+\end{enumerate}
+Thus, the local predictor is determined not only by the choice of rows in $A$, but also by a stencil acceptance policy. Such conditions will help during the implementation of the RL part, as they enable the agent to learn which neighbours to choose. 
+\subsection{Geometric admissibility of the stencil}
+
+Let $z^* = (x^*,t^*)$ be a target point, and let
+\[
+\mathcal N(z^*) = \{z_i = (x_i,t_i)\}_{i=1}^n
+\] 
+For now, the rollou only takes neighbours from the past time, i.e.
+\[
+\Delta t_i < 0, \qquad i=1,\dots,n.
+\]
+The local reconstruction is attempted only if $\mathcal N(z^*)$ satisfies a geometric criterion. It is worth noting that the following constraints make the method less robust and very sensitive to the geometrical structure of the stencil. This is why other methods like Radial Basis Functions-FD and Generalized Moving Least Squares are yet to be discussed and compared to this one. 
+
+Define the spatial and temporal local scales
+\[
+h_x = \max_{neighbours} |\Delta x_i|, \qquad
+h_t = \max_{neighbours} |\Delta t_i|.
+\]
+The stencil is declared geometrically admissible if:
+
+\paragraph{Two-sided spatial coverage.}
+For interior reconstructions, the neighbour set must contain points on both sides of the target in the spatial direction:
+\[
+\min_i \Delta x_i < 0 < \max_i \Delta x_i.
+\] 
+This excludes one-sided interior stencils, which behave as extrapolation, and we noticed that those with such geometries perform poorly. Please note that 3 other constraints were tested, related to proximity (which will be later taken care of with RL), the distance between neighbours in the spatial dimension, and the condition number of the Gram Matrix of the set $dx_i$ and $dt_i$. It is worth noting that all of them were relaxed and didn't affect the error of our rollout, thus, they were removed. 
+
+\subsection{Weight admissibility and stability constraints}
+
+Given an admissible stencil $\mathcal N(z^*) \in \mathcal A_{\mathrm{geom}}$, the reconstruction weights are computed from a PDE-informed constrained system. For the advection--diffusion equation
+\begin{equation}
+    u_t + c\,u_x = \alpha u_{xx}, \label{diff_advection}
+\end{equation}
+the implementation uses the normalised matrix
+\[
+A(\mathcal N) =
+\begin{pmatrix}
+1 & 1 & \cdots & 1 \\
+\dfrac{\Delta x_1 - c\Delta t_1}{h_x} &
+\dfrac{\Delta x_2 - c\Delta t_2}{h_x} &
+\cdots &
+\dfrac{\Delta x_n - c\Delta t_n}{h_x} \\
+\dfrac{\frac12\Delta x_1^2 + \alpha \Delta t_1}{h_x^2} &
+\dfrac{\frac12\Delta x_2^2 + \alpha \Delta t_2}{h_x^2} &
+\cdots &
+\dfrac{\frac12\Delta x_n^2 + \alpha \Delta t_n}{h_x^2} \label{A_matrix}
+\end{pmatrix},
+\qquad
+b=
+\begin{pmatrix}
+1\\0\\0
+\end{pmatrix}.
+\]
+Thus the weight vector $w\in\mathbb R^n$ is defined by the least-squares/minimum-norm solution
+\[
+w = \arg\min_{\tilde w \in \mathbb R^n}\|\tilde w\|_2
+\quad
+\text{subject to}
+\quad
+A(\mathcal N)\tilde w \approx b,
+\]
+which numerically is computed through
+\[
+w = \mathrm{lstsq}(A,b).
+\]
+Since $A\in\mathbb R^{3\times n}$ and the implementation uses $n=5$, this is an underdetermined system with a minimum-norm solution.
+
+The resulting weight vector is accepted only if it satisfies the following stability constraints.
+
+\paragraph{Partition of unity.}
+The constant-reproduction constraint is rechecked numerically by requiring
+\[
+\left|\sum_{i=1}^n w_i - 1\right| \le 10^{-6}.
+\]
+This guarantees that the reconstruction remains a consistent value predictor after the numerical solve. Removing it didn't affect the number of points taken; however, it was kept as a sanity check, and it is computationally cheap
+
+\paragraph{No dominant coefficient.}
+To prevent the local predictor from collapsing onto a single neighbour, the largest weight magnitude is required to satisfy
+\[
+\max_{1\le i\le n}|w_i|
+\;\le\;
+\frac{\gamma_w}{n},
+\]
+where in the implementation
+\[
+\gamma_w = 3.
+\]
+For $n=5$, this gives the explicit bound
+\[
+\max_i |w_i| \le 0.6.
+\]
+This criterion suppresses highly localised weight patterns, which in practice are associated with unstable extrapolatory behaviour.
+
+\paragraph{Lower bound on negative weights.}
+The weight vector is further required to satisfy
+\[
+\min_{1\le i\le n} w_i \ge w_{\min},
+\qquad
+w_{\min}=-1.
+\]
+This does not enforce positivity, but excludes excessively negative coefficients, which tend to produce oscillatory cancellation and error amplification.
+
+ 
+for which the computed solution $w$ survive the mentioned constraints. The predicted value is then
+\[
+\hat u(z^*) = \sum_{i=1}^n w_i u(z_i).
+\]
+ 
+
+\chapter{Numerical Experiments}
+\label{chap:experiments}
+\section{Exp 1: Stencil Accuracy vs.\ \# of Neighbours}
+\label{sec:exp1}
+
+\subsection{Setup}
+
+We fix $m=3$ Taylor terms (constant, $\Delta x$, $\Delta t$) and
+vary the number of neighbours $n \in \{2, 3, 6, 10\}$.
+For each $n$, we draw neighbours uniformly at random in a disk of
+radius $r = 0.1$ around a fixed target, compute weights via the
+pseudoinverse, and measure the average prediction error against
+the true solution $u(x,t) = \sin(\pi x)\cos(\pi t)$ over 100
+random targets.
+
+\subsection{Results}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.55\textwidth]{Figures/error_vs_neighbours.png}
+
+    \caption{Average prediction error as a function of the number
+    of neighbours $n$, with $m=3$ Taylor constraints.
+    Error drops sharply from $n=2$ to $n=3$, then saturates near
+    $2\times10^{-3}$ for $n \ge 6$, confirming that the
+    underdetermined regime ($n > m$) is optimal.}
+    \label{fig:error_vs_nb}
+\end{figure}
+
+\subsection{Discussion}
+
+Following the empirical observation of \cite{benito2001gfdm}, a ratio of $n=2m$ neighbours to Taylor constraints is generally sufficient; beyond this point the minimum-norm weights stabilise and additional neighbours bring negligible accuracy gain, a trend confirmed by Figure 4.1
+
+\section{Experiment 2: Error Bound Verification}
+\label{sec:exp2}
+
+We verify the inequality (\ref{eq: error_bound}) numerically.
+For $m=3$, $n=5$ and the test function $u(x,t) = \sin(\pi
+x)\cos(\pi t)$ (so $C = \pi^2 |\sin(\pi x^*)\cos(\pi t^*)|$), it is worth mentioning that no PDE constraints were added to the matrix $A$:
+\begin{itemize}
+    \item \textbf{Fixed target, shrinking $h$}: both the true error
+    and the bound scale as $O(h^2)$, confirming the convergence rate.
+    \item \textbf{Random targets at fixed $r=0.1$}: over 80 random
+    target points, the true error lies below the bound in all cases.
+\end{itemize}
+The bound is tight to within a factor of $\sim 10$ for typical
+geometries.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/error_prop.png}
+    \caption{Error bound verification for $m=3$, $n=5$,
+    $u(x,t)=\sin(\pi x)\cos(\pi t)$.\\
+    \textbf{Left:} example point cloud showing 5 neighbours within
+    disk of radius $r=0.12$ around a target point, with effective
+    radius $h=0.114$.\\
+    \textbf{Centre:} true error and bound vs.\ $h$ for a fixed target
+    with shrinking $r$, comparing fixed geometry (same directions
+    scaled) and random geometry (fresh sample at each $r$); both
+    error curves are parabolic, confirming $O(h^2)$ convergence
+    regardless of geometry.\\
+    \textbf{Right:} scatter of true error vs.\ bound over 80 random
+    target points at fixed $r=0.1$; all points lie below the diagonal,
+    confirming the bound holds in every case.
+    The bound is tight to within a factor of ${\sim}10$ for typical
+    geometries.}
+    \label{fig:exp2_error_bound}
+\end{figure}
+\section{Experiment 3: Recovery of Standard FD Stencils}
+\label{sec:exp3}
+
+\subsection{2nd-order (FTCS) stencil}
+\label{sec:ftcs_recovery}
+
+We try to verify the theoretical results obtained in (\ref{eq: fDStencil}) with $n=3$ neighbours
+on a regular grid, the recovered weights match the classical FTCS
+weights to machine precision.
+Weight comparison is shown in \cref{fig:weights_2nd}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Figures/2nd_order_method.png}
+    \caption{Left: weight comparison (our method vs.\ FD) for the
+    3-point stencil --- values agree exactly.
+    Centre: solution snapshot at $t=0.202$.
+    Right: mean error over time; our method vs.\ FD vs.\ true solution.
+    The error between our method and FD is at the level of
+    $10^{-14}$, confirming exact recovery.}
+    \label{fig:weights_2nd}
+\end{figure}
+
+\subsection{4th-order stencil}
+\label{sec:fd4_recovery}
+
+With $n=5$ neighbours,
+the recovered weights match the standard 4th-order FD coefficients
+to machine precision (\cref{fig:weights_4th}).
+At boundaries, the stencil is skewed: all five neighbours are taken
+on one side, maintaining 4th-order accuracy without ghost points.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Figures/4th_order_method.png}
+    \caption{Same layout as \cref{fig:weights_2nd} for the 5-point
+    stencil.
+    The centre weight is essentially zero (the stencil has no
+    self-coupling), consistent with the standard 4th-order FD
+    formula.
+    Error between our method and FD is at the level of $10^{-13}$.}
+    \label{fig:weights_4th}
+\end{figure}
+\pagebreak
+
+
+\section{Experiment 4: Full Space--Time Rollout}
+\label{sec:exp4}
+
+\subsection{Setup}
+
+
+We run \cref{alg:algorithm} on the advection--diffusion equation
+\eqref{diff_advection} using the constraint matrix \eqref{A_matrix}.
+A fine FD grid serves both as the reference solution and as the pool
+of candidate evaluation locations. The run produces 30{,}000 solution points, evaluated against the true analytical solution.
+
+\subsection{Results}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ll}
+        \toprule
+        Metric & Value \\
+        \midrule
+        Points computed & 30{,}000 \\
+        Mean error (vs.\ true) & $3.15 \times 10^{-4}$ \\
+        Max error (vs.\ true) & $2.79 \times 10^{-3}$ \\
+        Maximum time reached & $t_{\max} = 0.223$ \\
+        Total attempts & 133{,}722 \\
+
+        \bottomrule
+    \end{tabular}
+    \caption{Full rollout performance on the advection--diffusion equation,
+    evaluated against the analytical solution.}
+    \label{tab:rollout_results}
+\end{table}
+
+
+\begin{figure}[h]
+    \centering
+    
+    \includegraphics[width=0.8\textwidth]{Figures/Figure 3.png}
+    
+    \caption{Left: spatial temporal cloud of 30{,}000 visited points coloured
+    by pointwise error $|u - u_{\mathrm{true}}|$. The error is uniformly
+    small across the domain.
+    Right: solution slice at $t = 0.0183$.}
+    \label{fig:rollout_visited}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Figures/Figure 4.png}
+    
+    \caption{Zoomed view of a representative stencil at point
+    $(0.343, 0.1174)$. The five neighbours (blue squares) are
+    scattered below the target (red circle),
+    with the search box shown in pink.}
+    \label{fig:rollout_stencil}
+\end{figure}
+
+
+Out of 133{,}722 total attempts, 30{,}000 points were successfully
+computed. The rejection breakdown is as follows:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{lrr}
+        \toprule
+        Rejection reason & Count & Fraction \\
+        \midrule
+        No neighbours found & 10 & 0.0\% \\
+        Geometry (ill-conditioned $\mathbf{A}$) & 17{,}776 & 13.3\% \\
+        Condition number threshold & 46{,}876 & 35.1\% \\
+        Weight norm threshold & 39{,}060 & 29.2\% \\
+        \bottomrule
+    \end{tabular}
+    \caption{Rejection breakdown for the full rollout.
+    The dominant failure modes are poor conditioning of the local
+    system (35\%) and large weight norms (29\%), both of which are
+    direct manifestations of the error bound \eqref{sec:error_bound}:
+    large $\mathrm{cond}(\mathbf{A})$ and large $\|w\|_1$ indicate
+    stencils that would amplify the reconstruction error.}
+    \label{tab:rejection}
+\end{table}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/Figure 5.png}
+    \caption{Left two panels: total accumulated error and running average
+    error as a function of number of points evaluated, comparing the
+    present method (GFDM, blue) and FD (orange) against the analytical
+    solution. Right two panels: scatter of per-point error
+    vs.\ condition number of the local $\mathbf{A}$ matrix and vs.\
+    $\ell_1$ norm of the weights. In both cases the present method
+    (blue) clusters systematically below FD (orange), consistent with
+    the error bound \eqref{eq: error_bound}.}
+    \label{fig:rollout_errors}
+\end{figure}
+\subsection{Discussion}
+
+The dominant failure modes --- conditioning and weight norm rejections
+--- are not arbitrary numerical thresholds. They are direct consequences
+of the error bound \eqref{eq:error_bound}: the bound predicts that
+large $\|w\|_1$ amplifies the remainder $Ch^2$, so rejecting high
+weight-norm stencils is a principled quality control step, not a
+heuristic filter. The fact that 77{,}936 out of 133{,}722 attempts
+(58\%) were rejected on these grounds points to a clear direction for
+improvement: the current random candidate selection wastes a large
+fraction of attempts on geometrically poor stencils. This is precisely
+the gap the RL agent is intended to fill --- by learning to select
+candidates that are likely to produce well-conditioned stencils with
+small weight norms, the agent can dramatically reduce the rejection
+rate and improve wall time. The 1499 s wall time for 30{,}000 points is a known bottleneck and will be addressed by replacing the
+expanding-box neighbour search with a $k$-d tree spatial index.\chapter{Reinforcement Learning Formulation}
+
+\section{Motivation for RL-Based Point Placement}
+
+
+So far, what we have tested is the GFDM system that works on random choice of particle movement; what we need to now is to form the RL environment to see whether the reinforcement learning agent will be able to discover the integration schemes that emerge from the physics without feeding the agent any details about the physics. 
+
+First thing to do was to set up the environment (Gymnasium, and PDE) to be able to choose how the policy works and whole setup will be like.
+
+First thing we did was to build the initial
+
+
+The reconstruction environment developed in Chapter~\ref{chap:reconstruction} is fully
+operational as a standalone solver, but the candidate point selection it currently employs
+is purely random: at each step, a target point is drawn uniformly from a pre-defined
+finite-difference grid and accepted only if it passes the geometric and weight admissibility
+tests of Section~\ref{sec:admissibility}. This strategy is demonstrably wasteful, as shown
+in Table~\ref{tab:rejection}, but wasteful is not the core problem --- \emph{uninformed}
+is.
+
+The deeper issue is that random selection is blind to the causal structure of the PDE.
+For any target point $z^* = (x^*, t^*)$, the accuracy of the GFDM prediction depends
+critically on the quality of the support structure built below it in space--time. A
+collection of evaluation points that respects the domain of dependence of the PDE will
+produce well-conditioned stencils and accurate predictions; a collection that ignores it
+will not, regardless of how many points are evaluated.
+
+This motivates the central question of the RL component: \emph{given a target point
+$z^*$, can an agent learn, purely from the terminal prediction error, an optimal strategy
+for placing intermediate evaluation points in space--time?}
+
+The answer should be physically interpretable. For pure diffusion, the domain of
+dependence of $(x^*, t^*)$ is a parabola spreading backward in time, and the optimal
+support structure should resemble a tree that fans out spatially as it recedes in $t$. For
+pure advection, information travels along a single characteristic $x - ct = \mathrm{const}$,
+and the optimal path should collapse to a line. For advection--diffusion, the optimal
+structure interpolates between these two extremes, with the fan width governed by the
+P\'{e}clet number $\mathrm{Pe} = c / (2\alpha)$. The RL agent is not told any of this; it
+must discover the structure from the reward signal alone. Whether it does so --- and
+whether the discovered structure matches the theoretical domain of dependence --- is the
+primary scientific question.
+
+\section{Problem Setup}
+
+We fix a target point $z^* = (x^*, t^*)$ on the reference grid. A set of $N$ walkers
+$\{z_i^{(k)}\}_{i=1}^N$ is initialised at the initial condition:
+\begin{equation}
+    z_i^{(0)} = (x_i, 0), \quad i = 1, \ldots, N,
+\end{equation}
+where $\{x_i\}$ are $N$ uniformly spaced nodes on $[0, 1]$. Each walker carries a
+solution value $u_i^{(k)}$ computed by the GFDM reconstruction at its current position.
+
+Separately, the algorithm maintains a growing visited list
+\begin{equation}
+    \mathcal{V}^{(k)} = \{(z_j, u_j)\}
+\end{equation}
+of all space--time points evaluated so far, including the initial condition and boundary
+conditions. The visited list is the data structure used by the GFDM neighbour search and
+is entirely decoupled from the RL state: it is not observed by the agent, and its size
+grows unboundedly without affecting the state dimension.
+
+An episode terminates when any walker lands within a prescribed tolerance $\varepsilon$
+of $z^*$, at which point the GFDM prediction at $z^*$ is computed and the terminal
+reward is issued.
+
+\section{MDP Formulation}
+
+We cast the point-placement problem as a finite-horizon Markov Decision Process
+$(\mathcal{S}, \mathcal{A}, \mathcal{R}, \mathcal{T}, \gamma)$.
+
+\subsection{State Space}
+
+The state at step $k$ is a fixed-size vector encoding the current position and solution
+value of each walker, together with the global target:
+\begin{equation}
+    s^{(k)} = \bigl[x_1^{(k)},\, t_1^{(k)},\, u_1^{(k)},\;
+                    \ldots,\;
+                    x_N^{(k)},\, t_N^{(k)},\, u_N^{(k)},\;
+                    x^*,\, t^*\bigr]
+              \in \mathbb{R}^{3N + 2}.
+    \label{eq:state}
+\end{equation}
+
+The target coordinates $(x^*, t^*)$ are appended once as a global context, not repeated
+per walker, giving state dimension $3N + 2$. This is fixed throughout the episode
+regardless of how many points have been added to the visited list. Including $z^*$ in the
+state is essential for interpretability: the agent learns a policy \emph{conditioned on
+the target}, so after training one can vary $z^*$ systematically and observe how the
+learned trajectory structure changes --- collapsing to a characteristic line for
+advection-dominated targets, or fanning into a tree for diffusion-dominated ones.
+
+The walker state is updated only when a GFDM solve is accepted. If the solve is
+rejected, the walker remains at its previous position and $s^{(k+1)} = s^{(k)}$ for that
+walker.
+
+\subsection{Action Space}
+
+At each step $k$, a shared policy $\pi_\theta$ is applied independently to each walker.
+For walker $i$, the policy observes the local state tuple $(x_i^{(k)}, t_i^{(k)},
+u_i^{(k)}, x^*, t^*)$ and outputs a discrete displacement:
+\begin{equation}
+    ({\delta x}_i,\, {\delta t}_i) \in
+    \{-K_x, \ldots, K_x\} \cdot \Delta x_{\mathrm{FD}}
+    \;\times\;
+    \{0, 1, \ldots, K_t\} \cdot \Delta t_{\mathrm{FD}},
+    \label{eq:action}
+\end{equation}
+where $K_x = 4$ and $K_t = 4$ in the current implementation, giving $|\mathcal{A}| =
+(2K_x + 1)(K_t + 1) = 45$ possible actions per walker. Time displacements are
+restricted to $\delta t_i \geq 0$ to enforce causality.
+
+The proposed new position for walker $i$ is:
+\begin{equation}
+    z_i^{\mathrm{new}} = \bigl(x_i^{(k)} + \delta x_i,\; t_i^{(k)} + \delta t_i\bigr).
+\end{equation}
+
+Before the GFDM solve is attempted, $z_i^{\mathrm{new}}$ is checked against the visited
+list $\mathcal{V}^{(k)}$. If a point within tolerance $\varepsilon_{\mathrm{col}}$
+already exists in $\mathcal{V}^{(k)}$, the move is treated as a collision and rejected
+without attempting the solve; the walker state is unchanged. This prevents duplicate
+entries in the visited list and wasted evaluations. A displacement of $(\delta x_i, \delta
+t_i) = (0, 0)$ is valid and results in an immediate collision rejection, effectively
+allowing a walker to stay in place for one step.
+
+The policy is shared across all walkers. Since it is applied independently to each
+walker's local state tuple, the number of policy parameters does not grow with $N$, and
+the per-walker forward passes are parallelisable.
+
+\subsection{Reward Function}
+ 
+The reward is sparse: no signal is issued during the episode, and a single terminal reward
+is given when a walker reaches $z^*$:
+\begin{equation}
+    r^{(k)} = 0 \quad \text{for all } k < K_{\mathrm{term}},
+    \label{eq:dense_reward}
+\end{equation}
+\begin{equation}
+    r^{(K_{\mathrm{term}})} = -\bigl|\hat{u}(z^*) - u_{\mathrm{true}}(z^*)\bigr|
+                               - \lambda \, K_{\mathrm{term}},
+    \label{eq:terminal_reward}
+\end{equation}
+where $\hat{u}(z^*)$ is the GFDM prediction at $z^*$ using the visited list at
+termination, $u_{\mathrm{true}}(z^*)$ is the analytical solution, $K_{\mathrm{term}}$
+is the total number of steps taken to reach $z^*$, and $\lambda > 0$ is a
+hyperparameter controlling the accuracy--efficiency tradeoff.
+ 
+The step count $K_{\mathrm{term}}$ includes both accepted and rejected moves. This is
+intentional: a rejection wastes a step without advancing the visited list, so the agent
+is penalised for attempting geometrically poor locations --- not because rejection is
+explicitly discouraged, but because it consumes time budget without contributing to
+the support structure around $z^*$.
+ 
+The tradeoff governed by $\lambda$ is the central tension of the problem. A large
+$\lambda$ produces a fast but potentially inaccurate agent that rushes toward $z^*$
+with minimal intermediate support (the straight-line failure mode). A small $\lambda$
+produces a thorough agent that builds a dense support structure at the cost of more
+evaluations (the slow dense-coverage mode). The optimal policy at intermediate $\lambda$
+is the physically motivated strategy: build just enough support structure to achieve
+accurate predictions efficiently. Sweeping $\lambda$ and observing how the learned
+trajectory structure changes --- from characteristic-following at high $\lambda$ to
+ 
+\emph{how} to build the support structure --- no stencil quality metrics, no distance
+penalties, no shaping terms beyond the step cost. Any trajectory structure that emerges
+is therefore a genuine discovery: the agent found it because it leads to accurate terminal
+predictions efficiently, not because the reward explicitly encoded it.
+ 
+In deployment, $u_{\mathrm{true}}$ is unavailable. A PDE residual estimate computed
+from the local GFDM stencil at $z^*$ will replace it; the design of this estimator is left
+to future work.
+
+ 
+\section{Expected Emergent Structure and Validation}
+
+The primary validation is interpretive, not just numerical. After training, the learned
+policy is probed by fixing $z^*$ at various locations and visualising the walker
+trajectories in the $x$--$t$ plane. Specifically:
+
+\begin{itemize}
+    \item \textbf{Advection-dominated} ($\mathrm{Pe} \gg 1$): trajectories should
+          collapse toward the characteristic $x - ct = x^* - ct^*$, with little spatial
+          fanning.
+    \item \textbf{Diffusion-dominated} ($\mathrm{Pe} \ll 1$): trajectories should fan
+          out into a tree structure whose width grows with $\sqrt{\alpha(t^* - t)}$,
+          matching the parabolic domain of dependence.
+    \item \textbf{Intermediate regime}: fan width should scale with $\mathrm{Pe}^{-1}$,
+          interpolating between the two extremes.
+\end{itemize}
+
+If the learned trajectories match the theoretical domain of dependence, this constitutes
+evidence that the agent has implicitly learned the causal structure of the PDE from
+terminal accuracy alone --- a result that goes beyond engineering utility and speaks to
+the representational capacity of learned solvers.
+ 
+\chapter{Conclusions and Next Steps  \textcolor{r ed}{TO BE REVIEWED}}
+\label{chap:conclusions}
+%% ============================================================
+
+\section{Summary of Completed Work}
+\label{sec:summary}
+
+The following components are complete and validated:
+
+\begin{enumerate}
+    \item \textbf{Taylor-constrained local predictor.}
+    Derived from first principles; error bound proved and verified
+    numerically.
+
+    \item \textbf{Recovery of classical FD stencils.}
+    The 2nd-order (FTCS) and 4th-order FD schemes are exactly
+    recovered as special cases of the framework, providing a
+    strong consistency check.
+
+    \item \textbf{Full space--time rollout.}
+    The algorithm produces 25{,}000 solution points for the
+    advection--diffusion equation with mean error
+    $2.34 \times 10^{-3}$ against a fine FD reference.
+
+    \item \textbf{Failure mode characterisation.}
+    A convergence study at three resolutions identifies the
+    dominant failure modes (neighbour scarcity, ill-conditioning,
+    weight norm growth) and their dependence on point density.
+\end{enumerate}
+
+\section{Immediate Next Steps}
+\label{sec:next_steps}
+
+\begin{enumerate}
+    \item \textbf{Speed up neighbour search.}
+    Replace the expanding-box search with a $k$-d tree or
+    ball-tree spatial index to reduce wall time by at least an
+    order of magnitude.
+ 
+
+    \item \textbf{RL environment interface.}
+  s
+
+    \item \textbf{UQ formalisation.}
+    Extend the preliminary UQ study to quantify uncertainty in the
+    solution cloud and use it as an exploration signal for the
+    RL agent.
+
+    \item \textbf{RL agent design and training.}
+    Begin with a simple policy (greedy on local error estimate)
+    as a baseline, then move to a learned policy (e.g.\ DQN or
+    PPO on the discretised action space).
+\end{enumerate}
+\bibliographystyle{plain}
+\bibliography{reference}
+\end{document}
