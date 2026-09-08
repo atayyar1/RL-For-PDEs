@@ -1,0 +1,249 @@
+%% ================================================================
+%%  BODY SKELETON -- paste between \begin{document} and \end{document}
+%%  in the Overleaf template, after the preamble block.
+%%
+%%  PAGE BUDGET (8 pp excluding references). Track it as we fill:
+%%    1 Introduction ............ 1.00
+%%    2 Related Work ............ 0.50
+%%    3 Reconstruction .......... 1.25
+%%    4 The MDP ................. 1.50
+%%    5 Experiments ............. 2.50
+%%    6 Where It Breaks ......... 1.00
+%%    7 Limitations & Outlook ... 0.25
+%%                        total = 8.00
+%%
+%%  Sections can be filled in ANY order. Every one is self-contained
+%%  and carries a \label, so \cref works before its neighbours exist.
+%% ================================================================
+
+\maketitle
+
+\begin{abstract}
+\TODO{abstract --- write LAST, once section 5 is settled. Roughly 150 words:
+the question (geometry vs. weights), the MDP in one sentence, the headline
+number, the wall at long horizons and its named cause.}
+\end{abstract}
+
+% ================================================================
+\section{Introduction}
+\label{sec:intro}
+% Target: 1.00 page. Write LAST but for the abstract -- it must promise
+% exactly what section 5 delivers, no more.
+% Beats: (i) world models are rolled out globally, physical AI needs
+% query-driven local prediction; (ii) a scheme = geometry + weights, and
+% only the geometry was ever a free choice; (iii) the question; (iv) why
+% the answer is interesting either way; (v) contributions.
+% ================================================================
+
+\TODO{section 1}
+
+\paragraph{Contributions.}
+\TODO{3--4 bullets. Keep each one to a claim we can point at a figure for.}
+
+% ================================================================
+\section{Related Work}
+\label{sec:related}
+% Target: 0.50 page. Three \paragraph blocks, no subsections.
+% MUST cite the RL-for-AMR line explicitly -- a reviewer who knows it and
+% does not see it cited will assume we do not. State the three
+% differentiators plainly: single query vs. global mesh; space--time vs.
+% spatial mesh per step; consistency structural vs. learned.
+% ================================================================
+
+\paragraph{Neural surrogates for PDEs.}
+\TODO{operator learning / physics-informed nets --- one or two sentences
+positioning them as global-rollout models.}
+
+\paragraph{Reinforcement learning for mesh adaptation.}
+\TODO{the closest prior work. \CITE{yang2021 rl-amr}, \CITE{foucart2023 deep-rl-amr},
+\CITE{freymuth2023 swarm-amr}. Then the three differentiators.}
+
+\paragraph{Meshfree and generalised finite differences.}
+\TODO{GFDM lineage --- establishes that the reconstruction operator is
+standard, so the novelty is unambiguously the placement policy.}
+
+% ================================================================
+\section{Reconstruction: Consistency by Construction}
+\label{sec:recon}
+% Target: 1.25 pages. This is SETUP, not contribution -- it earns its space
+% only by establishing that every scheme the agent can express is
+% consistent. If the paper runs long, cut here first, never section 5.
+% Equations lift verbatim from MAIN.tex ch. 2 (notation macros match).
+% ================================================================
+
+\subsection{Local linear prediction and the moment conditions}
+\label{sec:recon_taylor}
+\TODO{predictor $\uhat = \bw^\top \bu$; moment conditions; underdetermined
+$n > m$; minimum-norm solution $\bw = \bA^+ \bb$.}
+
+\subsection{Substituting the PDE into the expansion}
+\label{sec:recon_pde}
+\TODO{substitution vs. augmentation; the three-row constraint matrix;
+order $p$ needs $p+1$ rows, not $(p+1)(p+2)/2$.}
+
+\subsection{Error bound and the role of $\normone{\bw}$}
+\label{sec:recon_bound}
+\TODO{$|\ux - \uhat| \le \normone{\bw}\, C h^2$; positivity $\Rightarrow$
+convex combination $\Rightarrow \normone{\bw} = 1$ $\Rightarrow$ linear
+rather than geometric error accumulation. This is the hook that
+section~\ref{sec:breaks} pays off --- set it up carefully here.}
+
+% ================================================================
+\section{Placement as a Markov Decision Process}
+\label{sec:mdp}
+% Target: 1.50 pages. The section an ML reviewer reads hardest.
+% Lead with the framing: the actions are COMPUTATIONS, not physical motions.
+% ================================================================
+
+\subsection{State}
+\label{sec:mdp_state}
+\TODO{$\R^{2N+2}$: walker offsets relative to $\zstar$ in grid units, plus
+$t^*/\Delta t$ and $x^*/\Delta x$. Say plainly that the visited set is NOT
+observed --- it is a POMDP and we should own that, not hide it.}
+
+\subsection{Actions and admissibility masking}
+\label{sec:mdp_action}
+\TODO{$\Aset$, the flattened $N \times |\Aset|$ discrete space, and why
+masking was necessary: a rejected move leaves the observation unchanged,
+so a deterministic policy re-selects it forever. Numerical admissibility
+(two-sided coverage, conditioning) supplies the mask.}
+
+\subsection{Termination}
+\label{sec:mdp_term}
+\TODO{the bubble; and the key design point --- the stopping rule asks the
+same question as the scoring rule, i.e. "does an admissible stencil exist
+at $\zstar$", not "are $n$ points nearby".}
+
+\subsection{Reward}
+\label{sec:mdp_reward}
+\TODO{$-w_{\mathrm{err}} \enorm - w_{\mathrm{time}} (K/\Kmax)$, the log
+normalisation of $\enorm$, and potential-based shaping. Worth stating that
+the shaping is policy-invariant (telescopes to a constant), so it is a
+variance knob and not a change of objective.}
+
+\subsection{Policy architecture and training}
+\label{sec:mdp_policy}
+\TODO{flattened joint softmax and why the factored/MultiDiscrete form
+failed; MaskablePPO, $\gamma = 1$, hyperparameters.}
+
+% \begin{algorithm}[t]
+% \caption{One episode of query-driven placement}
+% \label{alg:episode}
+% \begin{algorithmic}[1]
+% \TODO{pseudocode}
+% \end{algorithmic}
+% \end{algorithm}
+
+% ================================================================
+\section{Experiments}
+\label{sec:exp}
+% Target: 2.50 pages. The load-bearing section. Nothing here may live in
+% an appendix -- the workshop has no supplementary upload.
+% ================================================================
+
+\subsection{Setup}
+\label{sec:exp_setup}
+\TODO{viscous Burgers via Hopf--Cole; grid; what the agent is given
+(initial condition and boundaries) and what it must compute (the interior).
+Be exact about this --- it is the claim most likely to be probed.}
+
+\subsection{Does the policy learn?}
+\label{sec:exp_learn}
+\TODO{learning curves: reached rate, terminal error, steps to termination.
+The masked-random baseline goes here as the floor.}
+
+% \begin{figure}[t]
+%   \centering
+%   \TODO{learning curves figure}
+%   \caption{\TODO{caption}}
+%   \label{fig:learning}
+% \end{figure}
+
+\subsection{Cost of a single query}
+\label{sec:exp_workprecision}
+\TODO{work--precision: terminal error vs. number of evaluated points, for
+the learned policy, masked-random, and a uniform grid march, at matched
+error. THE headline claim.}
+
+% \begin{figure}[t]
+%   \centering
+%   \TODO{work-precision figure}
+%   \caption{\TODO{caption}}
+%   \label{fig:workprecision}
+% \end{figure}
+
+\subsection{What geometry does the policy discover?}
+\label{sec:exp_geometry}
+\TODO{the visited cloud; envelope fit $w \propto \tau^p$ to separate
+diffusive ($p \approx 1/2$) from characteristic ($p \approx 1$) from
+shortest-path artifact. Note: at short horizons $\enorm \equiv 0$, so the
+tent shape there proves nothing --- use the horizon where accuracy is
+actually active.}
+
+% \begin{figure}[t]
+%   \centering
+%   \TODO{trajectory / envelope figure}
+%   \caption{\TODO{caption}}
+%   \label{fig:geometry}
+% \end{figure}
+
+\subsection{Ablations}
+\label{sec:exp_ablation}
+\TODO{pick from the experimental record: masking on/off, state version,
+reward era, bubble radius. One compact table beats four small plots.}
+
+\begin{table}[t]
+  \centering
+  \caption{\TODO{ablation caption}}
+  \label{tab:ablation}
+  \TODO{ablation table}
+\end{table}
+
+% ================================================================
+\section{Where the Method Breaks}
+\label{sec:breaks}
+% Target: 1.00 page. The payoff of the framing -- do not bury this and do
+% not apologise for it. We asked a question, got a partial yes, and can
+% name the obstruction exactly.
+% ================================================================
+
+\subsection{The long-horizon wall}
+\label{sec:breaks_wall}
+\TODO{where and how it fails as $t^*$ grows.}
+
+\subsection{The obstruction is stability, not learning}
+\label{sec:breaks_why}
+\TODO{the amplification argument: $\normone{\bw} > 1$ gives geometric
+rather than linear error growth; a coordinated front gives
+$\normone{\bw} = 1$, an isolated zigzagging walker does not. Emphasise
+that conditioning does not detect this --- both geometries pass
+$\mathrm{cond}(\bA) < 10^4$ comfortably.}
+
+% ================================================================
+\section{Limitations and Outlook}
+\label{sec:conclusion}
+% Target: 0.25 page. Be direct. Single initial condition, reward needs the
+% exact solution, POMDP state. Then the one-sentence outlook.
+% ================================================================
+
+\TODO{section 7}
+
+\begin{ack}
+\TODO{funding / compute / acknowledgements. Not anonymised --- this
+workshop is single-blind.}
+\end{ack}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+% Create refs.bib in the Overleaf project. Nothing after this line counts
+% toward the 8 pages.
+
+% ================================================================
+%  APPENDIX -- same PDF, after the references. There is NO supplementary
+%  upload on OpenReview, so anything here must be strictly optional:
+%  extra trajectory figures, the full experimental record table.
+%  Never put a load-bearing result here.
+% ================================================================
+% \appendix
+% \section{Full experimental record}
+% \label{app:record}

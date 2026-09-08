@@ -1,0 +1,106 @@
+folder                    run                                               seed     imgs  Msteps  reach0  reach1      err0      err1
+---------------------------------------------------------------------------------------------------------------------------------------
+Archives/runs,NEW22       t50_errtol0.001_werr0.7_wtime0.1_N50_c0.1         seed7      47     4.7    0.58    0.37  3.57e-03  1.66e-01
+Archives/runs,NEW22       t5_errtol1e-05_werr0.8_wtime0.2_N50_c0.05         seed7      42     2.0    0.17    0.99  6.14e-03  1.20e-03
+Archives/runs,NEW23       t50_errtol0.001_werr0.9_wtime0.1_N30_c0           seed7      19     2.0    0.55    0.41  3.20e-01  4.38e-01
+Archives/runs,NEW23       t50_errtol0.001_werr1_wtime0.1_N50_c0             seed7      51     4.9    0.03    0.17  1.61e-01  3.89e-01
+Archives/runs,NEW23       t50_errtol0.25_werr0.7_wtime0.1_N50_c0.1          seed7      10     1.0    0.43    0.12  1.15e-01  3.74e-01
+Archives/runs1            t10_lam0.001_beta1000_K250_N25                    seed3      46     4.5    0.23    1.00  4.67e-04  6.68e-05
+Archives/runs1            t10_lam0.001_beta1000_K250_N25                    seed4      46     4.5    0.96    1.00  3.24e-04  2.21e-05
+Archives/runs1            t10_lam0.001_beta100_K150_N21                     seed1      17     1.8    0.32    0.91  1.34e-04  2.38e-04
+Archives/runs1            t10_lam0.001_beta100_K200_N21                     seed2      26     2.6    0.88    0.91  1.68e-04  8.69e-05
+Archives/runs1            t10_lam0.001_beta100_K250_N25                     seed2      31     3.1    0.55    0.97  8.81e-05  4.12e-05
+Archives/runs1            t15_lam0.001_beta100_K250_N27                     seed2      46     4.5    0.02    0.00  2.25e-04  2.70e-04
+Archives/runs1            t15_lam0.001_beta100_K250_N27                     seed3      46     4.5    0.04    0.00  1.90e-04  1.64e-04
+Archives/runs1            t15_lam0.001_beta100_K250_N27                     seed4      46     4.5    0.01    0.00  2.95e-04  3.96e-04
+Archives/runs1            t5_lam0.001_beta10000_K50_N15                     seed3      21     2.2    0.57    1.00  4.73e-05  9.47e-07
+Archives/runs1            t7_lam0.001_beta100_K100_N15                      seed1      10     1.0    0.93    0.98  1.03e-04  1.81e-05
+Archives/runs1            t7_lam0.001_beta101_K50_N15                       seed4      18     1.8    0.25    0.99  7.67e-05  2.09e-05
+Archives/runs10           t10_lam0.01_beta100000_K500_N45                   seed5      31     3.0    0.55    0.97  3.49e-05  2.96e-05
+Archives/runs10           t10_lam0.01_beta10000_K500_N45                    seed2      50     5.0    0.67    1.00  2.52e-04  6.49e-02
+Archives/runs13           t10_lam0.01_beta100000_K500_N45                   seed5      48     4.8    0.55    1.00  3.49e-05  7.19e-02
+Archives/runs13           t10_lam0.01_beta10000_K200_N26                    seed5      36     3.0    0.35    1.00  3.69e-04  4.31e-05
+Archives/runs14           t10_lam0.01_beta10000_K200_N26                    seed5      36     3.0    0.27    1.00  6.71e-03  2.02e-05
+Archives/runs14           t5-10-15-20_lam0.01_beta10000_N26                 seed5      28     2.8    0.28    0.47  1.51e-04  6.82e-02
+Archives/runs14           t5-7-10-15_lam0.01_beta10000_N26                  seed5     100    10.0    0.30    0.83  7.12e-05  2.96e-04
+Archives/runs14           t5-7-10_lam0.01_beta10000_N26                     seed5      50     5.0    0.38    0.94  6.15e-05  2.00e-03
+Archives/runs15           t50_lam0.01_beta10000_N90_c0.01                   seed23     33     3.3    0.02    0.07  3.62e-04  1.67e-01
+Archives/runs15           t50_lam0.01_beta10000_N90_c0.01                   seed3     535    53.5    0.02    0.07  6.90e-05  4.96e-02
+Archives/runs15           t50_lam0.01_beta1000_N90                          seed7      11     1.1    0.65    0.50  5.44e-04  3.91e-04
+Archives/runs15           t50_lam0.01_beta1000_N90                          seed8      66     6.6    0.62    0.37  8.86e-05  3.35e-02
+Archives/runs15           t5_lam0.01_beta10000_N26                          seed52     11     1.0    0.31    1.00  1.61e-05  1.15e-06
+Archives/runs16           t50_lam0.01_beta10000_N90_c0.05                   seed5     266    26.6    1.00    1.00  9.63e-04  4.21e-02
+Archives/runs17           t50_lam0.01_beta100000_N90_c0.05                  seed5    1000   100.0    0.81    0.43  9.40e-02  4.55e-01
+Archives/runs2            t15_lam0.001_beta1000_K500_N25                    seed2      13     1.4    0.46    0.44  4.03e-03  1.74e-02
+Archives/runs2            t15_lam0.001_beta1000_K500_N25                    seed3      46     4.5    0.31    0.46  1.87e-04  1.22e-04
+Archives/runs2            t5_lam0.001_beta1000_K500_N25                     seed2      12     1.3    0.73    1.00  7.52e-05  4.90e-06
+Archives/runs20           t10_lam0.01_beta1000_N1                           seed8      11     1.0    0.18    0.99  1.13e-04  8.02e-05
+Archives/runs20           t20_lam0.01_beta1000_N1                           seed8      11     1.0    0.16    0.98  5.52e-04  2.24e-05
+Archives/runs20           t30_lam0.01_beta1000_N1                           seed8      11     1.0    0.13    0.99  1.51e-02  5.01e-04
+Archives/runs20           t30_lam0.01_beta1000_N1_x25                       seed3      11     1.0    0.02    0.99  1.19e-03  5.62e-04
+Archives/runs20           t30_lam0.01_beta1000_N1_x25                       seed7      11     1.0    0.11    0.97  3.42e-01  1.13e-03
+Archives/runs20           t30_lam0.01_beta1000_N1_x25                       seed8      11     1.0    0.22    0.99  7.94e-02  7.14e-04
+Archives/runs20           t5_lam0.01_beta1000_N1                            seed8      11     1.0    0.20    1.00  2.69e-05  4.29e-06
+Archives/runs21           t5-10-15-20_lam0.005_beta2000_N30_c0.02           seed5     500    50.0    0.10    0.16  6.14e-05  8.36e-03
+Archives/runs21           t50_lam0.005_beta2000_N50_c0.01                   seed6      10     1.1    0.18    0.15  1.09e-01  3.06e-01
+Archives/runs21           t50_lam0.005_beta2000_N50_c0.02                   seed5      22     2.2    0.00    0.04  4.45e-01  2.99e-01
+Archives/runs21           t50_lam0.005_beta2000_N50_c0.02                   seed6      55     5.5    0.18    0.26  1.39e-01  2.45e-01
+Archives/runs21           t5_lam0.01_beta100000_N30_c0.1                    seed5      11     1.0    0.14    0.94  1.11e-06  3.08e-07
+Archives/runs22           t50_lam0.0005_beta150_N80_c1                      seed55     21     2.0    0.00    0.10  2.32e-01  9.99e-03
+Archives/runs22           t50_lam0.005_beta20000_N85_c0.03                  seed7     500    50.0    0.01    0.00  1.17e-01  3.67e-01
+Archives/runs22           t50_lam0.005_beta2000_N50_c0.01                   seed6       9     0.9    0.00    0.00         -         -
+Archives/runs22           t50_lam0.005_beta2000_N50_c0.01                   seed7      45     4.5    0.00    0.00  3.12e-02  3.12e-02
+Archives/runs22           t50_lam0.005_beta2000_N80_c0.01                   seed7      13     1.3    0.00    0.06  1.22e-01  3.16e-01
+Archives/runs3            t5_lam0.001_beta1000_K500_N25                     seed4      46     4.5    0.76    1.00  7.14e-05  2.51e-06
+Archives/runs30           runs30                                            curriculum_t10_lam0.001_beta100_K100_seed1   31     3.0    0.24    0.97  1.66e-04  1.62e-04
+Archives/runs30           runs30                                            curriculum_t10_lam0.001_beta100_K101_seed2   41     4.0    0.09    0.98  1.31e-04  2.68e-04
+Archives/runs30           runs30                                            curriculum_t15_lam0.001_beta100_K500_seed1   41     4.0    0.34    0.82  1.67e-04  1.55e-04
+Archives/runs6            t10_lam0.001_beta1000_K100_N25                    seed5     100    10.0    0.10    1.00  3.45e-02  1.87e-05
+Archives/runs6            t9_lam0.001_beta1000_K100_N25                     seed4     100    10.0    0.55    0.95  3.04e-02  3.72e-04
+Archives/runs7            t10_lam0.001_beta1000_K500_N25                    seed4      41     4.0    0.55    0.99  5.29e-04  3.87e-05
+Archives/runs7            t10_lam0.01_beta1000_K200_N28                     seed6      10     1.1    0.60    1.00  4.14e-04  1.84e-05
+Archives/runs7            t15_lam0.01_beta1000_K400_N45                     seed5     100    10.0    0.38    0.96  3.70e-04  5.11e-05
+Archives/runs7            t5_lam0.01_beta1000_K200_N28                      seed6      11     1.1    0.84    1.00  8.07e-05  1.15e-05
+Archives/runs7            t5_lam0.1_beta1000_K200_N28                       seed4      14     1.5    0.86    1.00  8.22e-05  1.44e-04
+Archives/runs7            t5_lam0_beta1000_K200_N28                         seed4      61     6.0    0.86    0.99  6.67e-05  4.67e-06
+Archives/runs7-23         t50_errtol0.001_werr1_wtime0.1_N50_c0             seed3      67     6.6    0.39    0.55  8.79e-02  2.01e-01
+Archives/runs7-23         t50_errtol0.001_werr1_wtime0.1_N50_c0             seed4      24     2.5    0.45    0.60  1.35e-01  1.84e-01
+Archives/runs722          t10_lam0.005_beta20000_N50_c0.5                   seed7      21     2.0    0.57    1.00  2.52e-03  1.23e-06
+Archives/runs722          t5_errtol0.001_werr0.8_wtime0.2_N50_c0.05         seed7      12     1.2    0.14    0.98  1.62e-02  5.99e-03
+Archives/runs8            t10_lam0.01_beta100000_K500_N45                   seed6     100     5.0    0.49    0.57  6.99e-05  1.16e-04
+Archives/runs8            t5_lam0.01_beta10000_K500_N45                     seed3      50     5.0    0.56    1.00  1.46e-05  3.80e-06
+Archives/runs8            t5_lam0.01_beta10000_K500_N45                     seed4      50     5.0    0.73    0.88  9.87e-06  1.48e-05
+Archives/runs8            t5_lam0.01_beta10000_K500_N45                     seed6      50     5.0    0.80    1.00  9.95e-06  2.71e-06
+Archives/runs8            t5_lam0.01_beta1000_K500_N45                      seed3      50     5.0    0.69    1.00  1.22e-05  1.50e-05
+Archives/runs8            t5_lam0.01_beta5000_K500_N45                      seed3      50     5.0    0.52    1.00  9.93e-06  1.05e-05
+Archives/runs9            t10_lam0.01_beta10000000_K500_N45                 seed6     150    15.0    0.55    0.29  4.38e-05  5.97e-05
+Archives/runs9            t10_lam0.01_beta1000000_K500_N45                  seed6     150    15.0    0.57    0.10  3.77e-05  5.50e-05
+Archives/runs9            t10_lam0.01_beta10000_K500_N45                    seed6     150    15.0    0.65    1.00  5.35e-05  5.47e-06
+Archives/runs9            t10_lam0.01_beta1000_K500_N45                     seed6     150    15.0    0.70    1.00  1.16e-04  2.18e-04
+Archives/runs9            t5_lam0.01_beta10000_K500_N45                     seed4      21     2.0    0.61    0.97  8.59e-06  4.73e-06
+Archives/runs9            t5_lam0.01_beta10000_K500_N45                     seed7      21     2.0    0.70    1.00  8.88e-06  3.24e-07
+Archives/runs_adv7        t5_lam0.01_beta1000_K400_N25                      seed5      11     1.0    0.83    1.00  6.12e-03  1.93e-04
+Archives/runs_adv8        t5_lam0.001_beta1000_K400_N25                     seed8      31     3.0    0.87    0.97  5.27e-03  1.51e-04
+Archives/runs_adv8        t5_lam0.001_beta1000_K400_N25,geometry_constrain  seed6      11     1.0    0.56    0.43  5.30e-03  4.26e-03
+Archives/runs_adv8        t5_lam0.001_beta1000_K400_N25,geometry_constrain  seed7      11     1.0    0.67    1.00  4.56e-03  3.97e-04
+Taylor linear predictor/r t100_errtol0.001_werr1_wtime0.1_N90_c0.0001_R4    seed10    212    21.3    1.00    1.00  1.89e-03  7.25e-04
+Taylor linear predictor/r t10_errtol0.001_werr1_wtime0.1_N50_c0_R2          seed4      11     1.0    0.34    0.90  5.34e-05  5.58e-05
+Taylor linear predictor/r t50_errtol0.001_werr1_wtime0.1_N50_c0.01_R4       seed4      51     5.0    0.92    0.99  7.71e-02  2.67e-01
+Taylor linear predictor/r t50_errtol0.001_werr1_wtime0.1_N50_c0_R4          seed10    101    10.0    1.00    1.00  4.30e-04  1.73e-03
+Taylor linear predictor/r t50_errtol0.001_werr1_wtime0.1_N50_c0_R4          seed5     103    10.0    0.83    0.98  9.83e-02  1.89e-01
+Taylor linear predictor/r t10_errtol0.001_werr1_wtime0.1_N30_c0.001_R3      seed10     43     4.3    0.98    1.00  7.62e-04  2.20e-04
+Taylor linear predictor/r t10_errtol0.001_werr1_wtime0.1_N30_c0.001_R3      seed10     20     2.1    0.98    1.00  7.62e-04  2.21e-04
+Taylor linear predictor/r t10_errtol0.001_werr1_wtime0.1_N30_c0.001_R3      seed6      31     3.0    0.97    1.00  1.36e-03  4.28e-04
+Taylor linear predictor/r t10_errtol1e-06_werr1_wtime0.1_N30_c0.001_R3      seed10    101    10.0    0.97    1.00  1.02e-03  4.77e-05
+Taylor linear predictor/r t50_errtol0.001_werr1_wtime0.1_N30_c0.001_R3      seed6     194    19.4    0.95    0.96  2.85e-02  1.45e-01
+Taylor linear predictor/r t50_errtol0.001_werr1_wtime0.1_N35_c0.001_R3      seed6    1001   100.0    0.79    0.65  4.17e-03  6.87e-03
+Taylor linear predictor/r t50_errtol1e-05_werr1_wtime0.1_N50_c0.001_R3      seed10   1001   100.0    1.00    0.99  1.22e-02  1.02e-02
+Taylor linear predictor/r t50_errtol0.001_werr1_wtime0.1_N35_c0.1_R3        seed6    1001   100.0    0.66    0.58  4.83e-03  1.10e-02
+Taylor linear predictor/r t15_errtol0.001_werr1_wtime0.1_N50_c0.1_R3        seed6     101    10.0    0.23    0.97  3.46e-04  4.92e-04
+Taylor linear predictor/r t20_errtol0.001_werr1_wtime0.1_N50_c0.1_R3        seed6     201    20.0    0.01    0.98  2.44e-04  5.29e-04
+Taylor linear predictor/r t20_errtol0.001_werr1_wtime0.1_N70_c0.3_R3        seed6     201    20.0    0.00    0.96  1.26e-03  5.83e-04
+Taylor linear predictor/r t25_errtol0.0001_werr1_wtime0.1_N70_c0.3_R2       seed6     501    50.0    0.42    0.99  6.76e-04  5.49e-04
+Taylor linear predictor/r t25_errtol0.001_werr1_wtime0.1_N70_c0.3_R3        seed6     251    25.0    0.06    0.99  6.11e-04  1.92e-03
+Taylor linear predictor/r t100_errtol0.0001_werr1_wtime0.1_N70_c0.3_R5      seed6      87     8.7    0.56    0.47  1.57e-02  7.47e-02
+Taylor linear predictor/r t100_errtol0.003_werr1_wtime0.1_N90_c0.3_R5       seed6     455    45.6    1.00    1.00  3.72e-02  2.62e-01
+Taylor linear predictor/t t10_errtol0.0003_werr1_wtime0.1_N30_c0.3_R4       seed3     101    10.0    1.00    1.00  1.32e-03  7.51e-05

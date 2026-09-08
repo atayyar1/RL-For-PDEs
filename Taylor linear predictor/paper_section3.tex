@@ -1,0 +1,197 @@
+% ============================================================
+%  Section 3 --- Reconstruction: Consistency by Construction
+%  Target length ~1.5 pages.
+% ============================================================
+
+\section{Reconstruction: Consistency by Construction}
+\label{sec:reconstruction}
+
+This section fixes the operator the agent will call. Its purpose in the paper
+is to establish two things: that the weights are determined by the geometry, so
+that choosing points is choosing a scheme; and that the accuracy of the result
+is controlled by two quantities, one of which will turn out to set the ceiling
+we report in \cref{sec:breaks}.
+
+% ------------------------------------------------------------
+\subsection{Local linear prediction and the moment conditions}
+\label{sec:recon_moments}
+% ------------------------------------------------------------
+
+Let $u$ be a smooth field on a space--time domain. Given a query
+$z^{*} = (x^{*}, t^{*})$ and $n$ previously evaluated neighbours
+$z_i = (x_i, t_i)$ with values $u_i$, we predict
+%
+\begin{equation}
+  \hat{u}^{*} \;=\; \sum_{i=1}^{n} w_i\,u_i \;=\; \mathbf{w}^{\top}\mathbf{u},
+  \label{eq:predictor}
+\end{equation}
+%
+with offsets $\Delta x_i = x_i - x^{*}$ and $\Delta t_i = t_i - t^{*}$.
+Expanding each $u_i$ about $z^{*}$ and substituting into
+\eqref{eq:predictor} groups the result by derivative; requiring the
+coefficient of every derivative to vanish gives the moment conditions
+%
+\begin{equation}
+  \sum_{i=1}^{n} w_i\,\Delta x_i^{\,k}\,\Delta t_i^{\,\ell}
+  \;=\;
+  \begin{cases}
+    1, & k = \ell = 0,\\
+    0, & 1 \le k + \ell \le p,
+  \end{cases}
+  \label{eq:moments}
+\end{equation}
+%
+which state that the predictor reproduces every polynomial of degree at most
+$p$. In matrix form $\mathbf{A}\mathbf{w} = \mathbf{b}$ with
+$\mathbf{A} \in \mathbb{R}^{m \times n}$, one row per retained term and one
+column per neighbour, and $\mathbf{b} = (1,0,\dots,0)^{\top}$.
+
+We work in the underdetermined regime $n > m$ and take the minimum-norm
+solution $\mathbf{w} = \mathbf{A}^{+}\mathbf{b}$. This is the standard GFDM
+choice~\cite{benito2001,gavete2003}, and \cref{sec:recon_bound} gives the
+reason to prefer it: among all stencils that reproduce polynomials of degree
+$\le p$, it selects the one with the smallest weights, and the weight norm
+enters the error bound directly.
+
+The point to carry forward is that \eqref{eq:moments} involves the neighbour
+\emph{positions} and nothing else. Once the points are chosen, $\mathbf{w}$
+follows. There is no freedom left to tune.
+
+% ------------------------------------------------------------
+\subsection{Substituting the PDE into the expansion}
+\label{sec:recon_pde}
+% ------------------------------------------------------------
+
+The conditions \eqref{eq:moments} are PDE-agnostic: they treat every partial
+derivative as independent. When $u$ satisfies a known equation they are not
+independent, and the linkage can be used to \emph{remove} rows rather than add
+them.
+
+For advection--diffusion, $u_t + c\,u_x = \alpha u_{xx}$, substituting for
+$u_t$ and regrouping leaves only two independent derivatives, so
+$\mathbf{A}$ has three rows:
+%
+\begin{equation}
+  \mathbf{A} =
+  \begin{pmatrix}
+    1 & \cdots & 1 \\[2pt]
+    \Delta x_1 - c\,\Delta t_1 & \cdots & \Delta x_n - c\,\Delta t_n \\[2pt]
+    \tfrac12\Delta x_1^{2} + \alpha\,\Delta t_1 & \cdots &
+    \tfrac12\Delta x_n^{2} + \alpha\,\Delta t_n
+  \end{pmatrix},
+  \qquad
+  \mathbf{b} = \begin{pmatrix}1\\0\\0\end{pmatrix}.
+  \label{eq:A_advdiff}
+\end{equation}
+%
+Rows two and three are the moment conditions for the equation's own lowest
+polynomial solutions --- $1$, $\xi$, and $\xi^{2} + 2\alpha t$ in the
+characteristic coordinate $\xi = x - ct$ --- so the substitution is not an
+approximation but a statement that the predictor should be exact on the
+solutions the PDE admits.
+
+\paragraph{Substitution, not augmentation.}
+The PDE can also be imposed by appending a row to the full Taylor system. That
+is strictly worse. Appending constraints to an already underdetermined problem
+can only increase $\min\|\mathbf{w}\|$, which loosens the bound of
+\cref{sec:recon_bound}; substitution removes rows and moves in the opposite
+direction. For $n = 5$ neighbours at radius $r = 0.05$ on an exact heat
+solution, the three formulations give
+$\|\mathbf{w}\|_1 = 1.443$ with error $6.4\times10^{-3}$ (no PDE),
+$9.482$ with $3.4\times10^{-4}$ (appended), and
+$\mathbf{1.000}$ with $\mathbf{5.2\times10^{-6}}$ (substituted).
+
+\paragraph{Cost of higher order.}
+Substitution also changes how the cost of accuracy scales. Without the PDE,
+order $p$ requires $(p+1)(p+2)/2$ rows in one space dimension plus time; with
+every time derivative eliminated, the independent basis reduces to powers of
+the spatial coordinate alone and order $p$ requires $p+1$. Fourth order needs
+four rows and five neighbours rather than ten and eleven.
+
+\paragraph{Nonlinear equations.}
+For Burgers' equation, $u_t + u\,u_x = \alpha u_{xx}$, the advection
+coefficient is solution-dependent. Since $u(z^{*})$ is the unknown, $c$ is
+frozen at the neighbourhood mean $\hat{c} = n^{-1}\sum_i u_i$ and substituted
+into \eqref{eq:A_advdiff}. This is a single Picard iteration: the equation is
+linearised locally using the data already available, and the incurred error is
+of the order of the variation of $u$ across the stencil, vanishing with the
+stencil radius at the same rate as the truncation error.
+
+\paragraph{The classical schemes are special cases.}
+On a regular grid the construction returns the textbook stencils exactly. With
+three neighbours one level below the query, \eqref{eq:A_advdiff} with $c = 0$
+yields $w = (r,\,1-2r,\,r)$ with $r = \alpha\Delta t/\Delta x^{2}$ --- the
+forward-Euler scheme --- and with five neighbours it returns the standard
+fourth-order coefficients, both to machine precision
+(\cref{fig:fd_recovery}). The schemes a numerical analyst would write down are
+therefore points in the space the agent of \cref{sec:mdp} searches, which is
+what makes the search well posed.
+
+% ------------------------------------------------------------
+\subsection{Error bound and the role of \texorpdfstring{$\|\mathbf{w}\|_1$}{the weight norm}}
+\label{sec:recon_bound}
+% ------------------------------------------------------------
+
+Under \eqref{eq:moments} with $p = 1$ the prediction error is carried entirely
+by the second-order remainder, $u^{*} - \hat{u}^{*} = -\sum_i w_i R_i$ with
+$R_i = \tfrac12\,\Delta z_i^{\top} H\,\Delta z_i$, $H$ the Hessian of $u$ at
+$z^{*}$. Writing $h = \max_i \|\Delta z_i\|_2$ for the stencil radius and
+$C = \max(|u_{xx}|,|u_{xt}|,|u_{tt}|)$, symmetry of $H$ gives
+$\|H\|_2 \le 2C$ and hence
+%
+\begin{equation}
+  \bigl|u^{*} - \hat{u}^{*}\bigr|
+  \;\le\;
+  \|\mathbf{w}\|_1 \cdot C \cdot h^{2}.
+  \label{eq:error_bound}
+\end{equation}
+%
+Over $80$ randomly sampled queries the bound holds in every case, with a
+worst-case ratio of $0.55$ between the true error and the bound.
+
+The bound factorises into two quantities a placement policy can control: a
+\emph{geometric} factor $Ch^{2}$, which improves as neighbours are drawn in
+toward the query, and a \emph{weight} factor $\|\mathbf{w}\|_1$, which measures
+how much the stencil amplifies whatever error the neighbour values already
+carry. The tension between them --- tight stencils are accurate but risk
+becoming ill-conditioned --- is what makes placement non-trivial.
+
+\paragraph{Positivity and error accumulation.}
+The first row of $\mathbf{A}$ enforces $\sum_i w_i = 1$. If in addition
+$w_i \ge 0$ for all $i$, then $\|\mathbf{w}\|_1 = 1$ and $\hat{u}^{*}$ is a
+convex combination of its neighbours, so
+$\min_i u_i \le \hat{u}^{*} \le \max_i u_i$: the reconstruction obeys a
+discrete maximum principle. This matters because \eqref{eq:error_bound} is a
+\emph{local} statement that assumes exact neighbour values, and in a rollout
+the neighbours are themselves predictions. Since \eqref{eq:predictor} is linear
+in the neighbour values, the accumulated error $E^{(k)}$ after $k$ successive
+reconstructions satisfies $E^{(k)} \le \|\mathbf{w}\|_1 E^{(k-1)} + \tau$ for
+local truncation error $\tau$, so that
+%
+\begin{equation}
+  E^{(k)} \;\le\;
+  \begin{cases}
+    E^{(0)} + k\,\tau, & \|\mathbf{w}\|_1 = 1,\\[4pt]
+    \|\mathbf{w}\|_1^{\,k}E^{(0)}
+      + \tau\,\dfrac{\|\mathbf{w}\|_1^{\,k}-1}{\|\mathbf{w}\|_1-1},
+      & \|\mathbf{w}\|_1 > 1.
+  \end{cases}
+  \label{eq:accumulation}
+\end{equation}
+%
+Positivity is therefore the line between error that grows \emph{linearly} in
+the number of prediction levels and error that grows \emph{geometrically}. On
+a regular three-point stencil the condition reduces to $w_2 \ge 0$, that is
+$\alpha\Delta t/\Delta x^{2} \le \tfrac12$ --- the CFL condition. Condition
+\eqref{eq:positivity} is its generalisation to unstructured space--time
+stencils.
+
+\paragraph{Conditioning does not see it.}
+It is tempting to screen stencils by $\operatorname{cond}(\mathbf{A})$, and the
+reconstruction environment does so. But conditioning and the weight norm are
+independent properties of a stencil, and a threshold on the first does not
+control the second. \Cref{sec:breaks} shows that the two geometries the agent
+actually produces differ by a factor of two in $\|\mathbf{w}\|_1$ while their
+condition numbers differ by less than thirty percent, both passing any
+reasonable threshold --- and that this, rather than any failure of learning, is
+what limits the horizon the method can reach.

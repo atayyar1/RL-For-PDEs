@@ -1,0 +1,246 @@
+% ================================================================
+%  SECTION 4 -- rev 2, after reading ch. 5 of RL_for_PDEs__Ali_Tayyar.pdf
+%  Target: 2.00 pages (rebalanced from 1.50; see note in chat).
+%  Sources: thesis ch. 5 (pp. 27-38) + current notebook code.
+%  Where the two disagree, the CODE is authoritative and the disagreement
+%  is flagged inline.
+% ================================================================
+
+\section{Placement as a Markov Decision Process}
+\label{sec:mdp}
+
+Once the neighbour set is chosen, nothing else is free: the weights follow
+from the moment conditions of \cref{sec:recon}, and the error is bounded by
+$\normone{\bw}\, C h^2$. The only open choice is which points to evaluate,
+and in every classical method that choice is made in advance --- by a grid,
+or by a refinement rule written by hand. We give it to an agent instead.
+
+An action is then a decision to spend one evaluation. A single episode
+answers a single query $\zstar = (x^*, t^*)$: it spends evaluations until the
+operator admits an admissible stencil at $\zstar$, and is scored on the error
+it achieves there and on how many evaluations that took.
+
+The agent works through $N$ \emph{walkers}, initialised on the initial
+condition, each carrying a solution value. The environment maintains a
+visited set $\Vset$ holding every evaluated point --- the initial condition,
+the boundary values, and every accepted solve. At each step the agent picks
+one walker and one displacement. The proposal is checked against the domain
+bounds and against $\Vset$ for collision; if it survives, a solve is
+attempted there using neighbours from $\Vset$. On success the point joins
+$\Vset$ and the walker moves; on failure the walker stays and the step is
+recorded as a rejection.
+
+\subsection{State}
+\label{sec:mdp_state}
+
+The observation is the walker configuration expressed relative to the query,
+\begin{equation}
+  s = \Bigl(\tfrac{x_1 - x^*}{\Delta x}, \ldots, \tfrac{x_N - x^*}{\Delta x},\;
+            \tfrac{t_1 - t^*}{\Delta t}, \ldots, \tfrac{t_N - t^*}{\Delta t},\;
+            \tfrac{t^*}{\Delta t},\; \tfrac{x^*}{\Delta x} \Bigr)
+  \in \R^{2N+2}.
+  \label{eq:state}
+\end{equation}
+Every entry is a displacement in grid cells. This matters because the
+quantities that govern admissibility --- two-sided coverage, collision,
+conditioning --- all live at cell resolution and do not rescale with the
+horizon. An earlier absolute-coordinate state carried no information about
+the discretisation scale: nothing in the pair $(0.05, 0.1)$ tells the policy
+whether the query is five time steps away or five hundred. A fractional
+parameterisation $t/t^*$ was considered and rejected for the mirror-image
+reason: it makes ``one cell from the target'' mean $0.02$ at one horizon and
+$0.1$ at another, blinding the agent precisely where the problem is not
+scale-free.
+
+Two omissions are deliberate. The solution values $u_i$ are not observed, so
+the policy chooses geometry without seeing the field it reconstructs. More
+consequentially, $\Vset$ is not observed either, even though it is $\Vset$
+--- not the walker positions --- that determines whether a stencil is
+admissible and how accurate the prediction is. The problem is therefore
+partially observed, and the walker configuration is a summary statistic
+rather than a state. We keep it because the walkers generate $\Vset$, so
+their configuration is informative about it, and because a fixed-size
+observation is what allows one policy to serve queries at different
+locations; \cref{sec:conclusion} returns to the cost of this choice.
+
+\subsection{Actions and admissibility masking}
+\label{sec:mdp_action}
+
+A walker steps to a neighbouring cell,
+\begin{equation}
+  \Aset = \{-1, 0, +1\} \times \{+1, +2\}
+  \quad\text{in units of } (\Delta x, \Delta t),
+  \label{eq:actions}
+\end{equation}
+so evaluations always advance in time. Displacements with $\delta t = 0$ were
+removed after they were observed to consume roughly half of all actions:
+walkers advance monotonically in time and $\Vset$ already contains their own
+trail, so a move at fixed $t$ almost always lands on an occupied cell. The
+cost of removing them is recorded --- no walker can reposition laterally
+without also advancing --- so lateral coverage of a time level must come
+from having several walkers at different $x$ rather than from any one walker
+spreading out.
+
+A joint action selects both a walker and its move, giving a discrete space of
+size $N \cdot |\Aset|$, decoded as $i = \lfloor a / |\Aset| \rfloor$,
+$j = a \bmod |\Aset|$. The flattened form matters. Factoring the policy into
+independent walker and displacement heads,
+$\pi(i,j \mid s) = \pi^{\mathrm{w}}(i \mid s)\,\pi^{\mathrm{m}}(j \mid s)$,
+is a rank-one outer product, and what lives in the missing dimensions is
+exactly the correlation between which walker moves and where it goes. An
+optimal policy of the form ``if walker 3, go left; if walker 7, go right''
+is not expressible: putting mass on walkers $\{3,7\}$ and moves
+$\{\text{left},\text{right}\}$ necessarily also puts mass on
+$(3, \text{right})$ and $(7, \text{left})$. Under deterministic rollout the
+arg-max is assembled from two near-uniform marginals and lands on a pair the
+policy never intended, which is what opened a gap between sampled and greedy
+performance. A single softmax over the joint table is full-rank and closes
+the gap by construction.
+
+Not every action is available. A proposal is masked if it leaves the domain
+or the ceiling $t^* + R\,\Delta t$; if its target cell is already in $\Vset$;
+or if a previous attempt there failed to admit a stencil, in which case the
+cell is blocked until $\Vset$ has grown by a further $k$ points, on the
+reasoning that the available stencil will have changed by then. The first
+two are computable before acting; the third is not, since whether a solve
+succeeds is only discovered by attempting it. Masking is therefore not a
+static function of position --- it accumulates the episode's own history of
+failed solves.
+
+Masking was the single most consequential implementation change. A rejected
+proposal leaves \cref{eq:state} unchanged, since the walker does not move. A
+policy is a function of the observation, so having selected an action that is
+rejected it is presented with the identical observation and selects the
+identical action indefinitely; two-action cycles were also observed.
+Stochastic sampling escapes such cycles only by wasting a large fraction of
+the budget. Maskable PPO \CITE{huang2022masking} renormalises over admissible
+actions and makes the pathology unreachable rather than merely improbable.
+
+\subsection{Termination}
+\label{sec:mdp_term}
+
+A box of half-width $R$ cells is placed around the query,
+$B_R(\zstar) = \{(x,t) : |x - x^*| \le R\,\Delta x,\; |t - t^*| \le R\,\Delta t\}$,
+and the episode terminates when $\zstar$ admits an admissible stencil drawn
+from $B_R(\zstar)$, or when a budget of $\Kmax$ steps is exhausted. No walker
+need land on $\zstar$. Walkers may rise above the query, up to
+$t^* + R\,\Delta t$, so the box can be populated from both sides in time; the
+final solve is correspondingly non-causal, whereas every intermediate solve
+during the rollout uses causal neighbours only.
+
+The stopping rule deliberately asks the same question as the scoring rule
+--- \emph{does an admissible stencil exist at $\zstar$} --- rather than the
+cheaper proxy \emph{are $n$ evaluated points nearby}. The distinction is not
+cosmetic. Under the proxy an episode can satisfy termination and then fail
+its final solve, receiving the worst accuracy penalty regardless of anything
+the agent did; the reward is then constant across those episodes and carries
+no gradient. \TODO{quote the fraction of episodes affected under the proxy
+rule --- roughly 0.8 in the diagnosis. Verify before quoting.}
+
+\subsection{Reward}
+\label{sec:mdp_reward}
+
+The return is terminal, and both branches are scored by the same expression.
+On termination the operator is applied at $\zstar$ and the error
+$e = |\ux - \uhat|$ is compressed onto a bounded scale,
+\begin{equation}
+  \enorm = \mathrm{clip}\!\left(
+    \frac{\log_{10}(e / \etol)}{3},\; 0,\; 1 \right),
+  \qquad
+  r = -\,w_{\mathrm{err}}\,\enorm \;-\; w_{\mathrm{time}}\,\frac{K}{\Kmax},
+  \label{eq:reward}
+\end{equation}
+with $\enorm = 1$ when the final solve admits no stencil. The logarithmic
+form replaced a linear saturation $\min(e/\etol, 1)$ that resolved only one
+decade; it grades three. It was itself preceded by an unnormalised reward
+$-e - \lambda K$, which failed in an instructive way: the requirement that
+reaching always beat timing out could not be met at every horizon by any
+choice of constants, because accumulated error eventually made the reached
+branch worse than the timeout branch, and the only repair available by tuning
+was to shrink the accuracy weight --- that is, to declare poor accuracy
+acceptable. Normalisation was adopted because the ordering had to hold
+structurally rather than by calibration.
+
+We use $\gamma = 1$. A discount would assert that evaluations placed early
+are worth more than those placed late, which is not a preference we hold: an
+evaluation costs the same wherever it occurs, and the accuracy at $\zstar$ is
+the same quantity regardless of when the contributing points were placed.
+
+A potential-based shaping term densifies an otherwise terminal signal. With
+$\phi(s) = -c_{\mathrm{shape}}\, N^{-1} \sum_i d_i / d_0$, where $d_i$ is the
+normalised walker--query distance and $d_0$ its value at reset, and
+$\phi \equiv 0$ at terminal states, the contributions telescope to
+$-\phi(s^{(0)})$ --- a constant depending only on the initial state. The
+shaping therefore cannot change the optimal policy \CITE{ng1999policy} and
+acts purely on the variance of the return. Two consequences are worth
+stating. An earlier version used $\min_i d_i$ rather than the mean, under
+which a move by any walker other than the current closest leaves $\phi$
+unchanged, so $N-1$ of the $N$ walker selections receive no shaping at all;
+it also rewards a single walker sprinting ahead, which by
+\cref{sec:recon_bound} is precisely the geometry that inflates
+$\normone{\bw}$. And since the episode total is a constant proportional to
+$c_{\mathrm{shape}}$, returns are not comparable across runs with different
+shaping coefficients.
+
+\subsection{Admissibility under exploration}
+\label{sec:mdp_admiss}
+
+The reconstruction environment enforces four admissibility conditions:
+two-sided spatial coverage, a bound on $\mathrm{cond}(\bA)$, a bound on the
+largest weight magnitude, and a lower bound on negative weights. Carried
+unchanged into the RL environment, all four together left the walkers barely
+able to move: nearly every proposal was rejected, so $\Kmax$ had to be raised
+substantially for a walker to reach the query at all, and the reach rate
+collapsed. Under a sparse terminal reward this is fatal in a specific way ---
+an agent that rarely reaches the query never discovers that a reward exists
+there, and further training does not help. The two weight constraints were
+therefore disabled and the conditioning tests retained.
+
+The cost of that relaxation is exactly quantified by \cref{sec:recon_bound}:
+the two disabled constraints are the only bounds the environment had on
+$\normone{\bw}$, which is simultaneously the factor in the error bound and
+the per-level amplification rate. \Cref{sec:breaks} shows that this is what
+sets the long-horizon ceiling.
+
+\subsection{Training}
+\label{sec:mdp_policy}
+
+We train with maskable PPO \CITE{schulman2017ppo, sb3contrib} on a
+multilayer-perceptron policy over $12$ subprocess environments.
+\Cref{tab:hyper} lists the configuration. GPU execution was tested and found
+slower than CPU: the policy network is small and the cost is dominated by the
+environment step --- a neighbour search and a $3 \times 5$ least-squares
+solve --- so transfer overhead outweighs any gain.
+
+\begin{table}[t]
+  \centering
+  \caption{Environment and training configuration.
+  \TODO{must match the run featured in \cref{sec:exp}; values below are the
+  current notebook defaults. NOTE: the thesis chapter lists entropy
+  coefficient $0.01$, the code uses $0.005$ --- resolve.}}
+  \label{tab:hyper}
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Environment & & Training & \\
+    \midrule
+    Walkers $N$              & \NUM{70}      & Algorithm      & MaskablePPO \\
+    Bubble radius $R$        & \NUM{2}       & Parallel envs  & \NUM{12} \\
+    Stencil size $n$         & \NUM{5}       & Rollout length & \NUM{1024} \\
+    Step budget $\Kmax$      & \NUM{5000}    & Batch size     & \NUM{1024} \\
+    Tolerance $\etol$        & \NUM{10^{-4}} & Learning rate  & \NUM{2 \times 10^{-4}} \\
+    $w_{\mathrm{err}}$       & \NUM{1.0}     & Clip range     & \NUM{0.1} \\
+    $w_{\mathrm{time}}$      & \NUM{0.1}     & Entropy coef.  & \NUM{0.005} \\
+    $c_{\mathrm{shape}}$     & \NUM{0.3}     & Discount $\gamma$ & \NUM{1.0} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The environment accepts a schedule of queries, drawn per episode, so that
+each query supplies a distinct set of training examples under the relative
+state of \cref{eq:state}. The implemented scheduler samples jointly and
+uniformly rather than running a sequential curriculum; the transfer argument
+that motivated scheduling is really an argument for the sequential form,
+which has not been tested. \TODO{state plainly whether the featured run uses
+a single fixed query. If it does, $t^*/\Delta t$ and $x^*/\Delta x$ are
+constant inputs and the generalisation machinery is inactive --- say so here
+rather than let a reviewer find it.}

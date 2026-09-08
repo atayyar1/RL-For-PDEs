@@ -1,0 +1,34 @@
+% ================================================================
+%  Replaces the \begin{table} ... \end{table} block in sec4_mdp.tex
+%
+%  FIXED: math-mode expressions were being passed to \NUM, which is a
+%  text-mode macro (\textcolor + \underline). "10^{-4}" and "2 \times 10^{-4}"
+%  both need $...$ around them. Also removed \TODO from the \caption --
+%  \TODO contains \PackageWarning, which is fragile and breaks in a
+%  moving argument.
+%
+%  TO RESOLVE BEFORE SUBMITTING:
+%    - every value here must match the run featured in section 5;
+%      these are the current notebook defaults
+%    - entropy coefficient: thesis chapter says 0.01, code says 0.005
+% ================================================================
+
+\begin{table}[t]
+  \centering
+  \caption{Environment and training configuration.}
+  \label{tab:hyper}
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Environment & & Training & \\
+    \midrule
+    Walkers $N$              & \NUM{70}   & Algorithm         & MaskablePPO \\
+    Bubble radius $R$        & \NUM{2}    & Parallel envs     & \NUM{12} \\
+    Stencil size $n$         & \NUM{5}    & Rollout length    & \NUM{1024} \\
+    Step budget $\Kmax$      & \NUM{5000} & Batch size        & \NUM{1024} \\
+    Tolerance $\etol$        & \NUM{$10^{-4}$} & Learning rate & \NUM{$2 \times 10^{-4}$} \\
+    $w_{\mathrm{err}}$       & \NUM{1.0}  & Clip range        & \NUM{0.1} \\
+    $w_{\mathrm{time}}$      & \NUM{0.1}  & Entropy coef.     & \NUM{0.005} \\
+    $c_{\mathrm{shape}}$     & \NUM{0.3}  & Discount $\gamma$ & \NUM{1.0} \\
+    \bottomrule
+  \end{tabular}
+\end{table}

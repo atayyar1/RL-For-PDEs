@@ -1,18 +1,69 @@
-# Trained models
-*.pth
+# --- Python ---
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
 
-# Cached rollouts / data
+# --- Trained models & checkpoints ---
+*.pth
+*.pt
+*.pkl
+*.npz
+**/checkpoints/
+sched_*.zip
+best_model.zip
+
+# --- Training run outputs (match any run dir, not just runs*/) ---
+runs*/
+t*_errtol*/
+**/logs/
+events.out.tfevents.*
+*.monitor.csv
+progress.csv
 rollout_cache/
 
-# Experiment outputs / training runs
-Taylor linear predictor/runs*/
-Archives/runs*/
-Taylor linear predictor/logs/
-Taylor linear predictor/animation video/*.mp4
-Taylor linear predictor/animation video/media/
-Taylor linear predictor/animation video/qc_frames/
-Taylor linear predictor/prof.out
-Taylor linear predictor/__pycache__/
-**/__pycache__/
-*.pyc
+# --- Manim intermediates ---
+**/animation video/media/
+**/animation video/qc_frames/
 
+# --- Figures, images, videos (regenerable from the notebooks) ---
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.mp4
+*.avi
+*.mov
+
+# --- Compiled documents / paper drafts (LaTeX source is tracked) ---
+*.pdf
+!hand written notes.pdf
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.toc
+
+# --- Personal / non-project files ---
+PhD_Application_Tracker*.xlsx
+
+# --- Scratch & profiling dumps ---
+out.txt
+prof.out
+*.prof
+_*.py
+
+# --- Local tool config ---
+.claude/settings.local.json
+
+# --- OneDrive / Windows / Office cruft ---
+desktop.ini
+Thumbs.db
+~$*
+*.tmp

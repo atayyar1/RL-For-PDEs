@@ -1,0 +1,111 @@
+%% ================================================================
+%%  NeurIPS 2026 Workshop: World Models in Physical AI
+%%  Paste this block into the official Overleaf template's main.tex,
+%%  replacing everything between \documentclass and \begin{document}.
+%%
+%%  Deadline: 2026-09-05 21:59 UTC  (2026-09-06 00:59 Beirut)
+%%  8 pages excluding references. Single PDF, 50 MB. NOT double-blind.
+%% ================================================================
+
+\usepackage[final]{neurips_2026}   % 'final' = show author names (not double-blind)
+
+%% ---------- Packages ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{hyperref}   % if this throws an option clash, delete it:
+                        % neurips_2026.sty already loads hyperref in final mode
+\usepackage{cleveref}   % MUST come after hyperref
+
+%% ---------- Notation: identical to MAIN.tex, so equations lift verbatim ----------
+\newcommand{\ux}{u^*}
+\newcommand{\uhat}{\hat{u}^*}
+\newcommand{\dxi}{\Delta x_i}
+\newcommand{\dti}{\Delta t_i}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bA}{\mathbf{A}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Lop}{\mathcal{L}}
+\newcommand{\normone}[1]{\lVert #1 \rVert_1}
+\newcommand{\normtwo}[1]{\lVert #1 \rVert_2}
+
+%% New notation introduced by this paper (not in MAIN.tex)
+\newcommand{\zstar}{z^*}
+\newcommand{\Aset}{\mathcal{A}}          % action set
+\newcommand{\Vset}{\mathcal{V}}          % visited set
+\newcommand{\Kmax}{K_{\max}}
+\newcommand{\etol}{e_{\mathrm{tol}}}
+\newcommand{\enorm}{e_{\mathrm{norm}}}
+
+%% ---------- Drafting markers ----------
+%% \NUM{}  = number verified from a log/notebook, but re-check before submitting
+%% \CITE{} = citation still to be resolved to a real bibtex key
+%% \TODO{} = missing content. Deliberately stays RED even in final mode:
+%%           a surviving TODO means the paper is not finished.
+%% Do NOT use these inside \title or \author -- they break the title tabular.
+\newif\ifdraftmode
+\draftmodetrue          %  <<-- flip to \draftmodefalse for the submission build
+
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{[TODO: #1]}}%
+  \PackageWarning{draft}{UNRESOLVED TODO: #1}}
+\newcommand{\CITE}[1]{\textcolor{orange}{\textbf{[cite: #1]}}%
+  \PackageWarning{draft}{UNRESOLVED CITATION: #1}}
+\ifdraftmode
+  \newcommand{\NUM}[1]{\textcolor{blue}{\underline{#1}}}
+\else
+  \newcommand{\NUM}[1]{#1}
+\fi
+
+%% ---------- Theorem environments ----------
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%% ---------- Title block ----------
+%% neurips_2026.sty formats the title itself. Do not add \vspace or
+%% \large\textbf{} wrappers -- they fight the style file. Break with \\ only.
+
+\title{Discovering Integration Schemes for PDEs on Unstructured Domains\\
+       via Reinforcement Learning}
+
+%% --- Alternative titles, uncomment one to swap ---
+% \title{Learning Where to Compute: RL-Discovered Integration Schemes
+%        for Query-Driven PDE Solving}
+% \title{Discovering Integration Schemes for PDEs with Unstructured
+%        Space--Time Stencils via Reinforcement Learning}
+
+%% Single shared block: both authors have the same affiliation, so this is
+%% narrower than the side-by-side \And form and cannot overflow the margin.
+%% FILL IN: Dr. Bakarji's email below. CONFIRM: your address -- your older
+%% template said amt35@mail.aub.edu.lb, the one used here is amt35@mail.aub.edu
+\author{%
+  Ali Tayyar\thanks{Corresponding author.} \quad Joseph Bakarji \\
+  Mechanical Engineering, American University of Beirut \\
+  Riad El-Solh, Beirut 1107 2020, Lebanon \\
+  \texttt{amt35@mail.aub.edu} \quad \texttt{FILLME@aub.edu.lb} \\
+}
+
+%% --- Side-by-side form, if you prefer two separate columns ---
+% \author{%
+%   Ali Tayyar \\
+%   Mechanical Engineering \\
+%   American University of Beirut \\
+%   \texttt{amt35@mail.aub.edu} \\
+%   \And
+%   Joseph Bakarji \\
+%   Mechanical Engineering \\
+%   American University of Beirut \\
+%   \texttt{FILLME@aub.edu.lb} \\
+% }

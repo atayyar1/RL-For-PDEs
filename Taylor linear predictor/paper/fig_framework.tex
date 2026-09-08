@@ -1,0 +1,20 @@
+% ================================================================
+%  FIGURE 1 -- framework overview. Place in SECTION 1, near the top,
+%  and \cref{fig:framework} it from the opening paragraph.
+%  Crop the source image first: it has ~20% dead whitespace top and
+%  bottom, which will shrink the content badly at \textwidth.
+% ================================================================
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/framework}
+  \caption{One step of the loop. The agent observes the current point cloud
+  through a fixed-size state $s_k$, selects a walker and a displacement, and
+  proposes a new space--time point. The PDE-constrained linear system of
+  \cref{sec:recon} reconstructs the solution there from its neighbours; if
+  the stencil is admissible the point joins the cloud and the state advances
+  to $s_{k+1}$, otherwise the walker does not move. The weights $\bw$ are
+  never learned --- they are fixed by the moment conditions --- so the
+  agent's only influence is on \emph{where} points are placed.}
+  \label{fig:framework}
+\end{figure}

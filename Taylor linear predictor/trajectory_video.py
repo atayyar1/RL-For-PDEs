@@ -45,7 +45,7 @@ import matplotlib.animation as animation
 def make_trajectory_video(model, PDEEnvironmentClass, t_star_steps, N_particles,
                            img_dir=".", label="final",
                            hold_frames=6, fps=10, dpi=120,
-                           verbose=True, R_bubble=4, x_star_steps=None):
+                           verbose=True, R_bubble=3, x_star_steps=None):
     """
     Parameters
     ----------
