@@ -1044,3 +1044,73 @@ sub-point in *opposite* directions — first "positivity is free", then "positiv
 via ‖w‖₁" — and both times it inferred a mechanism from an uncontrolled comparison. That is the
 same error I made about mixing-vs-sign, and the same one M1 caught in T5's prose. Three threads,
 one failure mode: **stating the mechanism before controlling the comparison.**
+
+## F38 — ⭐⭐⭐ The falsification run: accuracy and coarse-grainability are in tension
+M1's last experiment, 13 circulant systems × M ∈ {2,3,4} = 39 cases, three hypotheses on trial.
+**Only 7 of 39 admit an exact non-negative coarse law, and M = 4 admits none for any system.**
+
+| hypothesis | whose | verdict |
+|---|---|---|
+| **H_gap** — scale separation makes coarse-graining cheap | my original brief | **falsified and inverted** |
+| **H_spread** — p\* is monotone in alias spread | my reframing | **falsified** |
+| **H_sign** — every unresolved alias needs g ≤ 0 | M1's obstruction | **survives**, 0/39 counterexamples |
+
+**H_spread**: feasible spread range [1.40, 2.00], infeasible [0.52, 4.80] — complete overlap, and
+non-monotone *inside* the feasible set (spread 1.5588 → P=6, 1.7321 → P=3, 1.8000 → P=2). The
+spread is a fine measure of how much the operator distinguishes what the coarse grid cannot; it
+simply is not what prices positivity. My last redirection to M1 was wrong.
+
+**H_sign** is **necessary but not sufficient** — all 16 cases with an offending alias are
+infeasible as predicted, but 15 further cases have no offending alias and are still infeasible.
+
+### The headline, verified here independently
+
+| system, M=2 | worst unresolved g | feasible? |
+|---|---|---|
+| two-timescale 0.95/0.05 (best separation) | +0.050 | **no** |
+| **exact heat semigroup** | +0.635 (any τ) | **no** |
+| FTCS r=0.10 | +0.600 | **no** |
+| **FTCS r=0.45 (crudest)** | **−0.800** | **yes** |
+
+**The exact heat semigroup — the most accurate diffusion operator there is, every eigenvalue real
+and positive — admits no non-negative coarse law at any M, any depth, any τ**, because
+exp(−αk²τ) > 0 always. The crude FTCS stencil, whose high modes overshoot to g = −0.8, does.
+
+> **Accuracy and coarse-grainability are in tension.** T5 found the only operator you can
+> coarse-grain *for free* is one that has already discarded what the coarse grid discards; M1 finds
+> the only operator you can coarse-grain *positively* is one that is crude in a specific way — its
+> discarded modes must oscillate. Two independent routes, same conclusion.
+
+### A theorem, and it is the cleanest thing the programme produced
+For |g| = 1 every term of Σ_jk b_jk e^{ikθ_c} g^{−j} = 1 has unit modulus, so a convex combination
+equals 1 only if **every atom** equals 1. Hence a unitary propagator admits a non-negative coarse
+law only if it is an exact lattice translation:
+
+> **Non-dissipative dynamics cannot be positively coarse-grained at all.**
+
+### M1's own scorecard: 2 of 4
+Confirmed: scale separation makes positivity *harder*; p\* decreases as r increases.
+**Falsified: advection helps** (Pe=0.5 matches pure diffusion; Pe=2 infeasible at every M).
+**Falsified: dispersive is the easy case** — infeasible at M=2,3,4, unitary and damped alike.
+**My original brief was right and M1 was wrong**; it had applied a necessary condition as if it
+were sufficient, and says so.
+
+### Another instance of the vertex problem
+B₁ = 0 exactly in every non-negative law M1 found — that half of F23 is confirmed. But **B₂ =
+0.6917·I, not zero.** The LP objective is degenerate (every feasible non-negative law has ‖b‖₁ = 1
+exactly), so the solver returns an arbitrary **vertex of a feasible set**. So "pure delay" is a
+property of *a particular vertex*, not of the closure — F30's lesson for the third time. My reach
+argument explains why B₁…B_{M−1} must be **diagonal**, which is consistent with B₂ = 0.6917·I and
+is a strictly weaker claim than vanishing.
+
+### Do not quote
+- M=2 at r=0.25 is **undetermined, not feasible** — defect 3.6e-10, inside M1's stated noise floor,
+  and exactly the degenerate boundary case (g = 0) the obstruction does not cover.
+- The adv-diff Pe=8 row is von Neumann unstable (max|g| = 2.44) and is a labelled control only.
+
+### Status: the programme's experiments are closed
+Durable output of Phase 2: **one sentence** — coarse-graining preserves a maximum principle when
+the discarded modes oscillate and destroys it when they merely decay — and **one theorem** —
+non-dissipative dynamics cannot be positively coarse-grained. Everything else came back negative,
+tautological, or classical. The remaining M ≥ 4 infeasibility is a **proof gap** (the all-q
+obstruction is conjectured), which is a mathematics task, not a compute task.

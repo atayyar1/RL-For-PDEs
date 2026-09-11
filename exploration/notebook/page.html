@@ -380,46 +380,45 @@ dM<sub>q</sub>/dτ  =  α·q(q−1)·M<sub>q−2</sub>  +  c·q·M<sub>q−1</su
 </section>
 
 <section>
-  <div class="sec-head"><h2>What positivity actually costs</h2><span class="eyebrow">F23 · corrected by F33</span></div>
+  <div class="sec-head"><h2>Accuracy and coarse-grainability are in tension</h2><span class="eyebrow">F38 · final</span></div>
   <div class="stack">
-    <p class="col">Coarse-graining a scheme in space by a factor M admits an exact, finite memory
-    of M − 1 lags. An earlier version of this page reported that memory then <em>buys back</em>
-    positivity geometrically, and that at small M the price is exactly zero. Two of those three
-    claims needed correcting, and the correction is sharper than what it replaces.</p>
-    <p class="col"><strong>The trade curve terminates at M = 3.</strong> A non-negative coarse law
-    of <em>any</em> depth or width requires every unresolved alias at the constant coarse mode to
-    satisfy g ≤ 0 — a <em>sign</em> condition. For this scheme that reads r ≥ 1/(4 sin²(π/M)):
-    0.25 at M = 2, 0.333 at M = 3, and <b>0.50 at M = 4</b> — which the scheme's own stability
-    limit forbids. So past M = 3 the positivity defect decays toward an infimum it never attains.
-    There is no trade; there is an obstruction.</p>
+    <p class="col">The question was whether compressing across scales has a bounded price in
+    memory. It has an exact answer, and it is not the interesting one: storing M coarse levels of
+    N/M values <em>is</em> storing N numbers, so exact compression costs the entire state — and the
+    observability stack is not even full rank, so you pay in full and still do not recover what you
+    had. Compression exists only once you accept a tolerance, at which point the answer is
+    classical.</p>
+    <p class="col">What survived is sharper, and it inverts the premise. A non-negative coarse law
+    requires every unresolved alias to satisfy g ≤ 0 — a <em>sign</em> condition. Across 39 cases,
+    only 7 admit one at all, and M ≥ 4 admits none for any system tested:</p>
     <div class="tw"><table>
-      <thead><tr><th class="n">r</th><th class="n">M</th><th>unresolved alias g</th><th>obstruction predicts</th><th class="n">independently measured</th></tr></thead>
+      <thead><tr><th>operator (M = 2)</th><th class="n">worst unresolved g</th><th>coarse-grainable?</th></tr></thead>
       <tbody>
-        <tr><td class="n">0.10</td><td class="n">2</td><td class="n">+0.60</td><td class="lose">infeasible</td><td class="n">&gt; 8</td></tr>
-        <tr><td class="n">0.2929</td><td class="n">2</td><td class="n">−0.17</td><td class="win">feasible</td><td class="n">p = 2</td></tr>
-        <tr><td class="n">0.45</td><td class="n">3</td><td class="n">−0.35</td><td class="win">feasible</td><td class="n">p = 6</td></tr>
-        <tr><td class="n">0.45</td><td class="n">4</td><td class="n">+0.10</td><td class="lose">infeasible</td><td class="n">&gt; 10</td></tr>
+        <tr><td>two-timescale 0.95 / 0.05 — <em>best scale separation</em></td><td class="n">+0.050</td><td class="lose">no</td></tr>
+        <tr><td><b>exact heat semigroup</b> — the most accurate operator there is</td><td class="n">+0.635</td><td class="lose">no, at any τ</td></tr>
+        <tr><td>FTCS r = 0.10</td><td class="n">+0.600</td><td class="lose">no</td></tr>
+        <tr><td><b>FTCS r = 0.45</b> — the crudest</td><td class="n"><b>−0.800</b></td><td class="win">yes</td></tr>
       </tbody>
     </table></div>
-    <p class="col">Seven of seven against a threshold table measured before the obstruction was
-    derived. And it <strong>inverts</strong> the reading this page previously carried. At r = 0.10
-    the discarded mode has g = +0.6 — decaying cleanly, perfectly well-behaved — and it is fatal at
-    every memory depth. At r = 0.45 it has g = −0.8 — barely decaying, but oscillating — and it is
-    free.</p>
+    <p class="col">The exact semigroup has every eigenvalue real and positive, so
+    exp(−αk²τ) &gt; 0 always and the sign condition can never be met. The crude stencil overshoots
+    into negative g, and can. <strong>The most accurate diffusion operator cannot be positively
+    coarse-grained; the crude one can.</strong></p>
     <div class="chain"><span>Coarse-graining preserves a maximum principle</span><span class="ar">·</span>
-      <span>when the modes you discard <b>oscillate</b>,</span><span class="ar">·</span>
+      <span>when the discarded modes <b>oscillate</b>,</span><span class="ar">·</span>
       <span>and destroys it when they merely decay.</span></div>
-    <p class="col">So scale separation is <em>not</em> what makes hierarchies cheap — which was the
-    hypothesis this whole phase was built on. Nor can you buy cheap hierarchies in small steps:
-    decimating by 2 twice retains the same index set as decimating by 4, so memory tracks the total
-    ratio, path-independently. That was to have been the phase's central experiment; it needed no
-    experiment.</p>
-    <p class="note">Also retracted from this section: the "pure-delay" structure (B₁ = B₂ = 0)
-    reported here as a striking positivity phenomenon is a <b>reach artefact</b> — the coarse map
-    is exactly diagonal for j &lt; M because the fine stencil reaches one cell while coarse cells
-    sit M apart, so the law cannot depend on neighbours before lag M for purely geometric reasons.
-    And the exact M − 1 lags are not special structure but the trivial worst case, attained by any
-    decimation.</p>
+    <p class="col">Two threads reached that from opposite directions: the only operator you can
+    coarse-grain <em>for free</em> is one that has already discarded what the coarse grid discards;
+    the only one you can coarse-grain <em>positively</em> is one that is crude in a specific way.</p>
+    <h3>And a theorem</h3>
+    <p class="col">If |g| = 1 then every term of the coarse-law identity has unit modulus, so a
+    convex combination equals 1 only if every atom does. A unitary propagator therefore admits a
+    non-negative coarse law only if it is an exact lattice translation:</p>
+    <div class="eq"><b>Non-dissipative dynamics cannot be positively coarse-grained at all.</b></div>
+    <p class="note">Scope, stated by the thread that produced it: the sign condition is proved at
+    the constant coarse mode and conjectured elsewhere; it is necessary but not sufficient — 15 of
+    39 cases carry no offending alias and are still infeasible. The remaining M ≥ 4 wall is a proof
+    gap, not a measurement gap.</p>
   </div>
 </section>
 
@@ -428,6 +427,14 @@ dM<sub>q</sub>/dτ  =  α·q(q−1)·M<sub>q−2</sub>  +  c·q·M<sub>q−1</su
   <div class="stack">
     <p class="col">Four claims died this session, three of them mine. They are here because a
     programme that only records what survived cannot be trusted about what did.</p>
+
+    <div class="find out"><span class="chip c-out">under-determined</span><div class="body">
+      <h3>Scale separation does not make hierarchies cheap — it makes them impossible</h3>
+      <p>My brief's central prediction, falsified and then inverted. The best-separated system
+      tested (two-timescale 0.95/0.05) is infeasible; the crudest is feasible. A later reframing of
+      mine — that the price is monotone in how much the operator distinguishes what the coarse grid
+      cannot — was falsified too: feasible and infeasible ranges overlap completely.</p>
+    </div></div>
 
     <div class="find out"><span class="chip c-out">under-determined</span><div class="body">
       <h3>"Attend to whatever lets you forget" does not pick out anything</h3>

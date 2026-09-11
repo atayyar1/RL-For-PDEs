@@ -348,8 +348,22 @@ matched coarsening: two-timescale (predicted p\* = ∞ *because* it separates), 
 hard"), and the r-sweep (predicted p\* decreasing in r). The deliverable is one sentence, and
 it is a sentence about the programme rather than about numerical schemes:
 
-> **Coarse-graining preserves a maximum principle when the modes you throw away oscillate, and
-> destroys it when they merely decay. Scale separation is not what makes hierarchies cheap.**
+> ~~Coarse-graining preserves a maximum principle when the modes you throw away oscillate, and
+> destroys it when they merely decay.~~
+
+**⚠ That sentence is half wrong and must not be quoted. It was written before the
+dispersive test; RESULTS.md R6 refutes its first clause.** The biconditional is false:
+oscillation is *necessary*, not sufficient. The correct, tested statement is
+one-directional:
+
+> **A discarded mode that decays monotonically (a real eigenvalue in (0,1)) destroys the
+> coarse maximum principle, at every memory depth and every stencil width.** Proved at the
+> constant coarse mode (§2.1), verified 16/16 where it applies, never falsified in 39 cases.
+> **Oscillation does not buy positivity back** — dispersive propagators are oscillatory and
+> still fail, and every one of 13 system classes fails at M ≥ 4.
+>
+> Scale separation is not what makes hierarchies cheap. But nothing measured here makes
+> them cheap.
 
 If that survives, it is worth a paragraph in the book and a figure. If it fails, M1 closes and
 the programme has lost a day instead of a week. ~~Either way I would also spend an hour on the **decimation-vs-block-averaging** question

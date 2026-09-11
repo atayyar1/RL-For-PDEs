@@ -61,6 +61,15 @@ Exactly 1.000 at every M, by construction: depth × (N/M) = M × (N/M) = N.
 > **Decimation plus exact memory is a change of basis, not a compression.** You get back
 > precisely the state you saved.
 
+**Refinement (team lead, verified independently by them): it is worse than a change of
+basis.** The observability stack is not full rank — 23/24 at M=2, 21/24 at M=4, 13/24 at
+M=12 — because the FTCS symbol is even in θ, so within an alias class the members l and
+M−l coincide at the constant coarse mode (concretely, M=3 at q=0 has g₁ = g₂ = −0.35).
+So **you pay the full N and still do not recover the fine state: lossy, at full price.**
+This is consistent with R2's "exact depth = M" — that is a max over coarse modes, and the
+degeneracy bites only at special modes, which is exactly why the stack loses a few ranks
+rather than collapsing.
+
 So *"does compression across scales have a bounded price?"* has an exact answer here, and
 it is the least interesting possible one: **the price is the whole thing.** Real
 compression requires a tolerance, and once you accept a tolerance the depth is set by how
@@ -139,26 +148,134 @@ Two consequences:
 
 ---
 
+---
+
+## R5 — Across 13 system classes: H_sign survives, H_spread and H_gap are falsified **[measured here]**
+
+`task2_systems.py`, 13 circulant systems × M ∈ {2,3,4} = 39 cases. Three hypotheses on
+trial: **H_gap** (the brief: p\* small when scale separation is good), **H_spread** (team
+lead: p\* a monotone, system-independent function of the alias spread), **H_sign**
+(POSITIONING.md §2.1: unresolved aliases must avoid the positive real axis).
+
+**Result: 7 of 39 cases admit an exact non-negative coarse law. M = 4 admits none, for
+any of the 13 systems.**
+
+**H_sign — not falsified, 0 counterexamples in 39.** It is a *necessary* condition, so
+the only falsifying observation is "offending alias AND feasible". There were none: all
+16 cases carrying an offending alias are infeasible, as predicted. It is *not* sufficient,
+as proved — 15 further cases carry no offending alias and are still infeasible.
+
+**H_spread — falsified.** Feasible spread range [1.40, 2.00]; infeasible [0.52, 4.80].
+Complete overlap. Monotonicity fails inside the feasible set too: spread 1.5588 → P=6,
+spread 1.7321 → P=3, spread 1.8000 → P=2. And spread 1.8000 gives P=2 at M=2 and
+infeasible at M=4, so it is not system-independent either.
+
+**H_gap — falsified, and inverted.** The two *perfectly* separated systems are the two
+that fail hardest:
+
+| system at M=2 | worst unresolved \|g\| | p\* |
+|---|---|---|
+| two-timescale 0.95/0.05 | 0.9500 | **—** |
+| exact heat semigroup, r=1.5 | 0.9959 | **—** |
+| FTCS diffusion r=0.45 (worst separated) | 0.9988 | **P=2** |
+
+The exact heat semigroup is the sharpest case: it is the *most accurate* diffusion
+operator available, every eigenvalue is real and positive, and it admits **no** non-negative
+coarse law at any M or depth — while the crude FTCS stencil, whose high modes go negative,
+does. **Accuracy and coarse-grainability are in tension, and scale separation makes
+coarse-graining harder, not cheaper.**
+
+## R6 — ⛔ Two of my four predictions falsified, including the headline experiment **[measured here]**
+
+| POSITIONING.md §2.4 prediction | verdict |
+|---|---|
+| 1. Scale separation makes positivity **harder** | **CONFIRMED** (R5) |
+| 2. Advection **helps** (complex aliases let phases cancel) | **FALSIFIED** |
+| 3. The dispersive case is the **easy** one | **FALSIFIED** |
+| 4. p\* **decreases** as r increases | **CONFIRMED** |
+
+**(2)** Pe=0.5 matches pure diffusion exactly (P=2 at M=2, P=6 at M=3); Pe=2 is infeasible
+at every M. Advection does not help — past a small cell Péclet it hurts.
+
+**(3) was the experiment the thread was cleared to run, and it failed.** Dispersive is
+infeasible at M=2, 3, 4, unitary and damped alike. **The brief's original expectation
+("positivity should fail hard") was right and I was wrong.** I applied a necessary
+condition as if it were sufficient. The correct statement for the dispersive case is a
+*stronger* obstruction, and it is provable **[measured here, analytic]**:
+
+> For |g| ≡ 1 every term of Σ_{j,k} b_{j,k} e^{ikθ_c} g^{−j} = 1 has unit modulus, so a
+> convex combination equals 1 only if **every** atom equals 1. Hence a **unitary
+> propagator admits a non-negative coarse law only if it is an exact lattice
+> translation.** Non-dissipative dynamics cannot be coarse-grained positively at all.
+
+So the sign condition of §2.1 is one necessary condition among several, and the honest
+summary is that positivity under coarse-graining is far more fragile than any single
+spectral statistic predicts.
+
 ## What the thread establishes, in one paragraph
 
 For linear, local, constant-coefficient dynamics on a uniform grid, coarse-graining in
 space has an exact finite closure whose depth is fixed by algebra alone (the alias count,
 i.e. the McMillan degree — **[classical]**), whose state cost is exactly the state you
-saved, and which cannot be made non-negative at all past a coarsening factor of 3. The
-route, the restriction operator, and the memory depth are all powerless against that last
-fact. **The positivity price of compression is not bounded and not slowly-growing; past
-M = 3 it is infinite.** Whether that survives contact with a system whose unresolved
-spectrum is oscillatory rather than monotone is the open question, and it is the one
-prediction in POSITIONING.md §2.4 still worth testing.
+saved (R2), and which cannot be made non-negative at all past a coarsening factor of 3 —
+for any of 13 system classes tested (R3, R5). The route (R1), the restriction operator
+(R4), and the memory depth are all powerless against that last fact. **The positivity price
+of compression is not bounded and not slowly-growing; past M = 3 it is infinite.**
+
+The one durable positive finding is an inversion of the programme's intuition. **State it
+one-directionally — the biconditional is false:**
+
+> **A discarded mode that decays monotonically — a real eigenvalue in (0,1) — destroys the
+> coarse maximum principle, at every memory depth and every stencil width.**
+
+Proved at the constant coarse mode (POSITIONING.md §2.1), verified 16/16 where it applies,
+and never falsified across 39 cases. The exact heat semigroup — the most accurate diffusion
+operator there is, every eigenvalue real and positive — cannot be positively coarse-grained
+at all, while crude FTCS can. Scale separation is not what makes hierarchies cheap.
+
+**The converse is false and was tested.** Oscillation is necessary, not sufficient:
+dispersive propagators are oscillatory and fail anyway (R6), and all 13 system classes fail
+at M ≥ 4. Nothing measured here makes hierarchies cheap. Anyone quoting this result should
+quote the implication, not the equivalence, and should note that the general (all-q) version
+is **[conjectured]** — §2.1 is where it is provable, R4 shows it is not where it lives.
+
+## R7 — On T5's "pure-delay" structure **[measured here]**
+
+Inspecting the actual non-negative laws my LP returns, at r = 0.45 and r = 0.50:
+
+```
+M=3, P=6, s=2, r=0.45     B_1 = 0 exactly
+                          B_2 = 0.691657 * I   (pure diagonal, no neighbours)
+                          B_3..B_6 nonzero, spatially spread
+M=3, P=3, s=1, r=0.50     B_1 = 0 exactly
+                          B_2 = 0.750000 * I
+                          B_3 = (0.125, 0, 0.125)
+```
+
+The robust part of T5's F23 is confirmed: **the Markov term B₁ vanishes exactly** in every
+non-negative law I found. But **B₂ ≠ 0** in mine, where T5 reported B₁ = B₂ = 0. This is
+not a contradiction of T5 — the LP objective is degenerate (every feasible non-negative
+law has ‖b‖₁ = 1 exactly), so the solver returns an arbitrary vertex of a feasible *set*,
+not a unique law. Neither solution is "the" coarse law. **"Pure delay" should be stated as
+a property of a particular vertex, not of the closure** — unless someone shows B₂ = 0 in
+every feasible solution, which nobody has.
+
+The team lead's reach argument (P·Aʲ·Pᵀ is diagonal for j < M, because the fine stencil
+reaches one cell and coarse cells sit M apart) explains why B₁…B_{M−1} must be **diagonal**.
+That is a weaker statement than vanishing, and it is consistent with B₂ = 0.6917·I above.
 
 ## Negative results, stated plainly
 
 - The brief's Task 3 comparison is a tautology (R1).
 - The brief's Task 1 spectrum has two finite entries (R3).
-- My own headline replacement experiment failed (R4), and my first explanation of the
+- My block-averaging replacement experiment failed (R4), and my first explanation of the
   failure also failed.
+- **Two of my four §2.4 predictions failed (R6), including the dispersive one the thread
+  was cleared to run.** The brief's original expectation was right there and mine was wrong.
+- The team lead's alias-spread reframing is falsified (R5).
 - The framework's "does compression have a bounded price" question resolves to a
   dichotomy with a classical answer on both branches (R2).
+- "Pure delay" is a vertex property, not a property of the coarse law (R7).
 
 ## Known limitations
 
@@ -166,7 +283,15 @@ prediction in POSITIONING.md §2.4 still worth testing.
   and HiGHS reports spurious infeasibility (e.g. M=2, s=1 feasible at P=8, "infeasible" at
   P=9). Cells at depth ≤ 8 are robust; I would not trust a defect below ~1e−10. Every
   "—" at M ≥ 4 is independently backed by the §2.1 proof, so it does not rest on the LP.
-- Searches capped at depth 10 and half-width 3.
+- Searches capped at depth 10 (8 in `task2_systems.py`) and half-width 3.
+- **M=2 at r=0.25 is undetermined, not feasible.** R3's table reports P=9, s=3 there, but
+  that cell's defect is 3.6e−10 — inside the noise floor I said not to trust. A depth sweep
+  P=7…11 never reaches machine zero (values 1e−7 to 1e−10). This is exactly the degenerate
+  case the §2.1 obstruction does not cover: at r=1/4 the unresolved alias is g = 0 exactly,
+  the boundary of the forbidden interval (0,1). Treat it as open.
+- The "adv-diff Pe=8" row in R5 has max|g| = 2.44, i.e. the fine scheme is von-Neumann
+  unstable. It is outside the theory and carries no weight in either direction; it is kept
+  in the table only as a labelled control.
 - Pure diffusion for the tables; the advective case was spot-checked in
   `positioning_check.py` and moves nothing qualitatively.
 - One dimension, periodic, constant coefficients throughout. The 2D question in the brief

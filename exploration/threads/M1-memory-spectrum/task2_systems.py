@@ -65,9 +65,11 @@ def sys_two_timescale(g_slow=0.95, g_fast=0.05, cut=np.pi / 2, sharp=12.0):
     return g
 
 def sys_disp_unitary(b3=0.0345):
-    """Exact u_t = u_xxx propagator, |g| = 1 exactly: no decay, worst possible gap."""
-    return lambda th: np.exp(1j * b3 * (wrap(th) * N) ** 3 * 1.0 / N ** 3 * 1.0) \
-        if False else (lambda t: np.exp(1j * b3 * wrap(t) ** 3 * 1.0))(th)
+    """Exact u_t = u_xxx propagator: g = exp(i k^3 dt) with k = theta/dx, so in lattice
+    units g = exp(i b3 theta^3), b3 = dt/dx^3.  |g| = 1 exactly -- no decay at all,
+    i.e. the worst possible spectral gap.  b3 = 0.0345 puts ~1.07 rad of phase at theta=pi.
+    """
+    return lambda th: np.exp(1j * b3 * wrap(th) ** 3)
 
 def sys_disp_damped(b3=0.0345, r=0.45):
     """Dispersive phase times FTCS damping, so the modulus decays and can flip sign."""
@@ -83,7 +85,9 @@ SYSTEMS = [
     ("FTCS diff r=0.50",      sys_ftcs(0.50)),
     ("adv-diff Pe=0.5",       sys_ftcs(0.45, 0.45 * 0.5)),
     ("adv-diff Pe=2",         sys_ftcs(0.45, 0.45 * 2.0)),
-    ("adv-diff Pe=8",         sys_ftcs(0.30, 0.30 * 8.0)),
+    ("adv-diff Pe=8 [UNSTABLE]", sys_ftcs(0.30, 0.30 * 8.0)),   # max|g| = 2.44 > 1; kept
+    #   only as a control -- an unstable fine scheme is outside the theory and its row
+    #   below carries no weight either way.
     ("exact heat r=0.45",     sys_exact_heat(0.45)),
     ("exact heat r=1.50",     sys_exact_heat(1.50)),
     ("two-timescale .95/.05", sys_two_timescale()),
@@ -160,7 +164,7 @@ for M in (2, 3, 4):
         bad, nbad = sign_diagnostic(g, M)
         P, s = p_star(g, M)
         rows.append(dict(M=M, name=name, spread=sp, maxg=mg, bad=bad, nbad=nbad, P=P, s=s))
-        print(f"   {name:>24} {sp:>9.4f} {mg:>10.4f} {bad:>8.4f} {nbad:>5} "
+        print(f"   {name:>26} {sp:>9.4f} {mg:>10.4f} {bad:>10.2e} {nbad:>5} "
               f"{('P=%d,s=%d' % (P, s)) if P else '--':>10}")
 
 # =========================================================================== 2
@@ -169,12 +173,18 @@ feas = [d for d in rows if d["P"]]
 infeas = [d for d in rows if not d["P"]]
 print(f"   {len(feas)} feasible cases, {len(infeas)} infeasible, out of {len(rows)}.\n")
 
-print("   H_sign -- does 'bad g > 0' coincide exactly with infeasibility?")
-viol = [d for d in rows if (d["nbad"] > 0) != (d["P"] is None)]
-print(f"      cases where the sign diagnostic and feasibility DISAGREE: {len(viol)} / {len(rows)}")
-for d in viol:
-    print(f"        M={d['M']:<2} {d['name']:>24}  bad={d['bad']:.4f} (#{d['nbad']})  "
-          f"p*={('P=%d' % d['P']) if d['P'] else '--'}")
+print("   H_sign is a NECESSARY condition, so the only test that can falsify it is:")
+print("   does any system with an offending alias turn out FEASIBLE?")
+falsify = [d for d in rows if d["nbad"] > 0 and d["P"] is not None]
+print(f"      counterexamples (offending alias AND feasible): {len(falsify)} / {len(rows)}   "
+      f"-> {'FALSIFIED' if falsify else 'NOT FALSIFIED'}")
+print(f"      of the {sum(1 for d in rows if d['nbad'] > 0)} cases with an offending alias, "
+      f"{sum(1 for d in rows if d['nbad'] > 0 and d['P'] is None)} are infeasible as predicted.")
+notsuff = [d for d in rows if d["nbad"] == 0 and d["P"] is None]
+print(f"      NOT SUFFICIENT, as proved: {len(notsuff)} cases have no offending alias and are")
+print(f"      still infeasible at depth <= 8. The obstruction excludes; it does not admit.")
+for d in notsuff:
+    print(f"        M={d['M']:<2} {d['name']:>26}  p* = --")
 
 print("\n   H_spread -- is p* a monotone function of the alias spread?")
 print("      feasible cases, sorted by spread:")
@@ -191,11 +201,38 @@ if sp_f and sp_i:
     print(f"      OVERLAP: {'YES -- spread does not separate the two classes' if (min(sp_i) < max(sp_f)) else 'no'}")
 
 print("\n   H_gap -- do the best-separated systems have the smallest p*?")
-for nm in ("exact heat r=1.50", "two-timescale .95/.05", "dispersive unitary"):
+for nm in ("exact heat r=1.50", "two-timescale .95/.05", "FTCS diff r=0.45"):
     for d in rows:
         if d["name"] == nm and d["M"] == 2:
-            print(f"      {nm:>24} at M=2: max|g_unresolved| = {d['maxg']:.4f}, "
+            print(f"      {nm:>26} at M=2: worst unresolved alias |g| = {d['maxg']:.4f}, "
                   f"p* = {('P=%d' % d['P']) if d['P'] else '--'}")
+print("      The two PERFECTLY separated systems are infeasible at M=2, where the badly")
+print("      separated FTCS is easy.  H_gap is falsified, and inverted.")
+
+hdr("3.  SCORECARD on the four predictions of POSITIONING.md section 2.4")
+print("""   1. Scale separation makes positivity HARDER  ....................  CONFIRMED
+        two-timescale (0.95/0.05) and the exact heat semigroup are infeasible at every
+        M including M=2, where FTCS -- far worse separated -- is feasible at depth 2.
+
+   2. Advection HELPS (complex aliases let phases cancel)  ..........  FALSIFIED
+        Pe=0.5 matches pure diffusion (P=2 at M=2, P=6 at M=3); Pe=2 is infeasible at
+        every M.  Advection does not help; past a small cell Peclet it hurts.
+
+   3. The dispersive case is the EASY one  .........................  FALSIFIED
+        Infeasible at M=2,3,4, both unitary and damped.  The brief's original
+        expectation ("positivity should fail hard") was right and I was wrong.
+        The reason is a STRONGER obstruction I missed, and it is provable:
+          for |g| = 1 every term of sum_{j,k} b_{jk} e^{i k th_c} g^{-j} = 1 has unit
+          modulus, so a convex combination equals 1 only if EVERY atom equals 1.  Hence
+          a unitary propagator admits a non-negative coarse law only if it is an exact
+          lattice translation.  My section 2.1 condition is necessary, not sufficient,
+          and I applied it as though it were sufficient.
+
+   4. p* DECREASES as r increases  .................................  CONFIRMED
+        M=3: P=6 at r=0.45, P=3 at r=0.50.   M=2: P=9 at r=0.25, P=2 at r=0.35.
+
+   Two of four.  The one that survives is the one that inverts the programme's
+   prediction, and it is the strongest of the four.""")
 
 # ---------------------------------------------------------------------- FIGURE
 fig, axes = plt.subplots(1, 2, figsize=(12, 4.6))
