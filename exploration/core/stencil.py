@@ -121,6 +121,50 @@ def positive_feasible(A, b, tol=1e-12):
     return bool(np.max(gaps) <= np.pi + 1e-12)
 
 
+def k_max(m, prob=DEFAULT):
+    """Largest k for which a symmetric half-width-m stencil at -k*dt is positive-feasible.
+
+    Sharp closed form (credit: T5), valid for the CORRECTED rows. The consistency
+    conditions fix the RAW second moment 2*alpha*k*dt + (c*k*dt)^2 -- variance PLUS
+    mean squared -- and a probability measure on {-m..m} can realise it only while
+    it stays below m^2*dx^2. Solving the quadratic:
+
+        k_max = ( -r + sqrt(r^2 + nu^2 m^2) ) / nu^2,   r = alpha dt/dx^2, nu = c dt/dx
+
+    Limits: nu -> 0 gives m^2/(2r) (diffusive); m -> inf gives m/nu (advective).
+    It interpolates both smoothly and matches the LP at every m tested (m <= 76).
+
+    NOTE the uncorrected row instead saturates at 2*alpha/(c^2 dt) regardless of m
+    (435 steps at the benchmark). That saturation is an artefact of the dropped
+    u_tt terms and disappears with the corrected row.
+    """
+    r, nu = prob.r, prob.nu
+    if nu == 0:
+        return int(m**2 / (2 * r))
+    return int((-r + np.sqrt(r**2 + nu**2 * m**2)) / nu**2)
+
+
 def amplification(w):
-    """||w||_1: the per-level error amplification factor. 1 <=> positive <=> stable."""
+    """||w||_1 -- a SUFFICIENT, conservative, always-computable stability certificate.
+
+    ||w||_1 = 1 (equivalently w >= 0) gives linear error accumulation at every
+    composition depth, with no transient and no translation invariance required.
+
+    It is NOT necessary. The bound |e| <= ||w||_1^L is a worst-case over adversarial
+    error patterns and is generically nowhere near attained: Lax-Wendroff at nu=0.4
+    has ||w||_1 = 1.24 yet max|symbol| = 1 exactly, and 512-fold composition gives
+    ||w||_1 = 1.59 against a bound of 6.8e47. (Credit: T5.)
+
+    The sharp criterion is von Neumann, max|symbol| <= 1 -- but the symbol requires
+    TRANSLATION INVARIANCE, which scattered meshfree geometry does not have. So in
+    this setting ||w||_1 is the only certificate available, at the cost of rejecting
+    schemes (like Lax-Wendroff) that are perfectly stable.
+    """
     return float(np.abs(w).sum())
+
+
+def symbol_max(w, offsets):
+    """max |g(theta)| -- the sharp von Neumann factor. Uniform-grid stencils only."""
+    th = np.linspace(-np.pi, np.pi, 2049)
+    g = sum(wi * np.exp(-1j * th * oi) for wi, oi in zip(w, offsets))
+    return float(np.abs(g).max())

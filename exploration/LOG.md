@@ -66,6 +66,22 @@ Headlines only, newest first. Detail lives in `FINDINGS.md` (numbered F1–F9) a
   stencils are never feasible (0/15 501), and the frontier saturates. Better for the programme,
   since geometry is what the agent chooses.
 
+**Second round of corrections (T5)**
+- `[X]` **‖w‖₁ = 1 is sufficient, not necessary.** Mine again. Lax–Wendroff at ν=0.4 has
+  ‖w‖₁ = 1.24 and max|symbol| = 1.000000 — stable. 512-fold composition reaches ‖w‖₁ = 1.59
+  against a bound of 6.8e47. The honest framing: positivity is the certificate you can **always
+  compute**; von Neumann is the sharp criterion you can compute only under translation
+  invariance, which scattered geometry lacks. Positivity's real cost is rejecting good schemes.
+- `[M]` **Frontier conflict between T1 and T5 resolved**: different rows. T1's 435-step
+  saturation is an artefact of the uncorrected row. With the corrected row T5's closed form
+  `k_max = (−r + √(r²+ν²m²))/ν²` is sharp at every m (LP-verified to ±1 at m = 2…50). Now in
+  `core.stencil.k_max`; the test bisects against the LP rather than trusting any formula.
+  My γ=4 query experiment sits at 27% of the true frontier, not the 92% I reported.
+- `[M]` **A trilemma does survive — about coarse-graining, not accuracy.** Positivity fails for
+  M ≥ 3 at every r; M = 2 survives only for r ≥ 1 − 1/√2. Coarse-graining admits an exact finite
+  MZ memory of M−1 lags. *Memory is the price of coarse-graining space faster than the dynamics
+  mixes.*
+
 **Open / next**
 - T1 Task 6: does positivity cost *order*, or only a constant? Refinement-path dependent.
 - T3: estimate the moment hierarchy from noisy data; establish what it does that weak-form

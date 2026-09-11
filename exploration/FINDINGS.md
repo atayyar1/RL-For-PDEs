@@ -232,3 +232,80 @@ This is the most useful result for the RL thread. A time-pressured policy that s
 one-sided toward its target is not merely inaccurate — it is **categorically outside the
 feasible set**. The constraint positivity imposes is on *geometry*, which is exactly what
 the agent chooses.
+
+## F13 — ⛔ AMENDED: ‖w‖₁ = 1 is sufficient, not necessary
+Credit: T5. The bound |e| ≤ ‖w‖₁^L is a worst case over adversarial error patterns and is
+generically nowhere near attained. Verified here: Lax–Wendroff at ν = 0.4 has
+w = (0.28, 0.84, −0.12), **‖w‖₁ = 1.24**, yet **max|symbol| = 1.000000** exactly — von Neumann
+stable. Under 512-fold composition ‖w‖₁ reaches only **1.59 against a bound of 6.8 × 10⁴⁷**.
+T5 reports the mechanism: composition *expels* the negative lobes (innermost negative weight
+migrates 6σ → 25σ, negative mass 10⁻² → 10⁻⁹⁰) and ‖w^{*L}‖₁ → 1.
+
+So the correct statement of the program's central object:
+
+| | ‖w‖₁ = 1 (positivity) | von Neumann max\|ĝ\| ≤ 1 |
+|---|---|---|
+| sufficient for stability | yes | yes |
+| necessary | **no** | yes (asymptotically) |
+| exact at every depth L | **yes, no transient** | asymptotic only |
+| needs translation invariance | **no** | **yes** |
+| computable on scattered geometry | **yes** | **no** |
+
+**Positivity is the certificate you can always compute; the symbol is the sharp criterion you
+can only sometimes compute.** In the meshfree setting this program targets there is no symbol,
+so positivity is the only certificate available — at the real cost of rejecting perfectly stable
+schemes such as Lax–Wendroff. That cost must be stated, not hidden.
+
+## F11 — AMENDED: the frontier conflict resolved, and a sharp closed form
+T1 and T5 reported different frontiers. Both were right **for different rows**, and I verified
+this directly against the LP:
+
+| m | LP, uncorrected row | T1's min(3 branches) | LP, corrected row | T5's closed form |
+|---|---|---|---|---|
+| 8 | 71 | 71.1 | 62 | 62.2 |
+| 16 | 284 | 284.4 | 196 | 196.1 |
+| 20 | 435 | 435.6 | 273 | 273.2 |
+| 32 | 435 | 435.6 | 519 | 519.1 |
+| 76 | 435 | 435.6 | 1468 | 1468.3 |
+
+T1's 435-step saturation is an **artefact of the uncorrected row** (T2 predicted exactly this:
+"it vanishes once u_tt is kept"). With the corrected row — now the code's default — there is no
+saturation and T5's closed form is sharp at every m:
+
+    k_max = ( −r + √(r² + ν²m²) ) / ν²,     r = αΔt/Δx²,  ν = cΔt/Δx
+
+because the consistency conditions fix the **raw** second moment 2αkΔt + (ckΔt)² — variance
+*plus mean squared* — which a probability measure on {−m..m} can realise only while it stays
+below m²Δx². Limits: ν → 0 gives m²/(2r); m → ∞ gives m/ν. Now in `core.stencil.k_max`, with the
+test bisecting against the LP rather than assuming any formula.
+
+**Consequence for F6**: my γ=4 query experiment (m=76, k=400) sits at **27%** of the true
+frontier, not the 92% I reported from T1's numbers. The earlier "9% headroom" warning is void.
+
+## F14 — ⭐ Coarse-graining destroys positivity, and memory is its price
+Credit: T5, and this is the tension I asked for.
+- Spatial coarse-graining by factor M admits an **exact, finite** Mori–Zwanzig memory of exactly
+  **M − 1 lags** (Cayley–Hamilton on the M-dimensional alias subspace). MZ kernels are normally
+  infinite; here the truncation is exact.
+- **Positivity fails for M ≥ 3 at every r.** M = 2 survives only if r ≥ 1 − 1/√2 = 0.29289
+  (analytic; bisection gives 0.293048). Since FTCS needs r ≤ ½, coarsening by 2 is safe only in
+  the narrow window 0.293 ≤ r ≤ 0.5 — i.e. only when the fine scheme runs near its stability limit.
+- Under **RG-consistent** coarsening (diffusive, Δt → M²Δt) memory collapses to an M-independent
+  floor e^{−2π²r}, verified to a few percent over three decades in r.
+
+> **Memory is the price of coarse-graining space faster than the dynamics mixes.**
+
+So a trilemma does survive — but it is about *coarse-graining*, not about accuracy order:
+**you cannot coarse-grain by M ≥ 3, stay local and memoryless, and stay positive.** That is a
+measured result, and it is the one I should have had instead of the one I published.
+
+## F15 — Composition: orders take the min, and cumulant defects are exactly additive
+Credit: T5. The propagator is a Lévy kernel whose cumulants are all linear in τ, and cumulants
+add under convolution, so cumulant defects are **exactly** additive: ε_n(w^{*L}) = L·ε_n(w), with
+no remainder. This explains why modified-equation coefficients are step-count independent —
+α_eff = 0.09977043 at every L from 1 to 512, all digits identical.
+Composition order takes the **min** of the parts and can never fall below it, so the
+counterexample I asked T5 to hunt for provably does not exist (600 random heterogeneous
+compositions searched; none). T5 retracts its own sub-Gaussian tail claim: the tails track the
+Gaussian to a few percent and cut off only at k → ρ(L) = √(L/s₂), which is simultaneously the
+compression ratio and the fixed point's range of validity.

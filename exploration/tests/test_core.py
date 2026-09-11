@@ -188,21 +188,25 @@ def test_F3_godunov_holds_for_hyperbolic():
 
 
 def test_F1_diffusive_frontier_formula():
-    """k_max(m) ~ (m dx)^2/(2 alpha dt): EXACT for the old row, a tight upper bound
-    (within ~15%) for the corrected row, which the advective terms slightly tighten.
-    Only valid on the diffusive branch; T1 reports further bounds at large m."""
+    """The SHARP frontier: k_max = (-r + sqrt(r^2 + nu^2 m^2))/nu^2 (T5).
+
+    The old (m dx)^2/(2 alpha dt) is only its nu -> 0 limit and overstates badly at
+    large m: 2.2x at m=32, 3.1x at m=50.
+    """
     p = Problem()
-    for m in [2, 3, 4, 6, 8, 12, 16]:
-        pred = (m * p.dx) ** 2 / (2 * p.alpha * p.dt)
+    for m in [2, 3, 4, 6, 8, 12, 16, 32, 50]:
+        pred = st.k_max(m, p)
         ok = lambda k: st.positive_feasible(*st.rows_taylor(
             np.arange(-m, m + 1) * p.dx, np.full(2 * m + 1, -k * p.dt), p))
-        kmax = 0
-        for k in range(1, int(pred * 1.3) + 3):
-            if ok(k):
-                kmax = k
-            elif kmax:
-                break
-        assert 0.82 * pred <= kmax <= pred + 1, f"m={m}: k_max={kmax} vs formula {pred:.1f}"
+        lo, hi = 1, max(2, int(pred * 2) + 4)      # bisect, formula-agnostic
+        while lo + 1 < hi:
+            mid = (lo + hi) // 2
+            if ok(mid):
+                lo = mid
+            else:
+                hi = mid
+        kmax = lo
+        assert abs(kmax - pred) <= 1, f"m={m}: LP gives k_max={kmax}, formula says {pred}"
 
 
 if __name__ == "__main__":
