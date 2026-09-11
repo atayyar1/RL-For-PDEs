@@ -110,6 +110,19 @@ Headlines only, newest first. Detail lives in `FINDINGS.md` (numbered F1–F9) a
   mechanism holds only at c=0. RG fixed point has alpha_eff = alpha - c^2 dt/2, not alpha. One
   composed output costs L^2 evaluations, not L (light cone).
 
+**The day's most important qualification (T5)**
+- `[M]` **The positivity certificate is necessary, not sufficient.** At the frontier the only
+  feasible measure is the extremal two-point one, mass at ±m and nothing between. It is
+  consistent, positive and stable (‖w‖₁ = 1.000000) and it is **10¹⁰–10¹¹× less accurate** than
+  the same width backed off the frontier. Consistency + positivity + stability do not imply
+  accuracy.
+- This retro-explains the whole programme: the frontier is s = mΔx/σ = 1 by construction, and
+  s = 1 is where every accuracy sweep was worst. Same pathology T2 found from the other side.
+- **Usable rule**: do not take the largest positivity-feasible k. Take the largest k with
+  s ≥ s* ≈ √(2 ln 1/ε) — T2's interior optimum is exactly the missing accuracy criterion.
+- `[M]` RKC is not positive away from the frontier (min w = −0.111 at 0.9 k_max); max-entropy is
+  positive at every moment budget. Both T5's.
+
 **Open / next**
 - T1 Task 6: does positivity cost *order*, or only a constant? Refinement-path dependent.
 - T3: estimate the moment hierarchy from noisy data; establish what it does that weak-form

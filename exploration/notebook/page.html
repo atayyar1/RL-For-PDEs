@@ -157,12 +157,12 @@ footer{border-top:1px solid var(--rule-2);padding-top:20px;color:var(--ink-3);fo
 <div class="answer">
   <div>
     <span class="chip c-proved">the answer so far</span>
-    <h2>Positivity constrains <em>geometry</em>, not accuracy.</h2>
-    <p>The intuition that a stable scheme must be a crude one is wrong for diffusion — a
-    non-negative stencil reaches fourth order — and right for advection, where Godunov's theorem
-    costs exactly one order. What positivity really restricts is <em>which stencils exist at all</em>:
-    one-sided geometries are categorically infeasible, and the feasible set saturates at a depth no
-    amount of width can extend. Geometry is precisely what an agent chooses.</p>
+    <h2>Positivity certifies stability. It does not certify anything else.</h2>
+    <p>A non-negative stencil reaches twelfth order, so stability does not cost accuracy in the
+    diffusive regime. But the certificate is <em>necessary, not sufficient</em>: at its own
+    boundary the only admissible scheme is consistent, positive, stable — and 10¹¹ times less
+    accurate than the same stencil backed off that boundary. A certificate that admits the worst
+    member of its feasible set has to be paired with something else.</p>
   </div>
   <svg viewBox="0 0 340 250" role="img" aria-label="Feasible region of stencil geometries: a bounded wedge of two-sided stencils, with one-sided geometries entirely outside it">
     <defs><pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
@@ -231,6 +231,47 @@ footer{border-top:1px solid var(--rule-2);padding-top:20px;color:var(--ink-3);fo
     non-negative, ‖w‖₁ = 1.000000 — and the textbook condition <em>r ≤ ½</em> is precisely the
     condition that the middle weight stays non-negative. Positivity, upwind Courant ≤ 1 and cell
     Péclet ≤ 2 all come back as positivity boundaries to six digits.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>The certificate's boundary admits a useless scheme</h2><span class="eyebrow">F26</span></div>
+  <div class="stack">
+    <p class="col">"Impose positivity" was this programme's one actionable recommendation, so this
+    is the qualification that matters most. At the feasibility frontier k = k<sub>max</sub>(m) the
+    only admissible measure is the <strong>extremal two-point one</strong> — mass at ±m, essentially
+    nothing between:</p>
+    <div class="tw"><table>
+      <thead><tr><th class="n">m</th><th class="n">k<sub>max</sub></th><th class="n">w(−m)</th><th class="n">w(+m)</th><th class="n">max interior |w|</th><th class="n">‖w‖₁</th></tr></thead>
+      <tbody>
+        <tr><td class="n">3</td><td class="n">9</td><td class="n">0.505</td><td class="n">0.323</td><td class="n">1.7e-1</td><td class="n">1.000000</td></tr>
+        <tr><td class="n">6</td><td class="n">39</td><td class="n">0.572</td><td class="n">0.416</td><td class="n">1.2e-2</td><td class="n">1.000000</td></tr>
+        <tr><td class="n">12</td><td class="n">147</td><td class="n">0.636</td><td class="n">0.354</td><td class="n">9.5e-3</td><td class="n">1.000000</td></tr>
+      </tbody>
+    </table></div>
+    <p class="col">That stencil satisfies every moment condition exactly, has all weights
+    non-negative, and has ‖w‖₁ = 1.000000. It passes everything this programme can check. And:</p>
+    <div class="tw"><table>
+      <thead><tr><th class="n">m</th><th class="n">s = mΔx/σ</th><th class="n">error at the frontier</th><th class="n">same m, backed off</th><th class="n">ratio</th></tr></thead>
+      <tbody>
+        <tr><td class="n">6</td><td class="n">1.01</td><td class="n lose">1.5e-4</td><td class="n win">8.9e-16</td><td class="n">1.7 × 10¹¹</td></tr>
+        <tr><td class="n">12</td><td class="n">1.04</td><td class="n lose">2.0e-3</td><td class="n win">2.9e-15</td><td class="n">7.0 × 10¹¹</td></tr>
+        <tr><td class="n">20</td><td class="n">1.10</td><td class="n lose">1.2e-2</td><td class="n win">1.1e-12</td><td class="n">1.0 × 10¹⁰</td></tr>
+      </tbody>
+    </table></div>
+    <div class="chain"><span>Consistency + positivity + stability</span><span class="ar">⇏</span>
+      <span>accuracy.</span><span class="ar">·</span>
+      <span>The feasibility frontier is a stability boundary, not an accuracy one.</span></div>
+    <p class="col">This explains, in retrospect, nearly everything measured here. At the frontier
+    s = mΔx/√(2ατ) = 1 <em>by construction</em>, and s = 1 is exactly where every accuracy sweep
+    found its worst results. It is the same pathology found independently from the other side: at
+    the frontier the m residue classes never exchange information, so the scheme is m decoupled
+    coarse solves — which is why every Pareto-optimal configuration sits at s = 3–6.</p>
+    <p class="col"><strong>The rule that follows.</strong> Do not take the largest
+    positivity-feasible k. Take the largest k with s ≥ s*, where the measured interior optimum
+    <b>s* ≈ √(2 ln 1/ε)</b> supplies exactly the accuracy criterion the certificate lacks. Two
+    results from different threads compose into one usable design rule — and neither is
+    sufficient alone.</p>
   </div>
 </section>
 

@@ -535,3 +535,52 @@ hyperbolic and does not bite in this parabolic regime.
 
 Also: my corrected row 3 is exactly ½Θ₂ in T5's formulation, which already used and generalises it
 — a fourth independent route to the F8 correction.
+
+## F26 — ⭐⭐⭐ The positivity certificate is necessary, not sufficient — and at its boundary it certifies a useless scheme
+T5's finding, verified here, and it is the most important qualification the programme has produced
+because "impose positivity" was its one actionable recommendation.
+
+At the frontier k = k_max(m) the only feasible measure is the **extremal two-point one**,
+≈ ½(δ₋ₘ + δ₊ₘ): mass sits at the ends with essentially nothing between.
+
+| m | k_max | non-zero weights | w(−m) | w(+m) | max interior \|w\| | ‖w‖₁ |
+|---|---|---|---|---|---|---|
+| 3 | 9 | 3 | 0.505 | 0.323 | 1.7e-1 | 1.000000 |
+| 6 | 39 | 3 | 0.572 | 0.416 | 1.2e-2 | 1.000000 |
+| 12 | 147 | 3 | 0.636 | 0.354 | 9.5e-3 | 1.000000 |
+
+(T5 reports interior weights *identically* zero; with centred stencils and c ≠ 0 I get a small
+residue, which the off-centre construction of F22 removes. Same structure either way.)
+
+That stencil is **consistent** — all moment conditions exact — **positive**, and **stable**,
+‖w‖₁ = 1.000000. And it is worthless:
+
+| m | k | s = mΔx/σ | frontier error | same m, backed off | ratio |
+|---|---|---|---|---|---|
+| 6 | 39 | 1.01 | 1.5e-4 | 8.9e-16 | 1.7×10¹¹ |
+| 12 | 147 | 1.04 | 2.0e-3 | 2.9e-15 | 7.0×10¹¹ |
+| 20 | 368 | 1.10 | 1.2e-2 | 1.1e-12 | 1.0×10¹⁰ |
+
+> **Consistency + positivity + stability do not imply accuracy. The feasibility frontier is a
+> stability boundary, not an accuracy one.**
+
+This explains, retrospectively, nearly everything the programme measured. At the frontier
+s = mΔx/√(2ατ) = 1 **by construction** — and s = 1 is exactly where every accuracy sweep found the
+worst results. It is the same pathology T2 found from the other side (at the frontier the m
+residue classes never exchange information, so the scheme is m decoupled coarse solves), and the
+same reason every Pareto-optimal configuration T2 found sits at s = 3–6.
+
+**The design rule that follows.** Positivity must be paired with an accuracy criterion; alone it
+is a filter that admits the worst scheme in the feasible set. Concretely: do *not* take the
+largest positivity-feasible k. Take the largest k with s = mΔx/√(2ατ) ≥ s*, where T2's measured
+interior optimum **s\* ≈ √(2 ln(1/ε))** is exactly the missing accuracy criterion. The two
+results compose into one usable rule.
+
+Two corollaries from T5, recorded as theirs:
+- **RKC is not positive away from the frontier** (min w = −0.111 at k/k_max = 0.9). The classical
+  scheme occupies a single point of the positive cone and leaves it the moment you back off for
+  accuracy. Maximum entropy is the alternative — same feasible set, interior point, positive at
+  every moment budget tested.
+- T5 marks its own L^(1/2) grid speedup as a rediscovery of the RKC stability scaling, and
+  corrects a label used across threads: V = u·e^(−βx) on *linear* advection–diffusion is the
+  **gauge/Liouville transform**, not Cole–Hopf (which is the nonlinear Burgers→heat map).
