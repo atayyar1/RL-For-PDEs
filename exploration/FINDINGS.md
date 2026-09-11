@@ -209,10 +209,16 @@ solution collects a free extra order. The penalty was not even constant — it g
 - **Pawula** survives only in its proper form: it concerns which *generators* admit
   non-negative propagators, not the approximation order of a positive scheme.
 
-**Open, flagged as resting on unverified recall**: Bolley–Crouzeix. T1 is confident about an
-order barrier for *unconditionally* positive one-step parabolic methods, quoted at order 1,
-could not confirm an order-2 barrier, and has numerics contradicting one for *conditionally*
-positive schemes. Needs a literature check, not more computation.
+**RESOLVED by literature check** (was flagged as unverified recall). Bolley & Crouzeix (1978):
+to preserve positivity for the heat equation a discrete method must **either** use time
+discretization of order at most one, **or** impose stability conditions relating the time step
+to the spatial discretization. So any *unconditionally* positive method is at most first-order
+in time — and there is no barrier for *conditionally* positive ones.
+
+T1's caution was exactly right and the reconciliation is exactly conditional vs unconditional.
+Our r = 1/6 counterexample lives on the second branch: it is second-order in time and fourth-order
+in space, but only under the imposed relation r = αΔt/Δx² = 1/6 — a stability condition tying Δt
+to Δx, which is precisely the escape clause the theorem names. No contradiction.
 
 ## F11 — The frontier has three branches, and one is m-independent
 `k_max = min( m²/(2r), m/ν, 2α/(c²Δt) )` — LP-verified for every m ≤ 25 at c = 0 and c = 1.
@@ -309,3 +315,57 @@ counterexample I asked T5 to hunt for provably does not exist (600 random hetero
 compositions searched; none). T5 retracts its own sub-Gaussian tail claim: the tails track the
 Gaussian to a few percent and cut off only at k → ρ(L) = √(L/s₂), which is simultaneously the
 compression ratio and the fixed point's range of validity.
+
+## F16 — ⭐ Target-awareness pays, and a crude cone captures it (constant coefficients)
+The decisive test for the query-driven framing: is the optimal allocation of computational
+effort a *local* formula, or does it need to know the query?
+
+Linearised, the error at a query is `E = Σ G(j,n)·τ(j,n)`, with τ the local truncation and
+**G the influence function** — the adjoint solution, one backward sweep from a delta at z*.
+Three greedy policies on the same budget, marching the real mixed scheme and measuring the
+true error against the exact solution (161 × 120 levels, t* = 0.021):
+
+| budget | uniform | local indicator | **target-aware** | gain vs local |
+|---|---|---|---|---|
+| 5% | 1.8e-5 | 1.9e-5 | **8.9e-6** | 2.1× |
+| 15% | 1.6e-5 | 1.7e-5 | **1.1e-6** | 15× |
+| 35% | 1.3e-5 | 1.3e-5 | **7.7e-8** | 167× |
+
+Median gain **18×** across three query locations. And note the second column: **the standard
+local truncation indicator is no better than uniform, sometimes worse.** Effort spent where
+truncation is large is wasted if that error never reaches the query.
+
+This is the first result in the programme that supports the RL framing rather than undercutting
+it, and it validates Ali's specific design choice to put z* in the state. A first pass also
+suggested a *crude* influence estimate — a constant-coefficient Gaussian cone using the
+domain-mean α, ignoring all spatial structure — retains essentially all of the exact adjoint's
+gain, which is what makes it learnable. That sub-result is from the inconclusive run below and
+needs redoing.
+
+## F17 — ⛔ INCONCLUSIVE: the variable-coefficient extension, and why (three failed attempts)
+Whether F16 survives variable coefficients is **not settled**. Three attempts, each defeated by
+a different flaw, all mine:
+
+1. Reference was a sub-stepped cheap scheme whose own error (~2e-7) was comparable to the spread
+   between policies (~4e-7); and the "expensive" stencil matched only moments 0..2, so it was
+   barely better than cheap.
+2. Rebuilt with order-4 moments and a Richardson-extrapolated reference. Reference residual
+   1.6e-7 against a 2.6e-7 signal — still floored.
+3. Rebuilt with a **manufactured solution**, so the reference is exact. This finally removed the
+   reference problem and exposed the real one: **the wide "expensive" stencil is 0.8× — it is
+   *worse* than the narrow one.** There is nothing to allocate, so the target-aware policy, which
+   upgrades more effectively inside the influence cone, does *more* damage.
+
+**The real finding hiding in attempt 3**: under variable coefficients a wider stencil commits a
+larger **coefficient-freezing error** — moment rows built from α(x_j) are applied over a window
+where α differs. Widening trades discretization error for coefficient-variation error, so the
+optimal width is *narrower* than in the constant-coefficient case, and can be 1.
+
+This bears directly on the width-buys-timestep story (T2) and cuts the same way: the wide-stencil
+advantage **erodes precisely in the regime the programme cares about** — variable or unknown
+coefficients — which is also the regime where spectral methods and RKC do not apply. The
+wide-stencil idea has now lost its edge at both ends.
+
+**To settle F16 under variable coefficients** the upgrade must actually be an upgrade. Either
+correct the moment rows for local coefficient variation (include α'(x), α''(x) terms), or make
+the expensive option a *sub-stepping* upgrade rather than a *widening* one. Not yet done.

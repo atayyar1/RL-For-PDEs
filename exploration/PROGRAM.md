@@ -79,9 +79,10 @@ What survives, and it is sharper:
 - `[M]` **The real constraint is on geometry.** One-sided stencils are never positive-feasible
   (0/15 501). The feasible depth saturates at 2α/(c²Δt) regardless of width. The frontier has
   three branches, `min(m²/2r, m/ν, 2α/c²Δt)`, and the binding one changes with cell Péclet.
-- `[O]` **Bolley–Crouzeix** — an order barrier for *unconditionally* positive one-step parabolic
-  methods, quoted at order 1. Our numerics contradict any order-2 barrier for *conditionally*
-  positive schemes. Needs a literature check; flagged as the one claim resting on unverified recall.
+- `[P]` **Bolley–Crouzeix (1978)**, checked against the literature: positivity preservation
+  requires *either* time order ≤ 1 *or* a stability condition tying Δt to the spatial
+  discretization. Unconditionally positive ⇒ first order; conditionally positive ⇒ no barrier.
+  Our r = 1/6 example is on the second branch, so it is consistent rather than contradictory.
 
 > **The thing positivity constrains is which stencils exist — and that is exactly what an agent
 > chooses.** A policy that sprints one-sided toward its target is not merely inaccurate; it is
