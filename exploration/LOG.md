@@ -58,3 +58,10 @@ Headlines only, newest first. Detail lives in `FINDINGS.md` (numbered F1–F9) a
   SINDy does not; design the "no local PDE exists" failure signature.
 - T5: does coarse-graining trade memory against positivity at fixed locality?
 - Ali's workshop paper: reframe the spine onto "the order barrier is the reason to learn".
+
+**Communication channel**
+- Living lab notebook published as an Artifact:
+  https://claude.ai/code/artifact/9cde25ae-280f-426f-93d4-2a43b425b8ea
+  Source is `exploration/notebook/page.html` (figures embedded as data URIs, regenerate with
+  `python figures/make_figures.py` then re-embed). Republishing the same file path keeps the URL,
+  so this page is updated in place as threads report — it is the running record, not a snapshot.
