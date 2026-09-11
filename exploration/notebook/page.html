@@ -267,6 +267,12 @@ footer{border-top:1px solid var(--rule-2);padding-top:20px;color:var(--ink-3);fo
     found its worst results. It is the same pathology found independently from the other side: at
     the frontier the m residue classes never exchange information, so the scheme is m decoupled
     coarse solves — which is why every Pareto-optimal configuration sits at s = 3–6.</p>
+    <p class="note"><b>Scope, added later.</b> The maximum-entropy advantage below was measured on
+    uniform, single-time-level, wide stencils at 2nd order, where the moment system is badly
+    under-determined (3 rows, 145 points) and the LP vertex is pathological. On scattered points at
+    6th order the feasible set is small and the ordering <em>reverses</em> — the vertex is then
+    slightly better. Prefer maximum entropy when the system is badly under-determined; check rather
+    than assume otherwise.</p>
     <p class="col"><strong>The rule that follows.</strong> Do not take the largest
     positivity-feasible k. Take the largest k with s ≥ s*, where the measured interior optimum
     <b>s* ≈ √(2 ln 1/ε)</b> supplies exactly the accuracy criterion the certificate lacks. Two

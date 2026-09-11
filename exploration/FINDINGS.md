@@ -1193,3 +1193,58 @@ Both are failure modes where **the output looks like a result**.
 A third, from my own record: **before running a comparison, measure the noise floor of the
 apparatus and check the expected effect exceeds it** (F29) — which T2 arrived at independently
 when it withdrew its own 78.1× (F37).
+
+## F42 — ⭐⭐ T3 reopens: high order on scattered mixed time levels works, and F30 needs scoping
+T3 found its Part III verdict was measured in the one configuration where it could not hold —
+**3 rows with 6 neighbours**, where the estimator provably cannot matter — and rebuilt it.
+
+**The construction.** From the generating function Σᵢwᵢ exp[s·Aᵢ + s²·Bᵢ] = 1 with A = Δx − cΔt,
+B = αΔt, the order-q row is Σⱼ A^(q−2j)Bʲ / ((q−2j)! j!). This handles **arbitrary order on mixed
+time levels**, which neither existing routine can: `rows_moment` needs a single time level and
+`rows_taylor` is capped at p = 2. Verified here: **it reduces to the F8-corrected row at p = 2
+exactly (0.00e+00)**.
+
+**Verified independently, scattered points at mixed time levels:**
+
+| order p | points | positive-feasible | median error | maxent vs LP |
+|---|---|---|---|---|
+| 2 | 12 | 78.8% | 4.35e-7 | 1.6× |
+| 4 | 15 | 60.0% | 2.95e-11 | 1.0× |
+| 6 | 21 | 71.6% | **1.11e-15** | **0.5×** |
+
+Eight orders of accuracy from p=2 to p=6, and — the part both T3 and I expected to fail —
+**positivity survives on scattered geometry at 6th order.** T3 measures 99.2% feasibility on its
+geometry distribution; I get 71.6% on a deliberately wider, more adversarial one. Either way it
+does not die.
+
+### ⛔ Scope limit on F30, from my own measurement
+The last column reverses. At p = 6 the **LP vertex beats maxent (0.5×)** on scattered mixed-level
+geometry. F30's headline — maxent over the LP vertex by up to 1.3×10⁶ — was measured on **uniform,
+single-time-level, wide stencils at p = 2**, where the feasible set is enormous (3 rows, 145
+points) and the vertex is pathological. At high order the feasible set is small, the vertex is no
+longer extremal in a damaging way, and entropy-maximisation is not what minimises truncation.
+T3 reports the same from the other side: the LP vertex degrades as the stencil widens while maxent
+stays flat, but at p = 2 everything is floored, capping the gap at ~10× in *their* regime.
+
+**So the rule is narrower than I wrote it**: prefer maximum entropy when the moment system is badly
+under-determined (few rows, many points). At high order with few excess degrees of freedom, check
+rather than assume.
+
+### The finding worth keeping
+At p = 6 the propagator route hits the truncation floor exactly and beats weak-form SINDy **50× on
+clean data**, 3.3× at η = 1e-6 — but WSINDy wins from η ≥ 1e-4, and **no estimator is accurate
+enough to exploit p = 6 beyond that** (WSINDy sits 30× above the floor). Hence:
+
+> **Data-driven integrators are coefficient-limited, not order-limited.**
+> Match the consistency order to the coefficient accuracy you can actually get.
+
+That is a clean design rule, it is new, and it is the right note for this programme to end on —
+it says exactly where the effort should go, which is not into higher-order rows.
+
+**And one correction to me.** I told T3 its NNLS result was the vertex phenomenon. It checked:
+NNLS returned **163–167 non-zeros out of 171** — not sparse, so my mechanism was wrong. The vertex
+effect is real but belongs to the *equality-constrained* problem (3 rows ⇒ ≤3 non-zeros), not to
+their overdetermined regression, where NNLS fails because a bound constraint picks a worse point
+from a huge null space at cond ≈ 1e17. My *conclusion* was right — re-run with an interior
+parametrisation (softmax) and positivity helps under noise, 2.19e-4 vs 4.44e-4 at η=1e-4 — but for
+a different reason than I gave. Fourth instance today of right conclusion, wrong mechanism.
