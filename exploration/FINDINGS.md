@@ -992,3 +992,55 @@ solely because the sign condition is *proved at q = 0 and conjectured elsewhere*
 only surviving result, and is on the published page. Either outcome is useful: confirmation makes
 it quotable on a second system class; refutation means pulling it back to q = 0 before anyone
 builds on it.
+
+## F37 — T2 withdraws its own result, and my reconciliation with it
+**T2 audited its own experiment and retracted the 78.1×.** Three faults, all found by T2:
+1. **Inadequate reference** — fine-FTCS at N=4096 is only good to 1.4e-7 against a spectral
+   reference, *at or above* the positive arm's error. Exactly the failure mode I hit three times
+   today, independently arrived at.
+2. **Mechanism refuted by direct test** — actual amplification of the composite operator is
+   ‖A^nb‖∞ = **1.0003** at nb=16 and **1.0026** at nb=32, with ‖w‖₁ = 1.53 per step. **No
+   compounding.** And the constant-α control shows the same effect, so **my translation-invariance
+   reconciliation is not needed and is probably wrong** — the ℓ¹ bound is loose in both settings,
+   and T5's looseness result generalises.
+3. **Unfair comparison** — 7 equations in 17 unknowns leaves a 10-dimensional feasible set, and it
+   compared an arbitrary positive *vertex* against an arbitrary min-2-norm point. The spread across
+   choices of point at **fixed rows** is 12–60×, as large as the claimed effect. That is F30 turned
+   into a critique of its own experiment.
+
+**Under a matched rule** (min ‖w‖₂ subject to moments, with and without w ≥ 0) positivity still
+helps — 6.1× at nb=16, **6746×** at nb=64 (constant α), 11.8× (variable α) — but with a different
+mechanism: as nb grows, σ shrinks at fixed m, the moment rows under-determine the weights ever more
+badly, the unconstrained solution develops an oscillatory component, and **w ≥ 0 cannot oscillate**.
+T2's reading: *positivity is a regulariser on an under-determined moment system, not a stability
+certificate* — and it reports min-‖w‖₁ signed within 3× at nb=32, so the benefit is not unique to
+positivity.
+
+**My check disagrees with the 3×, and the resolution is more interesting than either version.**
+At identical rows, four choices of point in the same solution set:
+
+| k | s | pts | LP vertex | **maxent** | min-L2 signed | min-L1 signed | maxent / best signed |
+|---|---|---|---|---|---|---|---|
+| 40 | 4 | 49 | 8.6e-6 | **5.3e-8** | 3.9e-5 | 1.1e-5 | 209× |
+| 40 | 6 | 73 | 9.9e-6 | **7.4e-12** | 1.2e-4 | 4.7e-5 | 6.4×10⁶ |
+| 160 | 6 | 145 | 2.1e-3 | **1.5e-10** | 1.8e-3 | 1.1e-3 | 6.8×10⁶ |
+
+But the honest reading is **not** "positivity wins". Note the LP vertex is *positive and terrible*,
+min-L2 is *signed and terrible*, maxent is *positive and excellent*. **Positivity alone predicts
+nothing; the choice of point predicts everything.** And maxent's form w ∝ exp(λ·rows) is
+automatically non-negative — positivity is a *consequence* of maxent, not a separable constraint —
+so this test cannot cleanly attribute the gain to positivity as such.
+
+**What is robust across both of us**: at fixed rows the choice of point in the solution set spans
+six orders of magnitude, and maximum entropy is far the best. That is stronger and more useful than
+either "positivity is a certificate" or "positivity is a regulariser", and it supersedes both.
+
+**Coverage question resolved**: T2 discards any configuration where *any* point fails, so all its
+numbers are at **100% coverage**. My 57% run was not the same experiment, which alone explains why
+I could not reproduce it.
+
+**T2's own summary, worth recording verbatim in substance**: it has now been wrong twice on this
+sub-point in *opposite* directions — first "positivity is free", then "positivity is load-bearing
+via ‖w‖₁" — and both times it inferred a mechanism from an uncontrolled comparison. That is the
+same error I made about mixing-vs-sign, and the same one M1 caught in T5's prose. Three threads,
+one failure mode: **stating the mechanism before controlling the comparison.**
