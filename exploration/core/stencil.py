@@ -92,6 +92,53 @@ def solve_positive(A, b):
     return r.x if r.status == 0 else None
 
 
+def solve_maxent(A, b, tol=1e-13, iters=200):
+    """The MAXIMUM-ENTROPY point of {w >= 0 : A w = b}. Prefer this to solve_positive.
+
+    `solve_positive` runs an LP, and linear programming returns VERTICES: with 3
+    equality rows it hands back a weight vector with at most 3 non-zeros, which is
+    the extremal two-point measure that F26 showed is the WORST member of the
+    feasible set (consistent, positive, stable, and 1e10 times less accurate than
+    an interior point).
+
+    Maximising -sum w log w subject to the same constraints returns the interior
+    point instead. Since w ~ exp(A[1:]^T lam) and the rows are 1, xi, xi^2, the
+    answer is a discrete Gaussian in the characteristic offset xi -- i.e. the
+    propagator itself, recovered without being told it. (Credit: T5 proposed
+    max-entropy; T2 showed it coincides with their two-parameter construction to
+    1e-16.)
+
+    Newton on the convex dual with backtracking. Returns None if not converged.
+    """
+    R, lam, tgt = A[1:], np.zeros(A.shape[0] - 1), b[1:]
+
+    def dual(l):
+        z = R.T @ l
+        mx = z.max()
+        return np.log(np.exp(z - mx).sum()) + mx - l @ tgt
+
+    for _ in range(iters):
+        z = R.T @ lam
+        w = np.exp(z - z.max())
+        w /= w.sum()
+        g = R @ w - tgt
+        if np.abs(g).max() < tol:
+            return w
+        Rw = R @ w
+        H = (R * w) @ R.T - np.outer(Rw, Rw)
+        try:
+            step = np.linalg.solve(H + 1e-14 * np.eye(len(lam)), g)
+        except np.linalg.LinAlgError:
+            return None
+        f0, t_ = dual(lam), 1.0
+        for _ in range(60):
+            if dual(lam - t_ * step) <= f0 - 1e-4 * t_ * (g @ step):
+                break
+            t_ *= 0.5
+        lam = lam - t_ * step
+    return None
+
+
 def solve_min_l1(A, b):
     """Minimum ||w||_1 solution (graceful degradation when positivity is infeasible)."""
     n = A.shape[1]

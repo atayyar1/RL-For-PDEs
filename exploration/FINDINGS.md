@@ -690,3 +690,55 @@ read the floor as a result. Standing correction for future work: **before runnin
 measure the floor of the apparatus and check the expected effect exceeds it.**
 
 T2's configuration has been requested rather than its number accepted or rejected.
+
+## F30 — ⭐⭐ The constructive completion of F26: use maximum entropy, not the LP
+F19 recorded that the 3-row LP does not recover the heat kernel (≤3 non-zeros, TV 0.88) and I
+treated that as a curiosity. F26 then showed the frontier stencil is the extremal two-point
+measure and is useless. **These are the same fact, and it has a fix.**
+
+**Linear programming returns vertices.** With 3 equality rows, any LP hands back a weight vector
+with at most 3 non-zeros — the extremal measure. So `solve_positive` was always returning the
+worst member of the feasible set, at every k, not only at the frontier.
+
+Maximising −Σ w log w over the same set returns the interior point instead. Since
+w ∝ exp(A[1:]ᵀλ) and the rows are 1, ξ, ξ², the answer is **a discrete Gaussian in the
+characteristic offset — the propagator itself, recovered without being told it**. (T5 proposed
+max-entropy; T2 showed it coincides with their independently-derived two-parameter family to
+1e-16, so these are one construction with two derivations.)
+
+Measured, nx = 401, τ = 40 and 160 CFL steps:
+
+| s = mΔx/σ | LP vertex error | max-entropy error | gain |
+|---|---|---|---|
+| 2 | 5.00e-6 | 4.09e-6 | 1.2× |
+| 4 | 8.63e-6 | 5.32e-8 | 162× |
+| 6 | 9.92e-6 | **7.41e-12** | **1.3 × 10⁶×** |
+| 2 (τ=160) | 6.37e-4 | 6.79e-5 | 9.4× |
+| 4 | 1.45e-3 | 9.70e-7 | 1494× |
+| 6 | 2.11e-3 | **1.54e-10** | **1.4 × 10⁷×** |
+
+**The LP error gets *worse* with width** — 5.0e-6 → 9.9e-6 — because the vertex simply moves its
+three masses further apart. Max-entropy converts width into accuracy exponentially.
+
+So F26's design rule was incomplete. The full rule has three parts, none sufficient alone:
+
+> 1. **Positivity feasibility** — the certificate: does a stable scheme exist here at all?
+> 2. **Maximum entropy** — which member of the feasible set to take. Not any feasible point.
+> 3. **s ≥ s\* ≈ √(2 ln 1/ε)** — how much width to spend.
+
+`solve_maxent` added to `core/stencil.py` (Newton on the convex dual, backtracking), with
+`test_F30_maxent_beats_the_lp_vertex` asserting both that max-entropy wins and that the LP vertex
+fails to improve with width. 13/13 passing.
+
+## F31 — T2 / T5 cross-validation closes Phase 1
+- **Max-entropy = T2's construction**, agreeing to 2.8e-17 at five different (m,k). One
+  construction, two derivations; T5's convex dual is the better presentation since it extends to
+  more moments without a bespoke parametrisation.
+- **RKC positivity reproduced to three digits**: min w = −0.0000 at ρ=1 (interior non-zeros: 0),
+  −0.1115 at ρ=0.9, −0.2651 at ρ=0.3. **Classical RKC meets the positive cone at exactly one
+  point — its extreme vertex — and leaves it the moment you back off for accuracy.**
+- **Frontier degeneracy now has three independent derivations** (forced ±m measure; residue
+  classes mod m never exchanging information; T_m(cos θ) = cos(mθ)).
+- **Safety factors made explicit**: none of T2's headline numbers were frontier numbers. The
+  7–20× variable-coefficient result is at s = 2.60; the constant-coefficient Pareto points are at
+  s = 1.5–6, never 1. So F26 does not undercut them.

@@ -199,6 +199,38 @@ def test_F21_initial_condition_is_exact():
         assert np.abs(pr.u_true(x, 0.0) - exact).max() < 1e-13, f"c={c}"
 
 
+def test_F30_maxent_beats_the_lp_vertex():
+    """The LP returns a <=3-nonzero VERTEX; max-entropy returns the interior point.
+
+    The vertex does not benefit from extra width -- it just moves its masses further
+    apart, and gets WORSE. Max-entropy converts width into accuracy exponentially.
+    So the positivity certificate must be paired with BOTH a safety factor s and the
+    right point in the feasible set.
+    """
+    p = Problem(nx=401)
+    xs = 0.5
+    j0 = int(round(xs / p.dx))
+    tau = 40 * p.dt
+    sig = np.sqrt(2 * p.alpha * tau)
+    prev_lp = None
+    for sfac in [2, 4, 6]:
+        m = int(round(sfac * sig / p.dx))
+        A, b = st.rows_taylor(np.arange(-m, m + 1) * p.dx, np.full(2 * m + 1, -tau), p)
+        u0 = p.u_true(p.x[j0 - m:j0 + m + 1], 0.0)
+        uref = p.u_true(xs, tau)
+        wl, wm = st.solve_positive(A, b), st.solve_maxent(A, b)
+        assert wl is not None and wm is not None, f"s={sfac}: no solution"
+        assert (wl > 1e-10).sum() <= 3, "LP should return a vertex"
+        assert (wm > 1e-10).sum() > m, "max-entropy should have full support"
+        assert wm.min() >= -1e-12 and abs(np.abs(wm).sum() - 1) < 1e-9
+        el, em = abs(wl @ u0 - uref), abs(wm @ u0 - uref)
+        assert em <= el, f"s={sfac}: max-entropy ({em:.2e}) should beat the vertex ({el:.2e})"
+        if prev_lp is not None:
+            assert el >= prev_lp, "the LP vertex should NOT improve with width"
+        prev_lp = el
+    assert em < 1e-10, f"max-entropy at s=6 should reach ~1e-11, got {em:.2e}"
+
+
 def test_F1_diffusive_frontier_formula():
     """The SHARP frontier: k_max = (-r + sqrt(r^2 + nu^2 m^2))/nu^2 (T5).
 
