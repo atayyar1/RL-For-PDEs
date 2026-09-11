@@ -1,0 +1,60 @@
+# Log
+
+Headlines only, newest first. Detail lives in `FINDINGS.md` (numbered F1–F9) and in
+`threads/T*/RESULTS.md`. Every claim marked `[M]` has a test in `tests/test_core.py`.
+
+---
+
+## 2026-09-11 — Session 1
+
+**Set up**
+- Branch `jo-exploration` off `main`. New `exploration/` tree: `core/` (shared library),
+  `tests/`, `threads/T1…T5`, `figures/`.
+- `core/pde.py` + `core/stencil.py` consolidate everything verified so far, so no two
+  threads can disagree about dx, dt, u_true, or the consistency rows.
+- `tests/test_core.py`: 9 tests, all passing, each one locking down a numbered finding.
+
+**Fixed in Ali's code**
+- **Corrected the u_xx consistency row in 15 files** (all active notebooks + 2 scripts;
+  Archives untouched). Was `½Δx² + αΔt`, should be `½(Δx − cΔt)² + αΔt`. Substituting
+  u_t = αu_xx − cu_x *recursively* also reduces u_xt and u_tt, contributing `−c·ΔxΔt` and
+  `½c²Δt²`. Verified symbolically; confirmed the corrected row recovers Lax–Wendroff exactly
+  for pure advection, where the old row gave unconditionally-unstable FTCS-central.
+  Each patch carries an inline explanatory comment. Benchmark results move <0.2%; advection
+  results change qualitatively.
+- **Added a partition-of-unity guard** to `solve_weights`. `lstsq` silently returned
+  Σw = 0.478 on rank-deficient systems.
+- **Bonus**: the corrected row *also removes* that rank degeneracy. The old row was affine in
+  Δt so a single-x stencil gave rank 2; ξ² is quadratic in Δt, restoring rank 3.
+
+**Found**
+- `[P]` **The trilemma**: locality, positivity, expressiveness — pick two. Reached
+  independently via Jensen, Godunov, and Pawula. This is the program's answer to its own
+  question. (F3, F7)
+- `[P]` **Moment rows subsume Taylor rows** and extend to arbitrary order. Propagator moments
+  come from a closed ODE hierarchy in the PDE coefficients alone — no Green's function. (F6)
+- `[M]` **Query-driven win**: one point at t\* = 400 CFL steps costs 153 vs FD's 69,898, at
+  error 1.3e-7 vs 2.6e-5. (F6)
+- `[M]` **Positivity certificate is free**: exact `atan2` convex-hull test, 50–60× faster than
+  the LP and cheaper than `lstsq`. `lstsq` throws away an available certificate 47.9% of the
+  time. (T1)
+- `[M]` **CFL conditions are positivity boundaries**, recovered to 6+ digits across schemes.
+
+**Ruled out** (negative results, kept deliberately)
+- `[X]` The wide-stencil frontier **is** first-order Runge–Kutta–Chebyshev, to machine
+  precision (2.2e-16 at s=m=2…16). Same Δt, footprint, and cost. No novelty there.
+- `[X]` At the frontier the m sub-lattices never exchange information — the scheme is m
+  redundant coarse FTCS solves at 7–15× the cost. The apparent win was an artefact.
+- `[X]` RL over global scheme selection (m, k) is unnecessary: 15/18 optimal actions sit on
+  a boundary, so the optimal policy is trivial.
+- `[X]` My own claim that `cond < 1e4` is uninformative about ‖w‖₁ was wrong (corr = 0.822).
+  The accurate statement: it is a **rank** guard, not an amplification guard.
+- `[X]` `k_max(m) = (mΔx)²/(2αΔt)` is exact only for the *uncorrected* row on the diffusive
+  branch. With the corrected row it is an upper bound, tight to ~15% at m = 16.
+
+**Open / next**
+- T1 Task 6: does positivity cost *order*, or only a constant? Refinement-path dependent.
+- T3: estimate the moment hierarchy from noisy data; establish what it does that weak-form
+  SINDy does not; design the "no local PDE exists" failure signature.
+- T5: does coarse-graining trade memory against positivity at fixed locality?
+- Ali's workshop paper: reframe the spine onto "the order barrier is the reason to learn".
