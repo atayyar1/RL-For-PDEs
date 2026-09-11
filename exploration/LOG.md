@@ -82,6 +82,18 @@ Headlines only, newest first. Detail lives in `FINDINGS.md` (numbered F1–F9) a
   MZ memory of M−1 lags. *Memory is the price of coarse-graining space faster than the dynamics
   mixes.*
 
+**Third round — and this one was my bug, not a claim**
+- `[X]` **The "advective accuracy floor" (F18) was `u_true(x,0)` returning a bad initial
+  condition.** The transformed sine series is undamped at t=0, so the IC carried ~5e-7 error
+  while the reference at t=τ was exact to 2e-16. Six wrong diagnoses before the right one. Fixed
+  and locked by a test.
+- `[M]` Consequences both favour T2: its nine-orders result now reproduces **with advection**
+  (7.6e-15 at p=10), and **F6's numbers improve by orders of magnitude** — at t*=400,
+  6.2e-9 not 1.3e-7, i.e. 366× cheaper and 4219× more accurate than FD.
+- `[X]` **The frontier saturation was an artefact of my own brief.** I specified "symmetric
+  stencil"; off-centring by round(−c·kΔt/Δx) — a free index shift — restores the full diffusive
+  branch (2777 vs 903 at m=50). That error propagated into T1's and T5's work.
+
 **Open / next**
 - T1 Task 6: does positivity cost *order*, or only a constant? Refinement-path dependent.
 - T3: estimate the moment hierarchy from noisy data; establish what it does that weak-form

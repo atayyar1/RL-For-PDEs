@@ -187,6 +187,18 @@ def test_F3_godunov_holds_for_hyperbolic():
         assert lo <= order <= hi, f"positive={positive}: order {order:.2f} not in [{lo},{hi}]"
 
 
+def test_F21_initial_condition_is_exact():
+    """u_true(x, 0) must equal the analytic IC. The transformed sine series does not:
+    v0 = u0*exp(-beta x) has O(n^-3) convergence and the reconstruction is amplified
+    by exp(beta x), giving ~5e-7 error at c=1 -- which masqueraded as an 'advective
+    accuracy floor' in several measurements."""
+    for c in [0.0, 1.0, 2.0]:
+        pr = Problem(c=max(c, 1e-12))
+        x = pr.x
+        exact = np.sin(np.pi * x) + 0.5 * np.sin(2 * np.pi * x)
+        assert np.abs(pr.u_true(x, 0.0) - exact).max() < 1e-13, f"c={c}"
+
+
 def test_F1_diffusive_frontier_formula():
     """The SHARP frontier: k_max = (-r + sqrt(r^2 + nu^2 m^2))/nu^2 (T5).
 

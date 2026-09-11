@@ -55,9 +55,19 @@ class Problem:
         removes advection and leaves the heat equation for v, solved by its sine
         series. Cached on (ic, n_series, nq).
         """
-        bn, narr, beta = self._series(ic, n_series, nq)
         scalar = np.ndim(x) == 0
         x = np.atleast_1d(np.asarray(x, float))
+        if t == 0.0:
+            # BUG FIX: at t=0 the transformed series has NOT been damped, and
+            # v0 = u0*exp(-beta x) has non-zero second derivative at the walls, so
+            # its sine series converges only as O(n^-3). The reconstruction is then
+            # multiplied by exp(beta x) -- at beta=5 that is 12x at midspan -- giving
+            # ~5e-7 error in the INITIAL CONDITION while the solution at t>0 is exact
+            # to 2e-16 because the modes are damped. Return the analytic form instead.
+            u0 = {"sin2": np.sin(np.pi * x) + 0.5 * np.sin(2 * np.pi * x),
+                  "sin":  np.sin(np.pi * x)}[ic]
+            return float(u0[0]) if scalar else u0
+        bn, narr, beta = self._series(ic, n_series, nq)
         v = (np.sin(np.pi * np.outer(x, narr)) *
              (bn * np.exp(-self.alpha * (narr * np.pi) ** 2 * t))).sum(-1)
         out = np.exp(beta * x - self.alpha * beta**2 * t) * v

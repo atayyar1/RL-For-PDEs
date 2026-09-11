@@ -419,3 +419,56 @@ Flagged for T2's exact configuration rather than guessed at.
   **advection-dominated sub-cell, it costs >10⁵×** (Godunov again).
 - Consequence worth keeping: monotonicity is *not* what limits this scheme in the diffusive
   regime, which weakens "we preserve monotonicity" as a selling point.
+
+## F21 — ⛔ RESOLVED: the "advective accuracy floor" was a bug in my own reference
+F18 flagged an unexplained 3.83e-7 floor in the advective case, surviving every width, moment
+order, centring and solver tolerance, and afflicting the exact sampled kernel identically.
+
+**Cause: `Problem.u_true(x, 0)` was wrong.** The Dirichlet solution is built as
+u = exp(βx − αβ²t)·v with β = c/(2α) = 5, where v solves the heat equation via a sine series.
+But v₀ = u₀·exp(−βx) has non-zero second derivative at the walls, so its sine series converges
+only as O(n⁻³) — and the reconstruction is then multiplied by exp(βx), which is 12× at midspan.
+For **t > 0** the modes are damped by exp(−αn²π²t) and the series is exact to 2e-16; at **t = 0**
+nothing damps it, so the *initial condition* fed to every stencil carried ~5e-7 of error while the
+*reference* it was compared against was exact. Two completely different weight vectors (the LP
+solution and the sampled kernel) gave identical errors precisely because they shared the bad input.
+
+Fixed: `u_true` now returns the analytic initial condition at t = 0. Locked by
+`test_F21_initial_condition_is_exact`. Diagnosis chain, all wrong before the right one: solver
+tolerance (no, residual 1e-16), boundaries (no, 2e-16), window centring (no), conditioning (no,
+cond = 95), moment truncation (no, predicted 8e-12), `u_true` at t = τ (no, exact).
+
+**Consequences, both in T2's favour:**
+
+1. **T2's nine-orders claim now reproduces in the advective case too.** At τ = 40 CFL steps,
+   sweeping moment order at s = 4.3: 1.8e-6 (p=4) → 9.2e-10 (p=6) → 2.1e-11 (p=8) → **7.6e-15**
+   (p=10), w ≥ 0 throughout. F18's "open discrepancy" is closed and was mine.
+
+2. **F6's headline numbers were floored by the same bug and are much better than reported:**
+
+   | t* (CFL steps) | FD cost / err | moment cost / err | |
+   |---|---|---|---|
+   | 100 | 10,198 / 8.8e-6 | 97 / **1.2e-14** | 105× cheaper, ~7×10⁸ more accurate |
+   | 400 | 69,898 / 2.6e-5 | 191 / **6.2e-9** | 366× cheaper, 4219× more accurate |
+
+   (Previously reported as 1.3e-7 error at t* = 400 — that was the bug, not the method. The cost
+   ratios fall slightly because the optimum now prefers a wider, costlier, far more accurate
+   stencil. At t* = 1600 the required stencil exceeds the domain, which is a real limit.)
+
+## F22 — Off-centre stencils: the frontier saturation was an artefact of my own brief
+T2 and T5 independently converged on this and I verified it by LP. Placing the stencil on
+{j₀−m … j₀+m} with j₀ = round(−c·kΔt/Δx) — a free index shift — removes the drift penalty
+entirely, because in the shifted index the residual drift is |μ′| ≤ ½ and the condition becomes
+k ≤ (m² − μ′²)/(2r) → m²/(2r).
+
+| m | 5 | 8 | 12 | 20 | 32 | 50 |
+|---|---|---|---|---|---|---|
+| centred (LP) | 26 | 62 | 124 | 273 | 519 | 903 |
+| **off-centre (LP)** | **27** | **71** | **159** | **444** | **1137** | **2777** |
+| m²/(2r) | 28 | 71 | 160 | 444 | 1138 | 2778 |
+
+Off-centre tracks the pure-diffusive branch at every m; the gain grows without bound (3.08× at
+m = 50). As T2 observes, the centred stencil is exactly what **my original brief specified**
+("symmetric stencil, all neighbours at −kΔt"), so the saturation was an artefact of my problem
+statement, which then propagated into T1's three-branch frontier and T5's work. Note it does
+*not* affect the accuracy floor of F21 — the two are independent.
