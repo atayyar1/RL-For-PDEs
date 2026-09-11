@@ -1,0 +1,98 @@
+========================================================================================================
+(b)  IS THE WIN POSITIVITY, OR JUST THE HIGH-ORDER LOCAL ROWS?
+     same rows, with and without the w >= 0 projection (lstsq min-norm instead)
+========================================================================================================
+     nb    m   P | err positive   err signed |        flops  ||w||_1 | verdict
+     32    5   6 |   7.2857e-08   2.0160e-07 |    8.602e+04    1.350 | POSITIVE better
+     16    8   6 |   1.6190e-06   6.0357e-06 |    6.758e+04    1.435 | POSITIVE better
+      8   12   6 |   3.9574e-06   6.5037e-05 |    5.018e+04    1.458 | POSITIVE better
+     32    8   6 |   2.6295e-07   1.5811e-05 |    1.352e+05    1.531 | POSITIVE better
+     16    5   4 |   9.1507e-05   2.8967e-05 |    4.301e+04    1.267 | signed better
+      8    5   4 |          nan   2.5671e-04 |          nan    5.054 | POSITIVE better
+
+  -> the local-alpha ROW CONSTRUCTION is what buys the accuracy; positivity is
+     close to free on top of it (see numbers above).  State the claim that way.
+
+========================================================================================================
+(c)  DOES IT SURVIVE A ROUGH alpha?   Taylor expansion of alpha is the weak point
+========================================================================================================
+  alpha                   L_alpha |  wide (best)         FTCS        ratio | feasible?
+  sin(2 pi x), q=1        45.8367 |   7.2857e-08   1.7383e-04      2385.98 | 29 configs
+  sin(4 pi x), q=2        22.9185 |   1.0042e-07   2.4397e-04      2429.59 | 29 configs
+  sin(8 pi x), q=4        11.4595 |   2.0757e-05   5.5992e-04        26.97 | 29 configs
+  sin(16 pi x), q=8        5.7300 |   1.4294e-03   1.8834e-03         1.32 | 23 configs
+  tanh step, w=0.02        5.7612 |  2.9449e+255  2.9449e+255         1.00 | 20 configs
+
+  L_alpha column = alpha/|alpha'| in CELLS: how many cells alpha varies over.
+  -> the advantage tracks that length: once alpha varies on a few cells the local
+     Taylor rows stop being valid and the win collapses toward (or below) FTCS.
+========================================================================================================
+0.  SCOPE CORRECTION: the 7-20x runs of Task 9/9b were PERIODIC.
+    There were no boundaries in them at all.  Everything below is new.
+========================================================================================================
+
+========================================================================================================
+(c-fix)  DISCONTINUOUS alpha with a STABLE reference
+  (the spectral RK4 reference blew up on a tanh step -- that row of task13 was junk)
+========================================================================================================
+  alpha                  L_a (cells) |  wide (best)         FTCS |      ratio
+  sin(8 pi x)                11.46 |   2.0575e-05   5.5945e-04 |      27.19
+  sin(16 pi x)                5.73 |   1.4294e-03   1.8816e-03 |       1.32
+  tanh step w=0.05           14.40 |   1.7268e-04   2.5673e-04 |       1.49
+  tanh step w=0.02            5.76 |   4.8054e-04   3.8172e-04 |       0.79
+  tanh step w=0.005           1.44 |   6.4204e-02   8.7439e-04 |       0.01
+
+  -> the advantage is a function of L_a = alpha/|alpha'| measured IN CELLS.
+     Breakdown is gradual and predictable, not a cliff.
+
+========================================================================================================
+(b-why)  POSITIVITY IS LOAD-BEARING, NOT A FREE EXTRA
+  ||w||_1 = B means the scheme can amplify by B per step, so B^nb over the run.
+========================================================================================================
+     nb    m |  err positive    err signed |  ||w||_1 signed/pos
+     16    8 |    1.4960e-06    6.0574e-06 |    1.435        4.0x
+     32    8 |    2.0268e-07    1.5833e-05 |    1.531       78.1x
+
+  -> the signed/positive gap WIDENS with the number of steps, which is the
+     signature of ||w||_1 > 1 compounding.  Positivity is doing real work here.
+
+========================================================================================================
+(a)  DIRICHLET BOUNDARIES WITH VARIABLE alpha, wall layer charged honestly
+========================================================================================================
+  No method of images: alpha(x) is not symmetric about the wall, so the
+  constant-coefficient escape is gone.  Strategy tested: at a point within m of a
+  wall, restrict the support to the available interior offsets and drop the
+  moment order P until the LP is feasible.  Cost is charged per actual non-zero.
+
+  FTCS (Dirichlet, at CFL): err = 1.7358e-04, flops = 1.173e+05
+
+  A1. How close to the wall can a ONE-SIDED positive stencil be built?
+     nb    m   P |    sigma first j ok | verdict
+      8    5   6 |     3.84          1 | needs j >= 1
+      8    8   6 |     3.84          1 | needs j >= 1
+     16    5   6 |     2.72          1 | needs j >= 1
+     16    8   6 |     2.72          1 | needs j >= 1
+     32    5   6 |     1.92          1 | needs j >= 1
+     32    8   6 |     1.92          1 | needs j >= 1
+  -> a one-sided positive stencil generally does NOT exist near the wall: the
+     free-space kernel wants mass sigma cells to the LEFT and there is none there.
+     This is a genuine obstruction, not a tuning failure.
+
+  A2. HYBRID: wide interior + FTCS-substepped wall layer, everything charged
+     nb    m |  nsub     R    R/N |   err (all x)  err interior | flops
+      8    3 |     -     -      - |    infeasible
+      8    5 |     -     -      - |    infeasible
+      8    8 |     -     -      - |    infeasible
+     16    3 |     -     -      - |    infeasible
+     16    5 |     -     -      - |    infeasible
+     16    8 |     9    17   0.13 |    6.7225e-06    4.2905e-06 | 8.443e+04
+     32    3 |     -     -      - |    infeasible
+     32    5 |     5    10   0.08 |    1.1732e-06    7.8735e-07 | 9.565e+04
+     32    8 |     5    13   0.10 |    2.3951e-06    1.6135e-06 | 1.379e+05
+     64    3 |     -     -      - |    infeasible
+     64    5 |     -     -      - |    infeasible
+     64    8 |     -     -      - |    infeasible
+
+  best hybrid (Dirichlet): err = 1.1732e-06 at flops = 9.565e+04
+  FTCS (Dirichlet)       : err = 1.7358e-04 at flops = 1.173e+05
+  -> ratio: 147.95x accuracy at 0.82x the cost
