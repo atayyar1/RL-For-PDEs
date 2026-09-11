@@ -472,3 +472,66 @@ m = 50). As T2 observes, the centred stencil is exactly what **my original brief
 ("symmetric stencil, all neighbours at −kΔt"), so the saturation was an artefact of my problem
 statement, which then propagated into T1's three-branch frontier and T5's work. Note it does
 *not* affect the accuracy floor of F21 — the two are independent.
+
+## F23 — ⭐⭐ The memory/positivity trade curve is real, and for small M the price is zero
+T5's decisive experiment, formulated exactly rather than fitted: a compact coarse law of
+half-width s and memory depth p is exact iff `Σⱼ B̂ⱼ(q)·g_l^{p+1−j} = g_l^{p+1}` over all
+(mode, alias) pairs; solve unconstrained, then again under w ≥ 0 by NNLS. Initial-condition
+independent.
+
+At fixed minimal locality (3 coarse weights per lag), **memory buys back positivity
+geometrically**:
+
+| coarsening M | positivity defect decay per lag | extra lags per decade |
+|---|---|---|
+| 3 | 0.0966^p | 0.99 |
+| 4 | 0.4414^p | 2.82 |
+| 6 | 0.7370^p | 7.54 |
+
+**Stronger than I predicted: for small M the price is exactly zero.** Exact non-negative compact
+coarse laws exist — M=2 at (s=1, p=1), M=3 at (s=2, p=5) — with mass exactly 1, validated outside
+the system they were fitted in (one-step error 1e-16, 400-step unforced rollout stable at 1e-15).
+The M=2 law came out identical to all digits via the independent Cayley–Hamilton route of F14.
+
+**The structure is not what "adding memory" suggests.** The M=3 law has B₁ = B₂ = 0 *exactly* —
+it is a pure-delay scheme starting at lag 2. Buying back positivity means **moving the whole law
+backwards in time, not correcting a Markov law**. At M=4 this stops (geometric convergence, no
+snap to zero — a failure to find, not a proof).
+
+So F14's "coarse-graining destroys positivity" is refined: it destroys *Markov* positivity. Memory
+restores it, and at small M restores it exactly.
+
+## F24 — ⛔ F7/Pawula fully dead, and now for the right reason
+F10 retracted "local + positive ⟹ 2nd order" on the strength of the r=1/6 counterexample. T5
+supplies the actual reason, which is sharper: **Pawula forbids the stencil's own cumulants from
+terminating; accuracy only requires finitely many moments to be matched.** Those are different
+conditions, and I conflated them.
+
+Verified here — positive stencils matching propagator moments 0…p, all weights non-negative:
+
+| p | 2 | 4 | 6 | 8 | 10 | 12 |
+|---|---|---|---|---|---|---|
+| points | 15 | 23 | 31 | 37 | 43 | 47 |
+| min w | 2.5e-1 | 8.6e-2 | 2.0e-2 | 4.8e-3 | 5.8e-4 | 2.2e-4 |
+| error | 1.0e-4 | 8.0e-7 | 2.4e-9 | 7.7e-12 | 6.4e-15 | 6.9e-15 |
+
+Positive **and** twelfth-order. T5 adds that the real cap is set by r: order 10 at r ≥ 0.40,
+order 2 at r ≤ 0.15. The classical result that genuinely caps order is Godunov's, which is
+hyperbolic and does not bite in this parabolic regime.
+
+## F25 — Four more corrections from T5, all to me
+- **Wide ≠ composed.** I told T5 these were "two representations of the same operator". False.
+  At L=40 on an identical 81-point footprint: composite 3.7e-6, single wide stencil at p=8
+  **2.3e-11** — 1.6×10⁵ better. (At p=2 the wide stencil is *worse* than the composite, 1.5e-3.)
+  Same footprint, different operators; which wins depends entirely on moments matched.
+- **Edgeworth mechanism.** I predicted the leading correction was excess kurtosis at L⁻¹. It is
+  **skewness at L^(−1/2)** — advection makes the step asymmetric (p₋ = 0.4727 vs p₊ = 0.4273).
+  My mechanism holds only at c = 0, which T5 ran as a control. Both verified against analytic
+  constants: c=1 skewness 0.008342 vs 0.008313 (0.34%); c=0 kurtosis 0.0942 vs 0.094195 (0.01%).
+- **RG fixed point.** It is the Gaussian with α_eff = α − c²Δt/2, not α — the composite
+  accumulates FTCS's own defect.
+- **Compression cost.** One output value costs L² evaluations, not L: the light cone. My Task 3
+  framing understated the composed route's cost.
+
+Also: my corrected row 3 is exactly ½Θ₂ in T5's formulation, which already used and generalises it
+— a fourth independent route to the F8 correction.

@@ -94,6 +94,22 @@ Headlines only, newest first. Detail lives in `FINDINGS.md` (numbered F1–F9) a
   stencil"; off-centring by round(−c·kΔt/Δx) — a free index shift — restores the full diffusive
   branch (2777 vs 903 at m=50). That error propagated into T1's and T5's work.
 
+**T5 lands the decisive experiment (and corrects me four more times)**
+- `[M]` **Memory buys back positivity, geometrically — and at small M the price is exactly zero.**
+  Exact non-negative compact coarse laws at M=2 (s=1,p=1) and M=3 (s=2,p=5), validated out of
+  sample (400-step unforced rollout stable at 1e-15). The M=3 law has B1 = B2 = 0 exactly: a
+  pure-delay scheme. Buying back positivity means moving the law backwards in time, not
+  correcting a Markov law.
+- `[X]` **F7/Pawula dead for the right reason now.** Pawula forbids the stencil's *cumulants from
+  terminating*; accuracy needs finitely many *moments matched*. Different conditions, and I
+  conflated them. Verified: positive stencils reach order 12 (min weight 2.2e-4, error 6.9e-15).
+- `[X]` **Wide != composed.** I claimed an identity. On an identical 81-point footprint at L=40:
+  composite 3.7e-6 vs wide p=8 **2.3e-11**. At p=2 the wide stencil is *worse*. Same footprint,
+  different operators.
+- `[X]` Edgeworth: leading correction is **skewness at L^-1/2**, not kurtosis at L^-1 — my
+  mechanism holds only at c=0. RG fixed point has alpha_eff = alpha - c^2 dt/2, not alpha. One
+  composed output costs L^2 evaluations, not L (light cone).
+
 **Open / next**
 - T1 Task 6: does positivity cost *order*, or only a constant? Refinement-path dependent.
 - T3: estimate the moment hierarchy from noisy data; establish what it does that weak-form
