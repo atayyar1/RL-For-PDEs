@@ -1,10 +1,15 @@
 # exploration/ — Joseph's research branch
 
 Start with **[PROGRAM.md](PROGRAM.md)** — the question and the argument, book-shaped.
+Then **[CHECKS.md](CHECKS.md)** — three standing checks, each of which produced a confident wrong
+number here. Read it before trusting any measurement in this tree, including your own.
 
 | file | what it is |
 |---|---|
 | `PROGRAM.md` | the research program: the question, the parts, what is proved / measured / open |
+| `CHECKS.md` | **standing checks** — the three failure modes that produced wrong numbers here |
+| `REEVALUATION.md` | why Phase 1 hit ten classical results, and the filter that would have predicted it |
+| `PHASE2.md` | the compression phase, and why it closed |
 | `FINDINGS.md` | numbered findings F1–F9 with the numbers and the caveats |
 | `LOG.md` | headlines, newest first — what changed and when |
 | `core/` | the shared library. Everything imports its grid and ground truth from here |
