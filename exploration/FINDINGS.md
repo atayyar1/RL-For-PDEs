@@ -742,3 +742,57 @@ fails to improve with width. 13/13 passing.
 - **Safety factors made explicit**: none of T2's headline numbers were frontier numbers. The
   7–20× variable-coefficient result is at s = 2.60; the constant-coefficient Pareto points are at
   s = 1.5–6, never 1. So F26 does not undercut them.
+
+## F32 — ⭐⭐⭐ Memory-free coarse-graining and uselessness are the same phenomenon
+T5's result, verified here, and it reframes Phase 2's central question.
+
+The Phase-1 frontier stencil ½(δ₋ₘ + δ₊ₘ) has symbol cos(mθ). Coarse-grained by M = m, every
+aliased mode gets the **same** eigenvalue, g_l = cos(2πmq/N) independent of the alias index. The
+alias subspace is therefore an eigenspace, the minimal polynomial has degree 1, and the coarse law
+is **exactly Markov with zero memory** — measured alias spread ~4e-15 and exact depth 0 at
+M = m = 3, 4, 6, against the M−1 lags FTCS requires.
+
+And that is the same degeneracy that makes the frontier stencil useless (F26). Hence:
+
+> **The only operator you can coarse-grain for free is one that has already discarded what the
+> coarse grid discards.** Memory-free coarse-graining and carrying no information are one
+> phenomenon, not two.
+
+The general form:
+
+> exact memory depth = (number of **distinct** aliased eigenvalues) − 1.
+>
+> Zero memory ⟺ the symbol is constant on alias classes ⟺ the fine operator cannot distinguish
+> modes the coarse grid cannot represent. An accurate operator evolves them differently, so it
+> must pay memory. **Memory is the price of being able to distinguish what the coarse grid
+> cannot.**
+
+**This changes Phase 2's question.** It was "does compression across scales have a bounded price?"
+It should be: *the price is zero only for operators that have already thrown away what is being
+compressed.* For anything informative, the price is strictly positive — and the live question is
+its rate, not its existence.
+
+**And it changes what to measure.** The exact depth is a **rank statistic** and therefore jumps.
+Interpolating u → (1−a)·FTCS + a·cos(3θ):
+
+| a | alias spread | exact depth |
+|---|---|---|
+| 0.00 | 1.5588 | 2 |
+| 0.50 | 0.7794 | 2 |
+| 0.99 | **0.0156** | **2** |
+| 1.00 | 0.0000 | **0** |
+
+At a = 0.99 the operator is within 1.6% of degenerate and the exact depth is still 2. So the exact
+depth says almost nothing about how close a system is to memory-free. The right pair is:
+
+- **independent variable: alias spread** — how much the fine symbol varies across an alias class,
+  i.e. how much the operator distinguishes what the coarse grid cannot;
+- **dependent variable: positive depth** p\*(ε) — minimum memory depth admitting a *non-negative*
+  compact coarse law. Continuous in the spread, because it is approximation not annihilation.
+
+This independently re-derives F27 (exact depth = M−1 always, spectrum-independent, because it is
+pure rank; the positive depth is the live quantity) from a second direction.
+
+**Framework reading**: an agent that can compress without memory has nothing left to reconstruct.
+Compression–reconstruction requires memory precisely because reconstruction requires having kept
+something.

@@ -17,6 +17,11 @@ Which turns the framework's central claim into a measurable question:
 
 > **Does compression across scales have a bounded price?**
 >
+> **Sharpened after F32**: the price is *zero* only for operators that have already discarded what
+> the coarse grid discards — memory-free coarse-graining and carrying no information are the same
+> phenomenon. So the price is strictly positive for anything informative, and the live question is
+> its **rate**: positive memory depth p\*(ε) as a function of **alias spread**, not of M.
+>
 > Let p\*(M) be the minimal memory depth for a closed, stable, compact coarse law at
 > coarsening factor M.
 > - p\* bounded or slow-growing ⇒ hierarchies are cheap ⇒ multiscale agents are viable.
