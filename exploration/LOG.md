@@ -52,6 +52,20 @@ Headlines only, newest first. Detail lives in `FINDINGS.md` (numbered F1–F9) a
 - `[X]` `k_max(m) = (mΔx)²/(2αΔt)` is exact only for the *uncorrected* row on the diffusive
   branch. With the corrected row it is an upper bound, tight to ~15% at m = 16.
 
+**RETRACTED, same session**
+- `[X]` **The trilemma.** I claimed locality/positivity/expressiveness — pick two, from a Jensen
+  obstruction, and published it. The inequality holds; the consequence does not. Under a PDE
+  constraint u_tt is not independent. **FTCS at r = 1/6: weights (1/6, 2/3, 1/6) ≥ 0, order 4.00,
+  error 3.4e-12 against 5.2e-7 at r = 0.1.** Found by T1, verified independently here, locked into
+  `tests/test_core.py` as `test_F3_RETRACTED_positivity_does_not_cap_order`. The lab notebook page
+  carries the retraction prominently rather than a silent patch.
+- `[X]` The "20–50× constant penalty" for positivity was an artefact of mismatched moment
+  conditions, and was not constant — it grew like 1/h.
+- What replaces it: positivity costs **one order in the hyperbolic case** (Godunov, verified) and
+  **no order in the parabolic case**. Its real cost is **feasibility of geometry** — one-sided
+  stencils are never feasible (0/15 501), and the frontier saturates. Better for the programme,
+  since geometry is what the agent chooses.
+
 **Open / next**
 - T1 Task 6: does positivity cost *order*, or only a constant? Refinement-path dependent.
 - T3: estimate the moment hierarchy from noisy data; establish what it does that weak-form

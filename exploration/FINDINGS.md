@@ -19,7 +19,7 @@ while k_max(5)=27 — so it stops *far* short of the positivity limit. Accuracy,
 stability, is the binding constraint. The naive cost argument is wrong by an order of
 magnitude. → This significantly weakens the standalone case for M2.
 
-## F3 — ⭐ The Jensen obstruction: accuracy beyond 2nd order requires ‖w‖₁ > 1
+## F3 — ⛔ RETRACTED (see F10). The Jensen obstruction: accuracy beyond 2nd order requires ‖w‖₁ > 1
 Non-negative weights summing to 1 are a probability distribution over the offsets.
 Therefore, by Jensen,
 
@@ -102,7 +102,7 @@ This is the classical **truncated moment problem**: a non-negative w matching a 
 moment sequence on a given support exists iff the sequence is realisable (Hankel PSD).
 Positivity feasibility is not an ad-hoc filter — it is a named, well-studied condition.
 
-## F7 — ⭐⭐⭐ Pawula's theorem, and an answer to the motivating question
+## F7 — ⛔ PARTLY RETRACTED (see F10). Pawula's theorem
 The propagator moments are the transition statistics of the "agent": M₁ is drift
 (advection), M₂ is spread (diffusion), higher moments are non-Gaussian corrections.
 This is exactly a Kramers–Moyal expansion.
@@ -174,3 +174,61 @@ T1 reports two further bounds binding at larger m, with reachable depth saturati
 My verification only ran to m=16, entirely inside the diffusive branch. The F6
 query-driven results use γ≤4 (m≤76 at t*=400) and so may sit outside it — **flagged for
 recheck against T1's corrected frontier.**
+
+
+## F10 — ⛔ RETRACTION of F3's consequence and F7's trilemma
+**The Jensen inequality is true; the order barrier drawn from it is false.**
+
+Under a PDE constraint u_tt is *not* an independent error term. ∂ₓ commutes with the
+generator, so u(x+Δx, t+Δt) = exp(q∂ₓ + a∂ₓ²)u with q = Δx − cΔt, a = αΔt: every time
+derivative collapses into two numbers. The ½Δt²u_tt contribution is redistributed across
+u_xx, u_xxx and u_xxxx, where the remaining moments cancel it routinely. The Jensen
+constraint binds for the *generic* hierarchy (exactness for arbitrary smooth f(x,t)) and is
+**vacuous for the PDE-constrained one**. Credit: T1.
+
+Counterexample, verified independently here by measured convergence:
+
+| r = αΔt/Δx² | weights | w ≥ 0 | observed order | error at Δx=1/320 |
+|---|---|---|---|---|
+| 0.10 | (0.1000, 0.8000, 0.1000) | yes | 2.00 | 5.2e-7 |
+| 0.25 | (0.2500, 0.5000, 0.2500) | yes | 2.00 | 6.5e-7 |
+| **1/6** | **(0.1667, 0.6667, 0.1667)** | **yes** | **4.00** | **3.4e-12** |
+| 0.50 | (0.5000, 0.0000, 0.5000) | yes | 2.00 | 2.6e-6 |
+
+At *matched* moment conditions positivity costs nothing: identical rates at order 3 and 4,
+and at order 3 the positive stencil is **2.6× more accurate**. My earlier "20–50× constant
+penalty" was an artefact of comparing at mismatched conditions, where a symmetric min-norm
+solution collects a free extra order. The penalty was not even constant — it grew like 1/h.
+
+**What is actually true:**
+- **Hyperbolic**: positivity costs exactly one order — Godunov. Verified: upwind (positive)
+  1.00, Lax–Wendroff (signed) 2.00. T1 confirms max positive order = 1 at 3, 5, 7, 11 points
+  for every Courant number.
+- **Parabolic**: positivity costs *no* order. It costs **feasibility** — under Δt ∼ Δx the
+  max positive order collapses 3 → 2 → 1 as r runs 0.98 → 7.98.
+- **Pawula** survives only in its proper form: it concerns which *generators* admit
+  non-negative propagators, not the approximation order of a positive scheme.
+
+**Open, flagged as resting on unverified recall**: Bolley–Crouzeix. T1 is confident about an
+order barrier for *unconditionally* positive one-step parabolic methods, quoted at order 1,
+could not confirm an order-2 barrier, and has numerics contradicting one for *conditionally*
+positive schemes. Needs a literature check, not more computation.
+
+## F11 — The frontier has three branches, and one is m-independent
+`k_max = min( m²/(2r), m/ν, 2α/(c²Δt) )` — LP-verified for every m ≤ 25 at c = 0 and c = 1.
+The third branch saturates at **435 steps** here and does not improve with width. Crossover
+of the first two at m = 2/Pe = 19.8 cells. So F1's quadratic law is exact only up to m ≈ 20;
+it overstates by 4.1× at m = 40 and 14.8× at m = 76. **The F6 query experiment at γ=4 (m=76,
+k=400) sits at 92% of the true frontier, not the 16% headroom the quadratic law implied** —
+and the binding constraint there does not depend on m at all. T2 notes this advective cap is
+an artefact of the 3-row spec and vanishes once u_tt is kept.
+
+## F12 — One-sided stencils are never positive-feasible
+0 / 15 501, exhaustively, both sides. Downwind fails because q = Δx + c|Δt| > 0 always;
+upwind fails unless the window exceeds 2α/(cΔx) = 2/Pe = 19.8 cells, with the measured
+crossover exactly there (0.000 at D=19, 0.038 at D=20).
+
+This is the most useful result for the RL thread. A time-pressured policy that sprints
+one-sided toward its target is not merely inaccurate — it is **categorically outside the
+feasible set**. The constraint positivity imposes is on *geometry*, which is exactly what
+the agent chooses.

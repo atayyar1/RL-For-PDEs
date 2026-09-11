@@ -132,6 +132,61 @@ def test_F9_corrected_row_fixes_the_rank_degeneracy():
     assert st.solve_minnorm(A_old, b, guard=False) is not None
 
 
+def test_F3_RETRACTED_positivity_does_not_cap_order():
+    """RETRACTION. Positivity does NOT limit a parabolic scheme to 2nd order.
+
+    The Jensen inequality (test_F3_jensen_obstruction) is true, but the order
+    barrier drawn from it is not: under a PDE constraint u_tt is not an
+    independent error term, since d/dx commutes with the generator and every
+    time derivative collapses into q = dx - c dt and a = alpha dt. The
+    1/2 dt^2 u_tt contribution is redistributed onto u_xx, u_xxx, u_xxxx where
+    the other moments cancel it.
+
+    Counterexample: FTCS at r = 1/6 has weights (1/6, 2/3, 1/6) >= 0 and is
+    FOURTH order. Credit: T1.
+    """
+    alpha, T_END = 1.0, 0.02
+
+    def run(nx, r):
+        dx = 1.0 / (nx - 1)
+        nsteps = max(int(round(T_END / (r * dx**2 / alpha))), 1)
+        dt = T_END / nsteps
+        rr = alpha * dt / dx**2
+        x = np.linspace(0, 1, nx)
+        u = np.sin(np.pi * x)
+        for _ in range(nsteps):
+            u = np.concatenate([[0.0], rr * u[:-2] + (1 - 2 * rr) * u[1:-1] + rr * u[2:], [0.0]])
+        return np.max(np.abs(u - np.sin(np.pi * x) * np.exp(-alpha * np.pi**2 * T_END))), rr
+
+    for r, lo, hi in [(0.10, 1.8, 2.2), (0.25, 1.8, 2.2), (1 / 6, 3.8, 4.2)]:
+        errs = [run(nx, r)[0] for nx in [41, 81, 161]]
+        order = np.log2(errs[0] / errs[1])
+        w = np.array([r, 1 - 2 * r, r])
+        assert w.min() >= -1e-15, f"r={r}: weights must be non-negative"
+        assert lo <= order <= hi, f"r={r:.4f}: observed order {order:.2f} not in [{lo},{hi}]"
+
+
+def test_F3_godunov_holds_for_hyperbolic():
+    """The barrier IS real in the hyperbolic case: positive => 1st order."""
+    def run(nx, nu, positive):
+        c = 1.0; dx = 1.0 / nx
+        nsteps = max(int(round(0.2 / (nu * dx / c))), 1)
+        dt = 0.2 / nsteps; n = c * dt / dx
+        x = np.arange(nx) * dx; u = np.sin(2 * np.pi * x)
+        w = (np.array([n, 1 - n, 0.0]) if positive
+             else np.array([n * (1 + n) / 2, 1 - n**2, -n * (1 - n) / 2]))
+        for _ in range(nsteps):
+            u = w[0] * np.roll(u, 1) + w[1] * u + w[2] * np.roll(u, -1)
+        return np.max(np.abs(u - np.sin(2 * np.pi * (x - c * 0.2)))), w
+
+    for positive, lo, hi in [(True, 0.85, 1.25), (False, 1.85, 2.15)]:
+        errs = [run(nx, 0.5, positive)[0] for nx in [80, 160, 320]]
+        order = np.log2(errs[0] / errs[1])
+        w = run(160, 0.5, positive)[1]
+        assert (w.min() >= -1e-15) == positive, "positivity flag mismatch"
+        assert lo <= order <= hi, f"positive={positive}: order {order:.2f} not in [{lo},{hi}]"
+
+
 def test_F1_diffusive_frontier_formula():
     """k_max(m) ~ (m dx)^2/(2 alpha dt): EXACT for the old row, a tight upper bound
     (within ~15%) for the corrected row, which the advective terms slightly tighten.

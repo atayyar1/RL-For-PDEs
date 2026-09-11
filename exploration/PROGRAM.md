@@ -59,38 +59,44 @@ finite differences are the special case where someone chose G in advance.
 - `[M]` `lstsq` discards an available positivity certificate **47.9% of the time** on
   stencils that *are* positive-feasible.
 
-## Part III — The trilemma
+## Part III — What positivity actually costs
 
-The central claim of the book, reached by three independent routes.
+**Retracted**: this part previously argued a trilemma — locality, positivity, expressiveness,
+pick two — from a Jensen obstruction. The inequality is true; the consequence is false. See F10.
+Under a PDE constraint u_tt is not independent, so the obstructed moment is redistributed onto
+x-derivatives the other moments cancel. **FTCS at r = 1/6 has weights (1/6, 2/3, 1/6) ≥ 0 and is
+fourth-order.** Verified independently by measured convergence.
 
-- `[P]` **Jensen obstruction.** Non-negative weights summing to 1 are a probability
-  distribution, so Σwᵢ Δtᵢ² ≥ (Σwᵢ Δtᵢ)² > 0. The u_tt error term **can never** be cancelled
-  by any positive w. Measured: 0/600 multi-level stencils cancel it with w ≥ 0; 600/600 do
-  with signed w, at minimum ‖w‖₁ = 1.018. **Accuracy beyond the barrier has a price in
-  ‖w‖₁, and the price is measurable.**
-- `[M]` **Godunov.** Positivity fails for second-order advection exactly where the theorem
-  says it must: no linear monotone scheme is second-order.
-- `[P]` **Pawula.** The propagator moments are a Kramers–Moyal expansion. A KM expansion
-  truncating above order 2 must truncate at 2, or the propagator stops being a non-negative
-  density. So **a local positive propagator is necessarily second-order.**
+What survives, and it is sharper:
 
-> ### Locality, positivity, expressiveness — pick two.
->
-> Second-order PDEs are the fixed point where all three nearly coexist. That is why they are
-> everywhere, and it is exactly what you surrender to go beyond them: either locality
-> (integro-differential operators, memory) or positivity (signed weights, geometric error
-> growth under composition).
+- `[P]` **Hyperbolic: positivity costs exactly one order.** Godunov's theorem, and the mechanism
+  is visible in this language: with α = 0 the second moment is q²/2 ≥ 0, so cancelling it with
+  w ≥ 0 forces every active neighbour exactly onto the characteristic. Measured: upwind 1.00,
+  Lax–Wendroff 2.00.
+- `[M]` **Parabolic: positivity costs no order at all.** At matched moment conditions the rates
+  are identical, and at order 3 the positive stencil is 2.6× *more* accurate. What it costs is
+  feasibility: under Δt ∼ Δx the max positive order collapses 3 → 2 → 1 as r grows.
+- `[M]` **The real constraint is on geometry.** One-sided stencils are never positive-feasible
+  (0/15 501). The feasible depth saturates at 2α/(c²Δt) regardless of width. The frontier has
+  three branches, `min(m²/2r, m/ν, 2α/c²Δt)`, and the binding one changes with cell Péclet.
+- `[O]` **Bolley–Crouzeix** — an order barrier for *unconditionally* positive one-step parabolic
+  methods, quoted at order 1. Our numerics contradict any order-2 barrier for *conditionally*
+  positive schemes. Needs a literature check; flagged as the one claim resting on unverified recall.
 
-This is the book's answer to its title question, and it is not a hedge.
+> **The thing positivity constrains is which stencils exist — and that is exactly what an agent
+> chooses.** A policy that sprints one-sided toward its target is not merely inaccurate; it is
+> outside the feasible set. That is a better foundation for the programme than the barrier it
+> replaces, because it bears directly on the decision being learned.
 
 ## Part IV — Why learning is forced
 
-- Part III says no **linear** scheme is both monotone and high-order. The classical escape
-  is to abandon linearity: flux limiters, ENO/WENO — schemes that **choose their stencil
-  from the local solution**.
-- A learned, state-dependent stencil selector is exactly such a nonlinear scheme, general
-  rather than hand-designed. **The order barrier is the reason to learn**, not a decoration
-  on it.
+- For **hyperbolic** problems no linear scheme is both monotone and high-order. The classical
+  escape is to abandon linearity: flux limiters, ENO/WENO — schemes that **choose their stencil
+  from the local solution**. A learned state-dependent selector is exactly such a scheme.
+- For **parabolic** problems the argument is different, since positivity costs no order there.
+  What it costs is feasibility, and the feasible set is *shaped*: one-sided geometries excluded,
+  depth saturating, the boundary's location set by local cell Péclet. **A fixed rule cannot track
+  a boundary that moves with the solution.** That, not an order barrier, is the case for learning.
 - `[P]` Positivity also makes *planning* tractable: with ‖w‖₁ = 1 errors are additive, so the
   optimal scheme schedule is an exact shortest-path problem. With ‖w‖₁ > 1 it is
   history-dependent and search is genuinely required. **That is the honest boundary between
@@ -132,8 +138,12 @@ This is the book's answer to its title question, and it is not a hedge.
 
 ## What would falsify the program
 
-- If positivity costs *order* rather than a constant on every refinement path, the
-  "stability is cheap" half of the story collapses. (T1, Task 6 — currently open.)
+- ~~If positivity costs *order* rather than a constant~~ — **settled, and it went the other way**:
+  positivity costs no order in the parabolic case and exactly one in the hyperbolic case. The
+  trilemma framing is retracted (F10).
+- The experiment that could end Part V: take weak-form SINDy's better coefficients, build the
+  same rows, impose positivity. If that works equally well, the moment route is unnecessary even
+  for the one claim that survived it.
 - If the moment hierarchy cannot be estimated from noisy data better than weak-form SINDy,
   Part V is a reformulation, not a method.
 - If coarse-graining preserves positivity without memory, Part VI loses its tension.
