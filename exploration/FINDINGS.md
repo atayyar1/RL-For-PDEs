@@ -881,3 +881,63 @@ depth; at r=0.45 it has g = −0.8 — barely decaying, but oscillating — and 
 and never re-synced, so M1 read a stale snapshot and re-derived F23 from scratch believing the
 script was missing. All four Phase-1 threads have now been rsynced. The silver lining is that F23's
 existence claim is now confirmed by three independent methods.
+
+## F34 — T3 closes: the detector survives, the big-step claim is bandwidth-dependent
+**The mathematics has a cleaner statement than my ODE.** T3 verified the hierarchy to **1e-17**
+(superseding my 1.6e-9, which was solver tolerance) and replaced it with an identity:
+
+    Σ_q M_q s^q / q!  =  exp(τ · P(s)),    P(s) = αs² − cs
+
+The stencil's moment generating function is **the exponential of the generator's symbol**, so
+cumulants are κ_q = τ·q!·[s^q]P(s) and κ₃…κ₈ vanish exactly — *that is Pawula*. Generalises to any
+linear PDE in one line, and should be the presentation.
+
+**Best result in the thread: the detector measures the exponent, not just the failure.** On
+non-local data the signature is bandwidth, α_eff(R) ∼ R^(2−2s), and it recovers
+**s = 0.999, 0.905, 0.760, 0.520 against truths 1.0, 0.9, 0.75, 0.5**. A method that reports *how*
+non-local the data is, rather than a spurious local PDE, is worth more than one that fits. (Clean
+data only; unreliable by η = 1e-2.) T3's own first prediction here was wrong — it guessed
+κ₂ ∼ τ^(1/s) — and it reports that.
+
+**The big-step claim is bandwidth-dependent, and my check disagrees with T3's in one direction.**
+T3 reports that simply sampling the Gaussian kernel beats the moment construction by 4–7 orders
+"at every bandwidth". Measured here on exact multi-mode data after the F21 fix:
+
+| data | s | sampled kernel | 3-row LP | 3-row maxent | moment p=8 |
+|---|---|---|---|---|---|
+| 4 modes | 4 | 4.9e-8 | 3.3e-8 | 1.1e-10 | **2.4e-17** |
+| 4 modes | 6 | 2.2e-12 | 7.2e-6 | 1.2e-14 | 6.0e-16 |
+| 40 modes | 4 | 5.1e-7 | 2.5e-4 | 5.0e-7 | **6.2e-8** |
+| 40 modes | 6 | **2.5e-11** | 1.5e-3 | 2.0e-11 | 3.9e-7 |
+
+**Narrowband: high-order moment matching beats the kernel by 3–9 orders** — backwards from T3's
+claim. **Broadband at large s: the kernel wins**, as they say, because matching many moments on a
+wide stencil over-fits low-frequency content the data does not have. And **3-row maxent tracks the
+sampled kernel everywhere** — the same object, per F30. If T3's comparison used NNLS or an LP for
+the moment construction, it was comparing the kernel against the *vertex*, which would produce
+exactly their margins.
+
+**Their claim-(c) refutation is very likely the same artefact.** They found NNLS 33,000× worse than
+plain LS, "returning a sparse solution, a bad fit to a smooth Gaussian". NNLS returns vertices for
+the same reason LP does. Asked to re-run with `solve_maxent` before writing the certificate off.
+
+**Accepted without argument**: the 457× (now 366×) is the **single-point cone ratio**; full-grid is
+**5.1×**. The step is unusable within ~2–3σ of a Dirichlet boundary. And on a uniform grid, kernel
+sampling makes the moment machinery redundant — *that recipe is an exponential integrator*.
+
+Which is the day's recurring lesson once more: **the machinery only earns its place where the
+classical method does not reach.** T3's scattered-geometry experiment is therefore the whole
+thread, and is now the only remaining Phase-1 item.
+
+## F35 — M2 closed cleanly, with a caveat against its own memo
+`POSITIONING.md` now opens with a STOP box: the Guttenberg citation with DOI and PMID, a four-row
+table of the positivity literatures with entry points, three one-line redirections, and a plain
+statement that no experiments were run. It also records, unprompted, that **its own Q4 search was
+wrong on the first pass** — it shared my prior that positivity was the thin spot and found the four
+literatures only after deliberately searching against itself. So its 1-in-3 estimate on the one
+uncleared corner came from a process that had already failed in that exact area, and should be
+discounted rather than treated as calibrated. If anyone revisits it, the first move is a
+positive-realization search with a bandwidth constraint, not experiments.
+
+That is the second time today a thread has argued against its own conclusion in writing. It is the
+behaviour most worth keeping from this session's method.

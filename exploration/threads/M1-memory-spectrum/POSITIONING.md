@@ -249,10 +249,13 @@ Two honest caveats that keep this from being a total match:
 1. T5 coarse-grains by **decimation** (keep every M-th point), not by **lumping** (sum or
    average over blocks). Lumpability theory is about the latter. Decimation of a field is not a
    probabilistic lumping, so the correspondence is at the level of the operator, not literal.
-   **T5 never examined this choice**, and it is load-bearing: block-averaging is the RG-natural
-   restriction and would change the alias structure and hence every number in F14/F23. If
-   anything in M1 is worth running, this is a better candidate than Tasks 1–4 — but it is a
-   half-day check, not a thread.
+   **T5 never examined this choice.** I expected it to be load-bearing and said so here.
+   **It is not — see RESULTS.md R4, which retracts this paragraph.** Block averaging
+   annihilates exactly the unresolved aliases at q = 0, i.e. exactly the constraints that
+   carry the §2.1 obstruction, and it changes one cell in a 42-cell feasibility table.
+   Exempting 97% of all coarse modes still leaves M = 4 infeasible. So the obstruction
+   lives at essentially every mode independently, and §2.1 is where it is provable rather
+   than where it lives.
 2. FTCS with r ≤ ½ and small c *is* a doubly stochastic circulant, so the fine dynamics really
    is a random walk on Z_N and the probabilistic language is not a metaphor here.
 
@@ -349,9 +352,10 @@ it is a sentence about the programme rather than about numerical schemes:
 > destroys it when they merely decay. Scale separation is not what makes hierarchies cheap.**
 
 If that survives, it is worth a paragraph in the book and a figure. If it fails, M1 closes and
-the programme has lost a day instead of a week. Either way I would also spend an hour on the
-**decimation-vs-block-averaging** question (§4, caveat 1), because every number in F14/F23
-depends on a restriction operator nobody chose deliberately.
+the programme has lost a day instead of a week. ~~Either way I would also spend an hour on the **decimation-vs-block-averaging** question
+(§4, caveat 1), because every number in F14/F23 depends on a restriction operator nobody
+chose deliberately.~~ **Ran it. It fails — see RESULTS.md R4.** The restriction operator
+changes one cell in 42 and the obstruction survives exempting 97% of the spectral band.
 
 **What I would not do is look for a third framing.** PHASE2.md says: *"If both, the right move
 is to say so and stop, not to find a third framing."* p\* is not the spectral gap — but it is

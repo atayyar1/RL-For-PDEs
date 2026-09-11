@@ -232,12 +232,15 @@ for Q in [-1, 0, 1, 2, 3, 5, 8, 11, 14]:
     tag = f"P={P},s={s}" if P else "--"
     print(f"   {Q:>8} {ndel:>15} {ndel / (N // 4):>18.2f} {tag:>14}")
 print("""
-   Feasibility only appears once a large fraction of the spectral band is exempted, which
-   is not a coarse-graining any more.  The obstruction is robust: it is a property of the
-   low-wavenumber END of the spectrum, not of the single constant mode, and no choice of
-   restriction operator that keeps the coarse field a local average of the fine one can
-   evade it.  This CLOSES the decimation-vs-block-averaging question raised in
-   POSITIONING.md section 4 -- I flagged it as load-bearing and it is not.""")
+   Feasibility never appears.  Exempting 29 of the 30 coarse modes -- 97% of the band --
+   still leaves M=4 infeasible at depth <= 10, half-width <= 3.  So my explanation above
+   is ALSO wrong: the obstruction is not a neighbourhood of the constant mode either.  It
+   is present at essentially every coarse mode independently, and the q=0 argument of
+   POSITIONING.md is merely the one place where it is easy to PROVE, not the place where
+   it lives.  Consequence: no restriction operator can evade it by annihilating aliases at
+   selected modes.  This CLOSES the decimation-vs-block-averaging question raised in
+   POSITIONING.md section 4 -- I flagged it as load-bearing and it is not.
+   The general (all-q) obstruction remains unproved: [conjectured].""")
 
 # ---------------------------------------------------------------------- FIGURE
 fig, axes = plt.subplots(1, 3, figsize=(15, 4.4))
