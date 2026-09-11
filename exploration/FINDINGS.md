@@ -638,3 +638,55 @@ Which makes one experiment decisive, and it is now M1's priority:
 > viable *only if built in small steps* — a measured statement about why multiscale structure
 > looks the way it does. If memory compounds across iterated steps instead, hierarchies are
 > expensive however they are built.
+
+## F28 — T2's final report: the claim survives, properly bounded
+Four scope questions answered; two of T2's own guesses reversed.
+
+**Scope correction on the headline.** The 7–20× over RK4+FD6 was measured **periodic — no
+boundaries at all**. That must be on the abstract.
+
+**Boundaries, priced honestly.** T2 reverses its own earlier guess: a one-sided *positive* stencil
+does exist from j = 1, and what degrades is achievable moment order, gracefully —
+P_max = 1, 2, 4, 6, 6 at j = 0, 1, 2, 3, 4. So the order-reduction layer is **4–6 cells**, far
+thinner than the m+k layer sub-stepping needs. With the wall charged flop-by-flop: **1.17e-6 at
+9.57e4 flops vs FTCS 1.74e-4 at 1.17e5 — 148× accuracy at 0.82× cost.** But this is **against
+FTCS only**; RK4+FD6 was not re-run with walls, so 148× is *not* comparable to the 7–20×.
+
+**Rough α: breaks where predicted, with a clean scaling.** The advantage tracks
+**L_α = α/|α′| in cells** — exactly the validity range of the local Taylor rows:
+
+| L_α (cells) | 45.8 | 22.9 | 11.5 | 5.7 | 5.8 (step) | 1.4 (step) |
+|---|---|---|---|---|---|---|
+| ratio vs FTCS | 2386× | 2430× | 27× | 1.3× | **0.79×** | **0.01×** |
+
+Gone by ~6 cells, actively harmful below ~2. Gradual and predictable, not a cliff. (T2 discarded
+its own first tanh run — the spectral RK4 reference blew up — and redid it.)
+
+**Positivity is load-bearing, not free.** T2 guessed wrong and says so: same rows, w ≥ 0 vs signed
+min-norm, positive wins 5/6 by up to 60×, and the gap **widens with step count** — 4.0× at 16
+steps, **78.1× at 32**. Attributed to ‖w‖₁ = B > 1 compounding as B^n. So the claim is
+"local-α rows **and** positivity", not "positivity free on top".
+
+## F29 — ⛔ I could not reproduce the ‖w‖₁ compounding, twice, and both failures were mine
+This matters because it is the reconciliation of a real tension: T5 showed the ℓ¹ bound is
+astronomically loose for a *fixed uniform* stencil (Lax–Wendroff, ‖w‖₁ = 1.24, symbol modulus
+exactly 1, 512-fold composition reaching 1.59 against a bound of 6.8e47). T2 reports genuine
+compounding with *variable coefficients*. The proposed reconciliation — von Neumann needs
+translation invariance, which variable coefficients destroy — is plausible and would matter.
+
+Two attempts, neither able to see the effect:
+1. **3 Taylor rows at m = 2, 3.** Positive and min-norm errors identical to 4 digits at every step
+   count, despite mean ‖w‖₁ of 1.12 and 1.27. Truncation from the low-order rows swamped any
+   amplification.
+2. **Moment rows at P = 6, m = 8** (T2's regime). min-norm ‖w‖₁ = 1.47, negative weights at
+   **every** point — and still ratio 1.00× at 4, 8, 16 and 32 steps. Diagnosis: only 106 of 185
+   interior points were solvable both ways, so 43% of the domain fell back to the *same* 3-point
+   scheme in both arms and dominated the error, which sat flat at 1.05e-5 in n.
+
+**The pattern is mine, not the method's.** This is the same failure as the advective-floor saga
+(three attempts) and the variable-coefficient influence test (three attempts): I build a
+measurement in which the quantity of interest sits below the noise floor of my own setup, then
+read the floor as a result. Standing correction for future work: **before running a comparison,
+measure the floor of the apparatus and check the expected effect exceeds it.**
+
+T2's configuration has been requested rather than its number accepted or rejected.
