@@ -584,3 +584,57 @@ Two corollaries from T5, recorded as theirs:
 - T5 marks its own L^(1/2) grid speedup as a rediscovery of the RKC stability scaling, and
   corrects a label used across threads: V = u·e^(−βx) on *linear* advection–diffusion is the
   **gauge/Liouville transform**, not Cole–Hopf (which is the nonlinear Burgers→heat map).
+
+---
+# Phase 2 — the price of compression
+
+## F27 — ⭐ The exact memory depth is algebraic; the *positive* memory depth is the live quantity
+De-risk check on Phase 2's central question, run before committing to it
+(`threads/M1-memory-spectrum/derisk.py`).
+
+**Exact depth is spectrum-independent.** Coarse-graining the periodic FTCS stencil by M, a coarse
+law of depth M−1 is exact for *every* r, because the monic polynomial whose roots are the M
+aliased symbols always exists. That is Cayley–Hamilton on the alias subspace. Verified to 1e-16
+residual for M = 2…6. **So p\* is not the spectral gap** — the classical part of it carries no
+spectral information at all.
+
+**The positivity-constrained depth is a different, much larger quantity** (independent NNLS
+implementation, periodic FTCS, N = 120, reproducing T5's structure by a different method):
+
+| M | exact depth | minimum **positive** depth |
+|---|---|---|
+| 2 | 1 | 2 (s=1) |
+| 3 | 2 | **6 (s=2)** |
+| ≥ 4 | 3+ | > 10 |
+
+Exactness needs 2 lags at M=3; positivity needs 6.
+
+**And it depends on r, with a sharp threshold structure:**
+
+| r | M=2 | M=3 | M=4 |
+|---|---|---|---|
+| 0.10–0.20 | >8 | >8 | >8 |
+| **0.2929** | **2 (s=1)** | >8 | >8 |
+| 0.45 | 2 | 6 (s=2) | >8 |
+| 0.50 | 2 | 3 (s=1) | >8 |
+
+The M=2 threshold lands at **r = 0.2929**, matching T5's analytic 1 − 1/√2 = 0.29289 — independent
+confirmation by a different method.
+
+**Reading**: you can coarse-grain cheaply only if the fine dynamics already mixes across a coarse
+cell in one step. r is the spread per step; below threshold you pay the shortfall in memory.
+*Memory is the price of coarse-graining space faster than the dynamics mixes* is now a measured
+statement with a threshold, not a slogan.
+
+**The consequence that matters for the framework**: for **M ≥ 4, no r inside FTCS's own stability
+range (r ≤ ½) admits a positive coarse law at depth ≤ 8** — large single-jump coarse-grainings
+look unboundedly expensive. But M = 2 is cheap over a wide range of r.
+
+Which makes one experiment decisive, and it is now M1's priority:
+
+> **Coarse-grain by 2 twice, versus by 4 once.**
+>
+> If iterating cheap steps stays cheap while the single big jump does not, deep hierarchies are
+> viable *only if built in small steps* — a measured statement about why multiscale structure
+> looks the way it does. If memory compounds across iterated steps instead, hierarchies are
+> expensive however they are built.
