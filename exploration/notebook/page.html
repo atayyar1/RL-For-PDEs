@@ -380,37 +380,46 @@ dM<sub>q</sub>/dτ  =  α·q(q−1)·M<sub>q−2</sub>  +  c·q·M<sub>q−1</su
 </section>
 
 <section>
-  <div class="sec-head"><h2>What positivity actually costs: memory</h2><span class="eyebrow">F23 · measured</span></div>
+  <div class="sec-head"><h2>What positivity actually costs</h2><span class="eyebrow">F23 · corrected by F33</span></div>
   <div class="stack">
-    <p class="col">The retracted argument was about accuracy. The real trade is about
-    <em>coarse-graining</em>, and it was formulated exactly rather than fitted: a compact coarse
-    law of half-width s and memory depth p is exact iff its transfer function matches over every
-    (mode, alias) pair. Solve that unconstrained, then again under w ≥ 0, and the gap is the price
-    of positivity.</p>
-    <p class="col">At fixed minimal locality, <strong>memory buys positivity back
-    geometrically</strong>:</p>
+    <p class="col">Coarse-graining a scheme in space by a factor M admits an exact, finite memory
+    of M − 1 lags. An earlier version of this page reported that memory then <em>buys back</em>
+    positivity geometrically, and that at small M the price is exactly zero. Two of those three
+    claims needed correcting, and the correction is sharper than what it replaces.</p>
+    <p class="col"><strong>The trade curve terminates at M = 3.</strong> A non-negative coarse law
+    of <em>any</em> depth or width requires every unresolved alias at the constant coarse mode to
+    satisfy g ≤ 0 — a <em>sign</em> condition. For this scheme that reads r ≥ 1/(4 sin²(π/M)):
+    0.25 at M = 2, 0.333 at M = 3, and <b>0.50 at M = 4</b> — which the scheme's own stability
+    limit forbids. So past M = 3 the positivity defect decays toward an infimum it never attains.
+    There is no trade; there is an obstruction.</p>
     <div class="tw"><table>
-      <thead><tr><th>coarsening M</th><th class="n">positivity defect per lag</th><th class="n">extra lags per decade</th></tr></thead>
+      <thead><tr><th class="n">r</th><th class="n">M</th><th>unresolved alias g</th><th>obstruction predicts</th><th class="n">independently measured</th></tr></thead>
       <tbody>
-        <tr><td>3</td><td class="n">0.0966<sup>p</sup></td><td class="n">0.99</td></tr>
-        <tr><td>4</td><td class="n">0.4414<sup>p</sup></td><td class="n">2.82</td></tr>
-        <tr><td>6</td><td class="n">0.7370<sup>p</sup></td><td class="n">7.54</td></tr>
+        <tr><td class="n">0.10</td><td class="n">2</td><td class="n">+0.60</td><td class="lose">infeasible</td><td class="n">&gt; 8</td></tr>
+        <tr><td class="n">0.2929</td><td class="n">2</td><td class="n">−0.17</td><td class="win">feasible</td><td class="n">p = 2</td></tr>
+        <tr><td class="n">0.45</td><td class="n">3</td><td class="n">−0.35</td><td class="win">feasible</td><td class="n">p = 6</td></tr>
+        <tr><td class="n">0.45</td><td class="n">4</td><td class="n">+0.10</td><td class="lose">infeasible</td><td class="n">&gt; 10</td></tr>
       </tbody>
     </table></div>
-    <p class="col">And for small M the price is <strong>exactly zero</strong>. Exact non-negative
-    compact coarse laws exist — M = 2 at (s=1, p=1), M = 3 at (s=2, p=5) — with mass exactly 1,
-    validated outside the system they were fitted in: one-step error 10⁻¹⁶, and a 400-step
-    unforced rollout still stable at 10⁻¹⁵. The M = 2 law came out identical to all digits by an
-    independent Cayley–Hamilton route.</p>
-    <p class="col">The structure is not what "adding memory" suggests. The M = 3 law has
-    B₁ = B₂ = 0 <em>exactly</em> — a pure-delay scheme starting at lag 2.</p>
-    <div class="chain"><span>Buying back positivity means moving the whole law</span>
-      <span class="ar">·</span><span>backwards in time,</span><span class="ar">·</span>
-      <span>not correcting a Markov law.</span></div>
-    <p class="col">So coarse-graining does not destroy positivity; it destroys <em>Markov</em>
-    positivity. Memory restores it, and at small M restores it exactly. Read back into the
-    programme's own terms: <strong>memory is the price of coarse-graining space faster than the
-    dynamics mixes</strong> — and that price is payable.</p>
+    <p class="col">Seven of seven against a threshold table measured before the obstruction was
+    derived. And it <strong>inverts</strong> the reading this page previously carried. At r = 0.10
+    the discarded mode has g = +0.6 — decaying cleanly, perfectly well-behaved — and it is fatal at
+    every memory depth. At r = 0.45 it has g = −0.8 — barely decaying, but oscillating — and it is
+    free.</p>
+    <div class="chain"><span>Coarse-graining preserves a maximum principle</span><span class="ar">·</span>
+      <span>when the modes you discard <b>oscillate</b>,</span><span class="ar">·</span>
+      <span>and destroys it when they merely decay.</span></div>
+    <p class="col">So scale separation is <em>not</em> what makes hierarchies cheap — which was the
+    hypothesis this whole phase was built on. Nor can you buy cheap hierarchies in small steps:
+    decimating by 2 twice retains the same index set as decimating by 4, so memory tracks the total
+    ratio, path-independently. That was to have been the phase's central experiment; it needed no
+    experiment.</p>
+    <p class="note">Also retracted from this section: the "pure-delay" structure (B₁ = B₂ = 0)
+    reported here as a striking positivity phenomenon is a <b>reach artefact</b> — the coarse map
+    is exactly diagonal for j &lt; M because the fine stencil reaches one cell while coarse cells
+    sit M apart, so the law cannot depend on neighbours before lag M for purely geometric reasons.
+    And the exact M − 1 lags are not special structure but the trivial worst case, attained by any
+    decimation.</p>
   </div>
 </section>
 
@@ -419,6 +428,17 @@ dM<sub>q</sub>/dτ  =  α·q(q−1)·M<sub>q−2</sub>  +  c·q·M<sub>q−1</su
   <div class="stack">
     <p class="col">Four claims died this session, three of them mine. They are here because a
     programme that only records what survived cannot be trusted about what did.</p>
+
+    <div class="find out"><span class="chip c-out">under-determined</span><div class="body">
+      <h3>"Attend to whatever lets you forget" does not pick out anything</h3>
+      <p>The sentence this programme is built on, measured and found under-determined. Every
+      20-dimensional invariant subspace of the test system reaches zero memory exactly —
+      including the <em>fastest</em> one. Memory depth is a rank condition, blind to eigenvalue
+      magnitude, so minimising memory is strictly weaker than maximising predictive content and
+      its optimal set is the whole Grassmannian of invariant subspaces. Forgetting is cheap in
+      very many directions; what selects the useful ones is what you retain, not how Markovian
+      you become.</p>
+    </div></div>
 
     <div class="find out"><span class="chip c-out">retracted</span><div class="body">
       <h3>Positivity does not cap a scheme at second order</h3>

@@ -104,7 +104,7 @@ def apply_wide_dirichlet(u, w, m, mode="images"):
 
 def solve_wide(N, T_end, alpha, c, ic, nsteps, s, bmode="images", mcap=None):
     """Wide positive explicit stencil.  Advection handled exactly by the
-    Cole-Hopf-like change of variable V = u exp(-beta x), beta = c/(2 alpha),
+    gauge (Liouville) change of variable V = u exp(-beta x), beta = c/(2 alpha),
     which turns the problem into pure diffusion with V(0)=V(1)=0 so that the
     method of images gives the EXACT Dirichlet Green's function."""
     x = np.linspace(0, 1, N); dx = x[1] - x[0]

@@ -796,3 +796,88 @@ pure rank; the positive depth is the live quantity) from a second direction.
 **Framework reading**: an agent that can compress without memory has nothing left to reconstruct.
 Compression–reconstruction requires memory precisely because reconstruction requires having kept
 something.
+
+## F33 — ⛔ Phase 2 is largely dead, and three things I published are wrong
+Both positioning threads came back before running experiments, which is what the discipline was
+for. Between them they answered two of Phase 2's tasks, named its central object three times over,
+and corrected three claims of mine — one of which is on the published page.
+
+### The prior art
+- **M2's kill shot**: *"Minimizing memory as an objective for coarse-graining"* — Guttenberg,
+  Dama, Saunders, Voth, Weare & Dinner, J. Chem. Phys. **138**, 094111 (2013). M2's thread title,
+  verbatim, thirteen years old. One search found it.
+- **p\* has three names already**: the **McMillan degree** unconstrained; the **minimal positive
+  realization order** with non-negativity (known to vastly exceed it — Benvenuti–Farina 2004,
+  Benvenuti 2022); and the minimal *k* for **strong k-lumpability** (Gurvits–Ledoux;
+  Geiger–Temmel, on Burke–Rosenblatt 1958), with p\*=0 being Kemeny–Snell lumpability exactly.
+- **"Memory is the price of positivity" is fifty years old in other units.** Depth-p AR on K
+  variables = Markov on pK variables, so it *is* "the minimal positive realization can be strictly
+  larger than the minimal realization" — the central classical fact of positive realization theory.
+  M1's and M2's shared thesis, translated.
+- **Memory vs coarsening ratio is published**: Parish & Duraisamy measure τ ∝ Δ^1.5 across Burgers,
+  homogeneous turbulence and channel flow — Phase 2's Task 2 headline, in the nonlinear setting
+  the brief called out of reach.
+- Also: PCCA+ (Deuflhard–Weber 2005) is structurally the shape of M2's hoped-for Task 2 answer;
+  information-optimal RG does not increase interaction range (Lenggenhager et al., PRX 2020);
+  van Enter–Fernández–Sokal (1993) is the honest ancestor of "coarse-graining destroys positivity";
+  and p\* is **statistical complexity** in different units — for linear systems the ε-machine *is*
+  the minimal realisation. Algebraic multigrid has the same problem in our own field, with learned
+  prolongation since 2020, and my brief failed to name it.
+
+### Phase 2's central experiment, answered for free and negatively
+I called "coarse-grain by 2 twice versus by 4 once" the single most important measurement.
+**It needs no experiment**: decimating by 2 twice retains the *same index set* as decimating by 4,
+and the exact MZ law is a property of the observable. So memory depends only on the **total**
+coarsening ratio — path-independent, never compounding. You cannot buy cheap hierarchies by taking
+small steps. The framework question splits: the exactness price is cheap and linear; the positivity
+price is infinite past M=4 and equally path-independent.
+
+### My prediction was inverted, and M1's obstruction explains my own data
+A non-negative coarse law of **any** depth or width requires every unresolved alias at the constant
+coarse mode to satisfy g ≤ 0 — a **sign** condition, not a gap condition. (In substance,
+Perron–Frobenius on a non-negative companion matrix; M1 claims novelty only for the reading.)
+For FTCS, g_l = 1 − 4r sin²(πl/M), giving r ≥ 1/(4sin²(π/M)): 0.25 (M=2), 0.333 (M=3),
+**0.50 (M=4)** — and FTCS needs r ≤ ½, so **p\* = ∞ for every M ≥ 4**.
+
+Verified here against the threshold table I measured in F27 *before* the memo existed — **7 for 7**,
+including all three infeasible cases. I had reported that table as an empirical threshold and read
+it as "fast mixing makes coarse-graining cheap." That reading is **backwards**: at r=0.10, M=2 the
+unresolved mode has g = +0.6 — decaying cleanly, perfectly well-behaved — and is fatal at every
+depth; at r=0.45 it has g = −0.8 — barely decaying, but oscillating — and is free.
+
+> **Coarse-graining preserves a maximum principle when the modes you discard oscillate, and
+> destroys it when they merely decay. Scale separation is not what makes hierarchies cheap.**
+
+### Three corrections to what I published
+1. **F23's "memory buys back positivity geometrically" holds only to M = 3.** Past that the defect
+   decays to an infimum **never attained** — M1 has a proof where T5 had "a failure to find". The
+   trade curve terminates at M=3. My phrase "the price is exactly zero" was written against my
+   expectation and not checked against the M≥4 rows. **This is on the published page.**
+2. **F23's "pure-delay, B₁ = B₂ = 0" is a reach artefact, not a positivity phenomenon.** Verified:
+   P·A^j·P^T is *exactly diagonal for j < M* at M = 2, 3, 4, because the fine stencil reaches one
+   cell and coarse cells sit M apart — the coarse law **cannot** depend on neighbours before lag M,
+   for purely geometric reasons. I published it as the striking structural finding of Phase 2.
+3. **F14's "exactly M−1 lags — unusual, since MZ kernels are normally infinite" is wrong twice.**
+   p\* ≤ ⌈N/K⌉−1 holds trivially for every rank-K projection and decimation attains the ceiling, so
+   M−1 is the *worst case*, not special structure. And finite exact recurrences are generic in
+   discrete-time linear systems, so the "normally infinite" framing should be retired.
+
+### What survives
+- **M1's obstruction and its inversion** — the sign condition, and the falsification experiment it
+  implies (approved: two-timescale, advection-dominated, dispersive, r-sweep, plus decimation vs
+  block-averaging, since every number above rests on a restriction operator nobody chose).
+- **M2's degeneracy result**, and it is the more valuable: every 20-dim invariant subspace of the
+  FTCS ring hits p\* = 0 exactly, including the **fastest** (VAMP-2 = 1.39 vs 15.66 for the
+  slowest). Memory depth is a rank condition, blind to eigenvalue magnitude. So minimise-memory is
+  strictly weaker than maximise-VAMP and its optimal set is the whole Grassmannian of invariant
+  subspaces. Which qualifies the framework's own sentence: **"attend to whatever lets you forget"
+  is under-determined** — forgetting is cheap in many directions, and what selects the useful ones
+  is retained predictive content, not Markovianity.
+- One uncleared corner (minimise memory subject to non-negative **and** banded), declined on M2's
+  own 1-in-3 estimate.
+
+### And a process failure of mine
+`task5_trilemma.py` does exist, in T5's working directory. I copied their tree into the repo early
+and never re-synced, so M1 read a stale snapshot and re-derived F23 from scratch believing the
+script was missing. All four Phase-1 threads have now been rsynced. The silver lining is that F23's
+existence claim is now confirmed by three independent methods.

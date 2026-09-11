@@ -6,6 +6,33 @@ so `ν = αΔt/Δx² = 0.45`, `Co = cΔt/Δx = 0.045455`, cell Péclet `Pe = cΔ
 
 ---
 
+## ERRATUM AND UPDATE (round 2)
+
+Three corrections, two of them to my own earlier conclusions:
+
+1. **`build_A` row 3 was wrong** (team lead's catch, confirmed symbolically and
+   numerically). It must be `½(Δx − cΔt)² + αΔt`, not `½Δx² + αΔt`. Since shift and
+   propagator commute for the constant-coefficient operator,
+   `u(x+δ,t+τ) = exp[ξ∂_x + ατ∂_x²]u` **exactly**, with `ξ = δ − cτ`; the `u_xx` row is
+   `ατ + ξ²/2`. Two of my Task 1 findings are **WITHDRAWN**: (a) the "advection cap
+   `k ≤ 2α/c²`" and (b) the "cell-Péclet barrier `ν·Pe² ≤ 2`, beyond which no positive
+   stencil exists at any width". Both were artifacts of the dropped terms. Corrected
+   results in `task7_corrected_rows.py`. Everything in Tasks 3, 4 and 5 already used the
+   corrected moment condition (`M₂ = 2kν + (kCo)²`), so those stand unchanged.
+2. **The claimed irreducible `O((kΔt)²)` error floor does not exist** (`task8_jensen.py`).
+   The Jensen argument imposes `Σw Δt² = 0`, which is not a consistency condition.
+3. **My own `‖w‖₁` metric was initially saturated by aliasing**, which made positivity look
+   free everywhere. Fixed by measuring on the resolved band `θ ≤ π/2` (`task10`).
+4. **The quadratic law dies at `m ≈ 1/Pe_cell ≈ 10`, not at high Péclet** (T5, verified in
+   Task 11) — but only for a stencil centred on the target point. Re-centring on the
+   departure point restores `m²/(2ν)` at every `m`, for free.
+
+**And the decisive new result: the construction survives variable coefficients**, where no
+closed-form propagator exists — see the new Task 9. That, not the constant-coefficient
+work-precision curves, is what makes this worth continuing.
+
+---
+
 ## THE SHORT ANSWER
 
 | question | answer |
@@ -14,14 +41,19 @@ so `ν = αΔt/Δx² = 0.45`, `Co = cΔt/Δx = 0.045455`, cell Péclet `Pe = cΔ
 | Does truncation error go like `C·(mΔx)²`? | **Yes**, `C = α/6` times `\|u_xxxx\|`, measured slope 1.978, measured `C = 0.0156` vs `α/6 = 0.01667`. |
 | Does the wide positive stencil beat CFL-limited FTCS on work-precision? | **Yes — but not at the frontier.** Best configs beat FTCS by **393×** (`T=0.05`, tol `1e-4`) and **5454×** (tol `1e-5`). The *frontier* configs (`s≈1`) beat FTCS by only ~12–24×, and are **beaten by a fairly coarsened FTCS** at equal accuracy. |
 | Does it beat Crank–Nicolson? | **Yes, 28–105×** in the main sweep (up to 215× on the finer N-sweep in `task3b`), again only in the over-resolved regime. At the frontier it sits *exactly on top of* the CN work-precision curve. |
-| Is it new? | **No.** The frontier scheme is **first-order Runge–Kutta–Chebyshev with `s = m` stages, to round-off (2e-16)** — same Δt limit, same footprint, same cost. The accurate regime is real-space heat-kernel convolution, i.e. an exponential integrator. A DST/FFT exact solve is still **2–10× cheaper** than the best wide stencil. |
+| Is it new? | **At constant coefficients, no; at variable coefficients, yes — 7–20× over a fair competitor, but only while `α` varies over ≳20 cells (see Task 13c).** The frontier scheme is **first-order Runge–Kutta–Chebyshev with `s = m` stages, to round-off (2e-16)**, and the accurate regime is heat-kernel convolution (a DST/FFT exact solve is still **2–10× cheaper**). **At variable coefficients, yes** — see Task 9: the purely local construction beats grid-refined FTCS by 83× and RKC1 by 179× at tol 1e-4, and still beats **RK4+FD6** (4th order in time, 6th in space — the strongest competitor I could build) by **6.7–20×** at every tolerance, while remaining monotone. |
+| Does relaxing positivity buy anything? | **In the diffusion-dominated regime, essentially nothing** (1.1× for a 10× `‖w‖₁` budget). The binding constraint is stencil *support*, not sign. Positivity only costs once the kernel is sub-cell and advection-dominated (then up to >10⁵× — Godunov's barrier). |
 | Is there a "genuine optimum in `(m,k)`"? | **No interior optimum.** Reward increases monotonically in width until a *physical* cap (wall distance, or `kΔt ≤ T_end`). 15 / 18 optima sit on the cap. |
 
-**Bottom line for the larger project: this is a clean negative on novelty and a positive
-on mechanism.** The width↔step trade is real, quantitatively exact, and derivable in closed
-form — and it is precisely the classical Chebyshev super-time-stepping trade, rediscovered
-in real space. Its one genuinely new ingredient (unconditional *monotonicity*, not just
-L²-stability) is worth keeping.
+**Bottom line for the larger project.** At constant coefficients this is a clean negative on
+novelty: the width↔step trade is real, quantitatively exact, derivable in closed form — and
+it is precisely the classical Chebyshev super-time-stepping trade, rediscovered in real
+space. **At variable coefficients it is a positive**, and that is where the work should go:
+the local-propagator-moment construction beats the strongest order-matched explicit
+competitor I could build by 7–20× while staying monotone, in a regime RKC, exponential
+integrators and FFT solvers do not cover. Before writing anything, run the comparisons
+listed as missing in `manuscript_outline.md` — especially RKC2/ROCK, nonlinearity, and the
+2-D cost model, which could reverse the verdict.
 
 ---
 
@@ -202,7 +234,7 @@ coincides with RKC1 exactly (Task 6).
 
 ### But the win is not the claimed mechanism. Three controls say so.
 
-**(1) Pure diffusion (`c=0`) removes the Cole–Hopf/semi-Lagrangian advantage.** The win
+**(1) Pure diffusion (`c=0`) removes the gauge-transform / semi-Lagrangian advantage.** The win
 survives (1224× vs FTCS, 11× vs CN at 1e-4), so it is not an advection-treatment artefact.
 
 **(2) The frontier stencil is coarse-grid FTCS, run `m`-fold redundantly.**
@@ -350,6 +382,403 @@ But note the cost speedup vs the naive `(m=1,k=1)` **at fixed tolerance is only 
 
 ---
 
+## TASK 7 — The corrected consistency rows (`task7_corrected_rows.py`)
+
+Confirmed the team lead's correction symbolically and by LP. With the corrected row 3:
+
+* LP feasibility `==` the analytic rule `ψ(kCo) ≤ 2kν + (kCo)² ≤ m²` for every probed `(m,k)`.
+* **Closed form:** `k_max = floor( [sqrt(ν² + Co²m²) − ν] / Co² )`, → `m²/(2ν)` as `Co → 0`.
+  Physically `σ² + μ² ≤ (mΔx)²`: the stencil's second moment must cover the diffusive
+  variance **plus** the squared advective displacement.
+* **The `k ≈ 435` saturation is an artifact.** The buggy rows overstate `k_max` at small `m`
+  (m=3: 10 vs 9) and then cap it at `2ν/Co²`; the corrected frontier does not saturate
+  (m=30: 477, m=40: 688).
+* **The cell-Péclet barrier is withdrawn.** Corrected lower bound reduces to `2kν ≥ f(1−f)`
+  with `f = frac(kCo)`, and `f(1−f) ≤ 1/4`, so for `ν ≥ 1/8` it never binds. A positive
+  stencil exists at every cell Péclet tested up to **Pe = 20**. At high Pe the frontier
+  becomes `k_max ~ m/Co` — **linear** in `m`, not quadratic: the stencil must reach the
+  departure point.
+* Confirmed: at `m=k=1, α=0` the corrected rows give **exactly Lax–Wendroff** (and its
+  negative weight for `0 < Co < 1` is Godunov's barrier).
+
+---
+
+## TASK 15 — T5 round 2: maxent, RKC positivity, and safety-factor scoping
+
+### The two "alternative" constructions are the same object
+
+T5's `maxent_stencil` (convex dual) and my `kernel_moment_matched` (2-parameter root-find)
+agree to **1e-16**. They must: maximising `−Σ w log w` subject to `Σw = 1`, `Σw j = μ`,
+`Σw j² = M₂` gives `w_j ∝ exp(λ₁ j + λ₂ j²)`, a discrete Gaussian — the same
+two-parameter family my routine solves for. Band errors identical to all digits shown.
+**Write it up as one construction with two derivations, not as two alternatives.**
+
+### RKC touches the positive cone at exactly one point
+
+Recovering the RKC1 stencil by exact DFT of `T_m(1 − 2ρ sin²(θ/2))`, `ρ = k/k_max`:
+
+| m | ρ = 1.0 | 0.9 | 0.7 | 0.5 | 0.3 |
+|---|---|---|---|---|---|
+| min w (m=8) | **−0.0000** | −0.1115 | −0.1610 | −0.2188 | −0.2651 |
+| ‖w‖₁ (m=8) | **1.0000** | 2.3777 | 2.5964 | 2.5000 | 2.3421 |
+| interior non-zeros | **0** | 15 | 15 | 15 | 15 |
+
+Reproduces T5's −0.111 exactly. At `ρ = 1` the stencil is precisely
+`½(δ₋ₘ + δ₊ₘ)` — zero interior weights, `‖w‖₁ = 1`. So **classical RKC meets the positive
+cone at one point, its extreme vertex, and leaves it the moment you back off for accuracy.**
+That is the sharpest available statement of what the LP/moment construction adds, and it
+supersedes the qualitative version I gave in Task 6.
+
+### Every speedup number, with its safety factor
+
+T5 is right that a speedup quoted at `k = k_max` would be quoting a scheme with no accuracy
+(the frontier stencil is the bimodal extremal measure; band error ≈ 1). It does not affect
+my numbers, because none of them are frontier numbers — but the scoping belongs on the page:
+
+| result | configuration | **s = m/σ** |
+|---|---|---|
+| 393× / 5454× vs FTCS (const-coef, T=0.05) | Pareto points | **1.5–6**, never 1 |
+| 7–20× vs RK4+FD6 (variable-coef) | N=128, nb=32, m=5, P=6 | **2.60** |
+| " (next two Pareto points) | nb=16 m=8 / nb=8 m=12 | 2.95 / 3.12 |
+
+The `s ≈ 1` frontier configurations appear on the Pareto front only at the cheap, useless
+end (`‖e‖∞ ≈ 3e-2`). Consistent with Task 3's separate "wide @ frontier" curve, which sits
+on top of Crank–Nicolson.
+
+### Terminology correction (T5)
+
+`V = u e^{−βx}`, `β = c/2α`, on **linear** advection–diffusion is the **gauge (Liouville)
+transform**, not Cole–Hopf (which is the nonlinear map taking Burgers to the heat
+equation). Corrected throughout `RESULTS.md`, `manuscript_outline.md`, `solvers.py` and the
+project memory. The substance is unchanged: it is problem-specific, and off-centring
+(Task 11) is the general route.
+
+---
+
+## TASK 12 — The advective floor: not in the scheme (`task12_advective_floor.py`)
+
+**Scope answer first: my nine-orders sweep WAS advective** — `c = 1`, `Co = 0.04545`, drift
+0.45 cells, `Exact(ic_sine, 0.1, 1.0)`. It does not need rescoping.
+
+**Reproducing the team lead's exact configuration** (`N = 201`, `Δx = 0.005`, `ν = 0.45`,
+`Co = 0.0225`, `Pe = 0.05`, `k = 40`, `σ = 6` cells, drift 0.9 cells) gives **no floor**:
+
+| s | 2.00 | 4.33 | 5.00 | 6.33 | 7.00 | **8.33** |
+|---|---|---|---|---|---|---|
+| LTE, c=1 | 8.5e-5 | 3.5e-7 | 2.3e-8 | 2.3e-11 | 3.6e-13 | **2.2e-15** |
+| LTE, c=0 | 1.6e-5 | 6.4e-8 | 4.3e-9 | 4.1e-12 | 6.1e-14 | **1.1e-15** |
+
+Advection costs a factor ~2, not a floor. Single exact Fourier modes (no reference error at
+all) reach 1.8e-14 / 2.5e-14 / 5.6e-15 / 6.6e-17 for n = 1,2,4,8.
+
+**Mechanisms ruled out quantitatively.** Kernel aliasing is the only drift-sensitive
+candidate, and it is `exp(−4π²kν) = 2.4e-309` at `kν = 18` — the drift contributes a
+*phase*, not a magnitude. Symbol error of the moment-matched kernel at modes 1 and 4:
+1.2e-16 and 2.2e-16. Varying the reference's mode count (100→800) and quadrature
+(4001→160001) moves the measured LTE only between 2.2e-15 and 3.2e-15.
+
+**What I think it is.** Their own observation is the tell: the LP weights *and* the exact
+sampled heat kernel hit the **identical** 3.83e-7. Two very different weight constructions
+cannot share a floor that originates in the weights — a shared floor is a property of what
+they are compared **against**. Ranked:
+
+1. **A reference evolved numerically over `τ`.** My emulation (series at `T₀`, finely-stepped
+   FTCS to `T₀+τ`) gives a 5.1e-6 discrepancy — right order, and flat in both `s` and
+   moment order `p`, exactly the reported signature. **Most likely.**
+2. The two time levels evaluated with different accuracy (different mode count, quadrature,
+   or one analytic and one numerical). Same signature.
+3. Absolute L∞ where `e^{βx} = e⁵ = 148` amplifies the right half — shifts by ~10², not 10⁸.
+
+**Why my measurement is immune:** my `Exact` is a truncated sine series in `V = u e^{−βx}`
+in which *every mode is an exact solution of the PDE*. Applying a consistent stencil to it
+and comparing at `t+τ` measures the stencil's truncation error with no reference error
+leaking in. **Cheap discriminator for them:** apply the stencil to one exact Fourier mode
+(§E of the script). Machine precision there but 3.83e-7 against the full reference ⇒ cause
+1 or 2. **So the F6 headline numbers are not capped by any advective floor.**
+
+---
+
+## TASKS 13–14 — Hardening the variable-coefficient claim
+
+### (b) Is the win positivity, or just the high-order local rows?  **Positivity is load-bearing**
+
+I guessed it would be a free extra. Wrong — same rows, `w ≥ 0` vs signed min-norm:
+
+| nb | m | P | err positive | err signed | ‖w‖₁ signed |
+|---|---|---|---|---|---|
+| 32 | 5 | 6 | **7.29e-8** | 2.02e-7 | 1.35 |
+| 16 | 8 | 6 | **1.62e-6** | 6.04e-6 | 1.44 |
+| 8 | 12 | 6 | **3.96e-6** | 6.50e-5 | 1.46 |
+| 32 | 8 | 6 | **2.63e-7** | 1.58e-5 | 1.53 |
+
+Positive wins 5/6, by up to 60×. And the gap **widens with step count** — at `m=8, P=6`:
+4.0× at `nb=16`, **78.1×** at `nb=32`. That is the signature of `‖w‖₁ = B > 1` compounding
+as `B^nb`; the positive solution has `‖w‖₁ = 1` exactly and cannot amplify. **So the claim
+is "local-α rows *and* positivity", not "local-α rows, positivity free".**
+
+### (c) Does it survive a rough α?  **It degrades predictably with α/|α'| in cells**
+
+(`task13`'s tanh row was junk — the spectral RK4 reference blew up; redone in `task14` with
+a stable fine-FTCS reference.)
+
+| α | `L_α = α/\|α'\|` (cells) | wide (best) | FTCS | **ratio** |
+|---|---|---|---|---|
+| sin 2πx | 45.8 | 7.29e-8 | 1.74e-4 | **2386×** |
+| sin 4πx | 22.9 | 1.00e-7 | 2.44e-4 | **2430×** |
+| sin 8πx | 11.5 | 2.06e-5 | 5.59e-4 | **27×** |
+| sin 16πx | 5.7 | 1.43e-3 | 1.88e-3 | **1.3×** |
+| tanh step, w=0.05 | 14.4 | 1.73e-4 | 2.57e-4 | 1.5× |
+| tanh step, w=0.02 | 5.8 | 4.81e-4 | 3.82e-4 | **0.79× (loses)** |
+| tanh step, w=0.005 | 1.4 | 6.42e-2 | 8.74e-4 | **0.01× (loses badly)** |
+
+**The advantage is a function of how many cells `α` varies over**, which is exactly the
+validity range of the local Taylor rows. It is ~2400× at `L_α ≳ 20` cells, ~27× at 11, gone
+by 6, and actively harmful below ~2. Breakdown is gradual and predictable, not a cliff.
+**This is the scope that must sit on the headline number.**
+
+### (a) Boundaries with variable α
+
+**Scope correction: the 7–20× runs of Tasks 9/9b were periodic — no boundaries at all.**
+With variable `α` the method of images is gone (`α` is not symmetric about the wall).
+
+*What actually happens at a wall* (correcting my own first guess that no one-sided positive
+stencil exists): one **does** exist from `j = 1` onward; what degrades is the achievable
+**moment order**, and gracefully — highest feasible `P` vs distance from the wall:
+
+| j | 0 | 1 | 2 | 3 | 4 | 5 | 6+ |
+|---|---|---|---|---|---|---|---|
+| `P_max` (nb=16, m=8) | 1 | 2 | 3 | 4 | 5 | 6 | 6 |
+| `P_max` (nb=32, m=8) | 1 | 2 | 4 | 6 | 6 | 6 | 6 |
+
+So the order-loss layer is only **4–6 cells**, far thinner than the `m + k` layer that FTCS
+sub-stepping needs in the constant-coefficient case.
+
+*Measured, with the wall layer charged honestly* (hybrid: wide interior + FTCS-substepped
+wall layer of width `R = m + n_sub`, every flop counted):
+
+| nb | m | n_sub | R | R/N | err (all x) | err interior | flops |
+|---|---|---|---|---|---|---|---|
+| 16 | 8 | 9 | 17 | 0.13 | 6.72e-6 | 4.29e-6 | 8.44e4 |
+| 32 | 5 | 5 | 10 | 0.08 | **1.17e-6** | 7.87e-7 | 9.57e4 |
+| 32 | 8 | 5 | 13 | 0.10 | 2.40e-6 | 1.61e-6 | 1.38e5 |
+
+**Best hybrid 1.17e-6 at 9.57e4 flops vs FTCS 1.74e-4 at 1.17e5 — 148× the accuracy at
+0.82× the cost, walls included.** Caveats: many `(nb,m)` combinations are infeasible
+(interior LP fails whenever `σ > m`), and this Dirichlet comparison is against **FTCS only**
+— I did not re-run the order-matched `RK4+FD6` competitor with walls, so **the 148× here is
+not comparable to the 7–20× of the periodic case**.
+
+---
+
+## TASK 11 — The drift branch and the off-centre stencil (`figures/fig8_offcentre.png`)
+
+From T5. Their corrected frontier `k_max = (−r + √(r² + ra²m²))/ra²` is algebraically
+identical to mine from Task 7, and **our LP tables agree at every m** (1, 4, 9, 26, 62, 124,
+273, 519, 903 for m = 1,2,3,5,8,12,20,32,50) — an independent cross-check, from a different
+direction, of the corrected rows. Two things in their message were new to me:
+
+### (1) The crossover is at moderate m, even at modest Péclet
+
+| m | 5 | 8 | 10 | 12 | 16 | 20 | 32 | 50 |
+|---|---|---|---|---|---|---|---|---|
+| `k_max` | 26 | 62 | 91 | 124 | 196 | 273 | 519 | 903 |
+| `m²/(2ν)` | 28 | 71 | 111 | 160 | 284 | 444 | 1138 | 2778 |
+| ratio | 0.94 | 0.87 | **0.82** | 0.78 | 0.69 | 0.61 | 0.46 | 0.33 |
+
+Two distinct thresholds, worth keeping separate: the quadratic law becomes **materially
+wrong** (≈25%) at `m ≈ ν/Co = 1/Pe_cell = 9.9`, which is T5's `m*`; the two branch formulas
+**cross** at `m = 2ν/Co = 19.8`. Either way the point stands and is sharper than my earlier
+"at high Pe it goes linear": **at Pe = 0.101 the quadratic branch is already dead by m ≈ 10**,
+so lateral spending saturates linearly well before the stencil gets wide.
+
+### (2) Re-centring on the departure point removes the penalty entirely — for free
+
+Put the stencil on `{j₀−m .. j₀+m}` with `j₀ = round(−Co·k)`. With `η = j − j₀` the
+conditions become `E[η] = μ' := μ−j₀` (so `|μ'| ≤ ½`) and `E[η²] = 2kν + μ'²`, hence
+`k ≤ (m² − μ'²)/(2ν) → m²/(2ν)`. Verified by LP:
+
+| m | 5 | 8 | 12 | 20 | 32 | 50 |
+|---|---|---|---|---|---|---|
+| centred | 26 | 62 | 124 | 273 | 519 | 903 |
+| **off-centre** | 27 | 71 | 159 | 444 | 1137 | **2777** |
+| `m²/(2ν)` | 28 | 71 | 160 | 444 | 1138 | 2778 |
+| gain | 1.04× | 1.15× | 1.28× | 1.63× | 2.19× | **3.08×** |
+
+The off-centre frontier tracks `m²/(2ν)` at every m and the gain grows without bound. This
+costs nothing — re-centring is an index shift.
+
+### Does it change my Task 3 numbers?  No, and here is why
+
+`solvers.solve_wide` passes `c = 0` into `wide_weights` and removes the drift analytically
+with the gauge/Liouville transform `V = u e^{−βx}`, so `μ = 0` and it **never paid the drift
+penalty**. Footprint cost of the three routes (`s = 4`):
+
+| Pe | kΔt | (i) centred | (ii) off-centre | saving |
+|---|---|---|---|---|
+| 0.101 | 0.05 | m=46 | m=41 | 1.12× |
+| 0.5 | 0.05 | m=66 | m=41 | 1.61× |
+| 2.0 | 0.05 | m=139 | m=41 | 3.38× |
+| 8.0 | 0.05 | m=433 | m=41 | **10.5×** |
+
+So: route (iii) gauge/Liouville is what I used and it is fine for constant coefficients, but it is
+**problem-specific**. Route (ii) is the general fix and gets the same footprint for free —
+**it is what the variable-coefficient scheme of Task 9 must use once `c ≠ 0`**, since no
+gauge/Liouville transform exists there. Route (i), the centred stencil T5's bound describes, is
+the one to avoid — and it is exactly what the original brief specified ("symmetric stencil,
+all neighbours at −kΔt"), which is why the saturation appeared at all.
+
+---
+
+## TASK 8 — The "irreducible `O((kΔt)²)` floor" is not real (`task8_jensen.py`)
+
+**Structural refutation.** After recursive substitution of `u_t = Lu` there is no
+free-standing `u_tt` term to cancel. The conditions are moments of `ξ = Δx − cΔt` alone:
+
+```
+E[ξ] = 0,  E[ξ²] = 2α|τ|,  E[ξ^(2p)] = (2p−1)!!·(2α|τ|)^p,  E[ξ^odd] = 0
+```
+
+These are exactly the moments of a **Gaussian**, which is a **positive** measure. Every
+order is simultaneously satisfiable with `w ≥ 0`. `ΣwΔt² = 0` is simply not one of the
+conditions, so "0/600 stencils can cancel `ΣwΔt²`" is a correct computation of the wrong
+constraint.
+
+**Numerical refutation.** Hold `kΔt` **fixed** and vary `s = m/σ`. A floor would not move:
+
+| kΔt = 0.00459 | s=2.0 | s=3.3 | s=4.3 | s=5.3 | s=6.3 | s=7.3 |
+|---|---|---|---|---|---|---|
+| measured LTE | 8.06e-5 | 6.21e-6 | 2.55e-7 | 3.21e-9 | 1.31e-11 | **1.82e-14** |
+| LTE / (kΔt)² | 3.82 | 0.29 | 1.2e-2 | 1.5e-4 | 6.2e-7 | **8.6e-10** |
+
+**Nine orders of magnitude at fixed `kΔt`, with `w ≥ 0` throughout.**
+
+What *is* true: at **fixed `s`** the error scales as `(kΔt)²` (my Task 2 result, since
+`(mΔx)² = 2αs²kΔt`). So the coordinating thread measured a real `(kΔt)²` scaling — but
+its constant is `~exp(−s²/2)`, a design choice, not a floor. Their `m=5, k=8` config has
+`s = 1.86`; sweeping `s` is what was missing.
+
+**Does the 3-row LP recover the heat kernel?** **No.** It returns a vertex with ≤ 3
+non-zeros, total-variation distance 0.67–0.92 from the kernel, and a symbol error 4 orders
+of magnitude worse. Even the most-spread-out feasible point is not the kernel. Three moment
+conditions plus positivity leave a polytope whose vertices are 3-point measures; recovering
+the Green's function requires imposing the higher moments, i.e. knowing it already.
+
+---
+
+## TASK 9 — VARIABLE COEFFICIENTS: the decisive test (`figures/fig7_varcoef.png`)
+
+`u_t = ∂_x(α(x)∂_x u)` on periodic `[0,1]`, `α(x) = 0.1(1 + 0.8 sin 2πx)`, so
+`α_max/α_min = 9`. **No closed-form propagator exists**, so "sample the heat kernel" is
+unavailable. Reference: Fourier pseudospectral + RK4 at `N_ref = 1024`, evaluated
+**spectrally** at arbitrary `x` (linear interpolation floors every error near 2e-5 and
+silently corrupts the comparison — I hit that and fixed it).
+
+**The construction.** Purely local: with `s = x − x_j` and `α(x_j+s) = Σ_q a_q s^q`,
+
+```
+L(s^p) = Σ_q a_q p(p−1) s^(p−2+q)  +  Σ_q (q+1)a_(q+1) p s^(p−1+q)
+```
+
+Build `L` as a matrix on `{s⁰..s^P}`, exponentiate, and read the targets
+`M_p = [exp(τL)]_(0,p)`. Then solve for `w ≥ 0` on `{-m..m}` with `Σ_i w_i (iΔx)^p = M_p`.
+**Only `α` and its derivatives at `x_j` are used — no fundamental solution anywhere.**
+
+### Do non-negative solutions exist?  Yes, with a feasibility rule
+
+| `nb` | `σ` (cells) | smallest feasible `m`, P=2 | P=4 | P=6 |
+|---|---|---|---|---|
+| 64 | 1.36 | 2 | **none ≤ 40** | **none ≤ 40** |
+| 16 | 2.72 | 3 | 5 | 7 |
+| 4 | 5.43 | 6 | 10 | 13 |
+
+Matching more moments needs a wider stencil, and at `σ ≲ 1.4` cells no positive stencil can
+match 5 or 7 moments at any width — Godunov again. So `P`, `σ` and `m` are coupled, and the
+scheme wants **large** steps (it is the small-step regime that is infeasible). Weights were
+non-negative at every grid point in every feasible configuration.
+
+### Work-precision, with the grid refined for every method
+
+| tolerance | FTCS | RKC1 | **wide positive** | vs FTCS | vs RKC1 |
+|---|---|---|---|---|---|
+| 1e-3 | 1.48e4 | 4.51e4 | **4.03e3** | 3.7× | 11.2× |
+| 1e-4 | 3.33e5 | 7.21e5 | **4.03e3** | **82.6×** | **178.8×** |
+| 1e-5 | 2.13e7 | — | **1.08e4** | **1977×** | — |
+| 1e-6 | — | — | **8.60e4** | — | — |
+| 1e-7 | — | — | **8.60e4** | — | — |
+
+**This is the first result in the thread that RKC does not already own**, and it is exactly
+where the team lead predicted the decision lies. The scheme delivers high spatial order, a
+large stable step, and monotonicity from a single local construction.
+
+### Removing the order confound (`task9b_fairorder.py`)
+
+The wide scheme uses `P=6` local rows, so it is 6th-order in space while FTCS/RKC1 use a
+3-point Laplacian. Part of the win above is spatial order, not stepping. Two stronger
+competitors, both with signed weights:
+
+| tolerance | RKC1+FD4 | RKC1+FD6 | RK4+FD4 | **RK4+FD6** | wide positive | **vs RK4+FD6** |
+|---|---|---|---|---|---|---|
+| 1e-3 | 5.53e4 | 1.43e5 | 5.53e4 | 7.17e4 | **4.03e3** | **17.8×** |
+| 1e-4 | 1.33e6 | — | 1.66e5 | 7.17e4 | **4.03e3** | **17.8×** |
+| 1e-5 | — | — | 1.33e6 | 2.15e5 | **1.08e4** | **20.0×** |
+| 1e-6 | — | — | 1.06e7 | 5.73e5 | **8.60e4** | **6.7×** |
+| 1e-7 | — | — | — | 1.72e6 | **8.60e4** | **20.0×** |
+
+`RK4+FD6` is the strongest competitor I could construct: 4th order in time, 6th in space,
+CFL-limited but with no meaningful temporal error. **The wide positive stencil still wins
+6.7–20× at every tolerance**, and additionally retains monotonicity, which `RK4+FD6` does
+not. Note RKC1 gets *worse* with higher-order spatial operators: it is only **first order in
+time**, and a higher-order operator has a larger spectral radius, hence more stages.
+
+**So the honest variable-coefficient headline is 7–20× over a fair order-matched competitor**
+(not the 83×/179× against standard FTCS/RKC1). The structural reason is that the wide
+positive stencil gets **high order in space and in time simultaneously from one local
+construction**, whereas RKC separates them and pays stability for temporal order.
+
+---
+
+## TASK 10 — The price of monotonicity (`figures/fig6_l1_pareto.png`)
+
+For fixed `(m,k)`, minimise `max_θ |W−ġ|` over `w` subject to `Σw = 1` and `‖w‖₁ ≤ B`.
+Since `Σw = 1`, `‖w‖₁ ≥ 1` with equality **iff** `w ≥ 0`, so `B = 1` is exactly the
+monotone case and `B > 1` is the price of giving it up.
+
+**Metric caveat (my error, now fixed):** measured out to `θ = π` the error is floored by an
+aliasing term — `W(π) = Σw_j(−1)^j` is **real** for any real `w`, while `ġ(π)` has
+imaginary part `−sin(kCoπ)e^{−kνπ²}`. Nothing, signed or not, can touch that. Measured on
+the resolved band `θ ≤ π/2`:
+
+**(a) Diffusion-dominated, at the frontier — positivity is FREE.**
+
+| (m, k) | B=1 | B=1.5 | B=3 | B=10 | total gain |
+|---|---|---|---|---|---|
+| (6, 40) | — | — | — | — | **1.09×** |
+| (12, 160) | 3.007e-1 | 2.928e-1 | 2.825e-1 | 2.729e-1 | **1.10×** |
+| (20, 273) | — | — | — | — | **1.10×** |
+
+A 10× budget in `‖w‖₁` buys 1.1× accuracy. **The binding constraint is stencil support,
+not sign**: a kernel with `σ = m` cells keeps ~32% of its mass beyond `±m`, and no weight
+vector on `{-m..m}` can represent mass it cannot reach.
+
+**(b) Advection-dominated with a sub-cell kernel — positivity is expensive.**
+`m=8, k=1, Co=0.5`:
+
+| σ (cells) | 0.95 | 0.45 | 0.32 | 0.20 | 0.14 | 0.077 |
+|---|---|---|---|---|---|---|
+| B=1 (positive) | 1.4e-7 | 5.2e-2 | 1.3e-1 | 1.7e-1 | 1.9e-1 | 2.0e-1 |
+| B=1.5 | ~0 | 2.4e-8 | 1.6e-7 | 9.5e-6 | 3.0e-5 | 7.2e-5 |
+| gain | — | **>10⁵×** | **>10⁵×** | **>10⁵×** | **>10⁵×** | **>10⁵×** |
+
+This is **Godunov's barrier** in the LP. Note it bites exactly where the method has no
+super-stepping to offer anyway (a sub-cell kernel means a small step).
+
+**(c) Which knob pays?** At `m=12`: backing `k` off from 160 to 10 buys **1.4e5×** accuracy
+for 16× cost; relaxing `‖w‖₁` to 10 buys 1.1×. **Monotonicity is not what limits this
+scheme in its own regime** — which also means "we keep monotonicity" is a weak selling
+point there, since nobody would pay much to give it up.
+
+---
+
 ## TASK 6 — Positioning against RKC / super-time-stepping (THE NOVELTY QUESTION)
 
 **The frontier scheme is first-order Runge–Kutta–Chebyshev, exactly.**
@@ -422,4 +851,12 @@ Same polynomial of the same operator. **Same Δt, same footprint, same cost.**
 * `task4_adaptive.py` — adaptive half-width, three ICs
 * `task5_decision.py` — reward landscape, tolerance-constrained optimum, flatness
 * `task6_rkc.py` — the RKC identity
-* `figures/fig1…fig5*.png` (150 dpi), `task*_results.json`, `task3_log.txt`, `task5_log.txt`
+* `task7_corrected_rows.py` — corrected `build_A`, corrected frontier, Péclet sweep redone
+* `task8_jensen.py` — refutation of the irreducible-`(kΔt)²` claim; LP vs heat kernel
+* `task9_varcoef.py`, `task9b_fairorder.py` — **variable coefficients** (the decisive test)
+* `task10_l1_pareto.py` — achievable error vs `‖w‖₁`
+* `task11_offcentre.py` — T5 cross-check, drift branch, off-centre stencil
+* `task12_advective_floor.py` — the 3.83e-7 floor is in the reference, not the scheme
+* `task13_harden.py`, `task14_bnd_and_step.py` — positivity vs order, rough α, boundaries
+* `task15_maxent_and_scope.py` — maxent ≡ moment-matched Gaussian; RKC positivity; safety factors
+* `figures/fig1…fig7*.png` (150 dpi), `task*_results.json`, `task3_log.txt`, `task5_log.txt`

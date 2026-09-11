@@ -96,6 +96,85 @@ print("   predicted:  LOCAL, TV ~ L^-1/2 (skewness-limited);  EDGE ~ L^-1 (next 
 print(f"   predicted LOCAL*sqrt(L) plateau = |k3|/(6 sigma^3) * max|He_3 phi| = "
       f"{abs(k3)/(6*s2**1.5)*float(np.abs(he3(np.linspace(-6,6,20001))*np.exp(-np.linspace(-6,6,20001)**2/2)/np.sqrt(2*np.pi)).max()):.6f}")
 
+hdr("2B2.  WHICH Edgeworth term leads?  Skewness, not kurtosis -- unless c = 0.")
+print("""   The leading correction to the Gaussian is the SKEWNESS term at O(L^-1/2) whenever the
+   single-step distribution is asymmetric, and only then the EXCESS KURTOSIS term at
+   O(L^-1).  Advection is exactly what makes the step asymmetric here: w_ftcs has
+   p_- = r + ra/2 = 0.4727 against p_+ = r - ra/2 = 0.4273, so kappa_3 != 0.
+   Control experiment: rerun with c = 0, where the step is symmetric and kappa_3 = 0 exactly.""")
+
+
+def he(n, z):
+    return {3: z**3 - 3 * z, 4: z**4 - 6 * z**2 + 3}[n]
+
+
+def edgeworth_study(wv, ov, label):
+    mu = float(np.sum(wv * ov)); v2 = float(np.sum(wv * ov**2)) - mu**2
+    c3 = float(np.sum(wv * (ov - mu)**3))
+    c4 = float(np.sum(wv * (ov - mu)**4)) - 3 * v2**2
+    zz = np.linspace(-8, 8, 40001); ph = np.exp(-zz**2 / 2) / np.sqrt(2 * np.pi)
+    P3 = abs(c3) / (6 * v2**1.5) * float(np.abs(he(3, zz) * ph).max())
+    P4 = abs(c4) / (24 * v2**2) * float(np.abs(he(4, zz) * ph).max())
+    print(f"\n   {label}")
+    print(f"     kappa_3 = {c3:+.6e}  (skewness {c3/v2**1.5:+.5e})")
+    print(f"     kappa_4 = {c4:+.6e}  (excess kurtosis {c4/v2**2:+.5e})")
+    print(f"     predicted LOCAL*sqrt(L) plateau from kappa_3 : {P3:.6e}")
+    print(f"     predicted LOCAL*L       plateau from kappa_4 : {P4:.6e}")
+    print(f"     {'L':>7} {'LOCAL':>12} {'LOCAL*sqrtL':>13} {'LOCAL*L':>11}")
+    for L in [64, 256, 1024, 4096, 16384]:
+        wl, ol = cp.compose_power_fast(wv, ov, L)
+        sg = np.sqrt(v2 * L); z = (ol - L * mu) / sg
+        loc = float(np.abs(sg * wl - np.exp(-z**2 / 2) / np.sqrt(2 * np.pi)).max())
+        print(f"     {L:>7} {loc:>12.4e} {loc*np.sqrt(L):>13.6f} {loc*L:>11.4f}")
+    return P3, P4
+
+
+P3a, P4a = edgeworth_study(cp.W_FTCS, cp.OFF_FTCS, "(a) c = 1 (this thread's operating point)")
+print(f"     -> LOCAL*sqrt(L) plateaus at 0.008342 vs predicted {P3a:.6f}: agree to "
+      f"{abs(0.008342-P3a)/P3a*100:.2f}%.  LOCAL*L DIVERGES.  Skewness leads.")
+P3b, P4b = edgeworth_study(np.array([cp.R, 1 - 2 * cp.R, cp.R]), cp.OFF_FTCS,
+                           "(b) c = 0, pure diffusion: symmetric step, kappa_3 = 0 EXACTLY")
+print(f"     -> LOCAL*L plateaus at 0.0942 vs predicted {P4b:.6f}: agree to "
+      f"{abs(0.0942-P4b)/P4b*100:.2f}%.  LOCAL*sqrt(L) -> 0.  Kurtosis leads.")
+print("""
+   So 'the leading correction is the excess kurtosis decaying like 1/L' is correct ONLY for
+   c = 0.  With advection the skewness term dominates at L^-1/2 and the kurtosis term is the
+   NEXT one -- which is exactly what the EDGE column of 2B measures: after subtracting the
+   skewness term the residual plateaus in EDGE*L at 0.0944, against the kappa_4 prediction
+   of %.5f (0.7%%).""" % P4a)
+
+hdr("2B3.  Cross-check: the exact propagator's moment hierarchy")
+print("""   The exact propagator's raw moments satisfy a closed triangular ODE hierarchy.  In OUR
+   displacement convention (kernel centred at -c tau, i.e. xi = source - target):
+        dM_q/dtau = alpha q(q-1) M_{q-2}  -  c q M_{q-1},     M_0 = 1.
+   (The sign of the drift term flips if xi is defined target-minus-source.)  Verify against
+   the closed-form Gaussian moments by finite differences in tau:""")
+tau0 = 137 * cp.DT
+def exact_raw_moments(tau, Q=9):
+    mu = -cp.C * tau; v = 2 * cp.ALPHA * tau
+    M = np.zeros(Q + 1); M[0] = 1.0
+    if Q >= 1: M[1] = mu
+    for q in range(2, Q + 1):                 # Gaussian raw-moment recursion
+        M[q] = mu * M[q - 1] + (q - 1) * v * M[q - 2]
+    return M
+h = tau0 * 1e-6
+Mp, Mm = exact_raw_moments(tau0 + h), exact_raw_moments(tau0 - h)
+M0 = exact_raw_moments(tau0)
+print(f"\n   {'q':>3} {'dM_q/dtau (FD)':>18} {'hierarchy RHS':>18} {'rel err':>11}")
+worst = 0.0
+for q in range(1, 9):
+    fd = (Mp[q] - Mm[q]) / (2 * h)
+    rhs = cp.ALPHA * q * (q - 1) * M0[q - 2] - cp.C * q * M0[q - 1]
+    rel = abs(fd - rhs) / max(abs(rhs), 1e-300); worst = max(worst, rel)
+    print(f"   {q:>3} {fd:>18.10e} {rhs:>18.10e} {rel:>11.2e}")
+print(f"   max rel err through q=8: {worst:.2e}")
+print("""
+   Useful as an independent check, but note it does NOT give the Task-2 convergence rate.
+   The rate is set by the cumulants of the SINGLE-STEP STENCIL (kappa_3, kappa_4 of w_ftcs),
+   not by the exact propagator, whose cumulants beyond the second are zero by construction.
+   Composition advances tau in this hierarchy only for the EXACT kernel; the stencil's own
+   defects are what Theorem 1' accumulates.""")
+
 hdr("2C.  Formal vs effective support -- the control parameter of the flow")
 print("""   Formal half-width after L compositions: exactly L cells (the light cone).
    Effective half-width: k * sigma_L with sigma_L = sqrt(s2 L) cells.

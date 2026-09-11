@@ -182,3 +182,16 @@ def exact_kernel_on_lattice(tau, off, dx=DX, alpha=ALPHA, c=C):
 
 def l1(w):
     return float(np.abs(w).sum())
+
+
+def check_consistent(w, tol=1e-6, name="stencil"):
+    """Guard for solvers called in a loop.
+
+    If every offset shares the same dx the moment matrix drops rank and lstsq returns a
+    large-residual vector SILENTLY (sum w ~ 0.48 rather than 1).  Always check the mass.
+    """
+    ssum = float(np.sum(w))
+    if not np.isfinite(ssum) or abs(ssum - 1.0) > tol:
+        raise ValueError(f"{name}: sum(w) = {ssum!r}, expected 1 to within {tol}. "
+                         "Rank-deficient moment system? (e.g. all offsets sharing one dx)")
+    return w

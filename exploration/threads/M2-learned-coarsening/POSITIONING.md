@@ -3,8 +3,51 @@
 **Thread question**: choose the coarse variables to minimise the memory the coarse law requires,
 subject to the coarse law being non-negative / stable.
 
-**Written before any experiments, as instructed.** Every claim is labelled
-**[classical]** (someone else's result, cited), **[measured here]** (run today in
+**Status: thread stopped 2026-09-11 before any experiments were run.** The question is published.
+
+---
+
+## ⛔ STOP — read this box first
+
+**If you are about to have the idea "choose the coarse variables so the coarse dynamics needs the
+least memory", it is published. Here is the citation and the four places the positivity
+constraint already lives. This box exists so you spend thirty seconds here instead of an afternoon.**
+
+> **N. Guttenberg, J. F. Dama, M. G. Saunders, G. A. Voth, J. Weare & A. R. Dinner,
+> "Minimizing memory as an objective for coarse-graining",
+> *J. Chem. Phys.* **138**, 094111 (2013).**
+> doi:10.1063/1.4793313 · PMID 23485281 · <https://pubmed.ncbi.nlm.nih.gov/23485281/>
+>
+> They define a memory measure over choices of retained coordinates, minimise it over those
+> choices, and report that it "suggests coordinate selections that are physically intuitive and
+> reflect molecular structure". That is this thread's title, objective, and headline result.
+
+**And if you are about to think "but nobody has required the learned coarse law to be positive /
+monotone / stable" — four literatures have. In full:**
+
+| # | literature | what it already does | entry point |
+|---|---|---|---|
+| 1 | **Positive realization problem** | when does a non-negative state-space realization exist, and of what minimal dimension. **Its central classical fact is that the minimal *positive* realization can be strictly larger than the minimal realization** — i.e. "positivity is paid for in state dimension" is theirs, since depth-p AR on K variables ≡ Markov on pK | Benvenuti & Farina, *IEEE TAC* **49** (2004); Benvenuti, "Minimal positive realizations: a survey", *Automatica* **143**, 110422 (2022) |
+| 2 | **Positivity-preserving model order reduction** | reduce a positive system to a smaller *positive* system; pays extra dimensions when exact minimal positive reduction fails | Li & Lam et al. (H∞, BMI formulations); Grussler & Damm (cone-invariant balanced truncation); Cortese, Grigoletto, Ticozzi & Ferrante, arXiv:2406.11696 (2025) |
+| 3 | **PCCA+** | takes the dominant invariant subspace and finds the rotation making memberships non-negative and the coarse propagator a genuine stochastic matrix — "the slow subspace, rotated until the coarse law is positive" | Deuflhard & Weber, *LAA* **398**, 161–184 (2005); Röblitz & Weber, *ADAC* (2013); Kube & Weber, *JCP* (2007) for the generator version |
+| 4 | **Structure-preserving learning** | stability-constrained operator inference and DMD; MSM estimators that impose row-stochasticity and detailed balance by construction | Sawant, Kramer & Peherstorfer, *CMAME* (2023); Prinz et al., *JCP* **134**, 174105 (2011) |
+
+**Three more one-line redirections before you start:**
+
+- *"Minimise memory" is not "maximise VAMP" — it is strictly weaker and **degenerate**.* Every
+  invariant subspace of the right dimension has zero memory, including the fastest one. See §1.
+- *Minimal memory depth is the Krylov/observability index minus one*, which is exact lumpability
+  (Kemeny–Snell 1960) = minimal realisation (Kalman) = "the Mori–Zwanzig kernel vanishes". See §1.
+- *p\* is statistical complexity in different units* (Shalizi–Crutchfield 2001), and for a linear
+  system the ε-machine construction **is** the minimal realisation. See §5.
+
+The one corner this memo could not clear is in **§7**: minimise memory subject to the coarse law
+being non-negative **and** banded. Not taken — see §7 for why, including the NP-hardness hazard.
+
+---
+
+**Written before any experiments, as instructed.** Every claim below is labelled
+**[classical]** (someone else's result, cited), **[measured here]** (run in
 `positioning_check.py`), or **[conjectured]**.
 
 ---
@@ -34,7 +77,7 @@ I tried to talk myself out of this thread and I mostly succeeded.
    Answering Q1: *not identical, strictly weaker, and degenerate without a second criterion.*
 
 4. **Q4 — the thing the brief believed was thin — is not thin.** Requiring the reduced law to be
-   non-negative/positive has at least three established homes: the **positive realization problem**
+   non-negative/positive has at least four established homes (all four are in the STOP box above): the **positive realization problem**
    (Anderson–Deistler–Farina–Benvenuti 1996; Benvenuti–Farina tutorial 2004; Benvenuti survey,
    *Automatica* **143**, 2022), **positivity-preserving model order reduction** (Li–Lam et al.; Grussler–Damm;
    Cortese–Grigoletto–Ticozzi–Ferrante 2025), and **PCCA+** (Deuflhard & Weber, *LAA* **398**, 161–184, 2005), which finds a
@@ -66,6 +109,10 @@ Two facts M1 can use immediately, both measured today:
   because the stencil reaches 1 fine cell and the coarse spacing is 3. That is a mechanical reason
   for F23's pure-delay structure, and it says the pure delay is a statement about *reach*, not
   about positivity.
+  **Confirmed and strengthened by the lead after this memo was written**: P Aʲ Pᵀ is exactly
+  diagonal for **all j < M**, at M = 2, 3 and 4. So F23's "pure-delay, B₁ = B₂ = 0" structure is
+  geometric — one-cell stencil reach against M-cell coarse spacing — and not a positivity
+  phenomenon.
 
 ---
 
