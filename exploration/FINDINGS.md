@@ -621,10 +621,11 @@ Exactness needs 2 lags at M=3; positivity needs 6.
 The M=2 threshold lands at **r = 0.2929**, matching T5's analytic 1 − 1/√2 = 0.29289 — independent
 confirmation by a different method.
 
-**Reading**: you can coarse-grain cheaply only if the fine dynamics already mixes across a coarse
-cell in one step. r is the spread per step; below threshold you pay the shortfall in memory.
-*Memory is the price of coarse-graining space faster than the dynamics mixes* is now a measured
-statement with a threshold, not a slogan.
+**Reading — ⛔ STRUCK, see F36.** I wrote: "you can coarse-grain cheaply only if the fine dynamics
+already mixes across a coarse cell in one step." **That is the wrong mechanism.** The threshold is
+the condition that the unresolved alias **flips sign**, not that it becomes small. At M=2, r=0.24
+gives a mode damped 25× per step and is infeasible; r=0.45 gives one damped 1.25× per step and is
+feasible. *The strongly mixing case is the impossible one.*
 
 **The consequence that matters for the framework**: for **M ≥ 4, no r inside FTCS's own stability
 range (r ≤ ½) admits a positive coarse law at depth ≤ 8** — large single-jump coarse-grainings
@@ -941,3 +942,53 @@ positive-realization search with a bandwidth constraint, not experiments.
 
 That is the second time today a thread has argued against its own conclusion in writing. It is the
 behaviour most worth keeping from this session's method.
+
+## F36 — ⛔⛔ Phase 2 is closed: the price of exact compression is 100% of the state
+M1's result, verified here, and it ends the phase by argument rather than exhaustion.
+
+**Exact depth × (N/M) = M × (N/M) = N, at every M from 2 to 12** — every row exactly 1.000.
+Storing M coarse levels of N/M values each is storing N numbers. **Decimation plus exact memory
+costs the entire state.**
+
+So Phase 2's framing question — *does compression across scales have a bounded price?* — has an
+exact answer, and it is the least interesting one: **the price is the whole thing.** Compression
+only exists once you accept a *tolerance*, and then the depth is set by how fast the unresolved
+aliases decay, which is classical Mori–Zwanzig. The question collapses onto a dichotomy with a
+classical answer on each branch.
+
+**A refinement in M1's favour.** I checked the observability stack's rank and it is *not* full:
+23/24 at M=2, 21/24 at M=4, 13/24 at M=12 — the periodic FTCS operator has degenerate eigenvalues
+(modes k and N−k share a symbol). So "you get back precisely the state you saved" understates it:
+you pay the full N and **still do not recover the state**. Lossy, at full price.
+
+*How I found that*: I wrote a script whose print statement asserted "the stack is full rank N"
+while the data underneath said otherwise — the same error M1 caught in T5's Observation 4 ("the
+prose was written against the expectation rather than the table"), committed by me two hours after
+recording theirs.
+
+**Task 3 is a tautology, measured not argued.** Decimating by 2 twice retains fine indices
+0,4,8,… — the same index set as decimating by 4. Alias sets are **bit-identical** (max difference
+0.00e+00) for M=4 via 2×2, M=8 via 2×2×2, M=8 via 2×4, M=6 via 2×3. Memory neither accumulates,
+composes nor saturates. My framework reading — *deep hierarchies are viable only if built in small
+steps* — comes out **negative**: the route is free, so small steps buy exactly nothing, and the
+M ≥ 4 wall cannot be walked around two at a time.
+
+**M1's replacement experiment failed, and reports it.** It predicted block averaging would admit
+positive laws at M ≥ 4, since a box average annihilates every unresolved alias at q = 0 — clean
+mechanism, wrong: **one cell differs out of 42**, and M ≥ 4 is infeasible at every r under both
+restrictions. Its follow-up explanation was also wrong — exempting 97% of the band still leaves
+M=4 infeasible. So **the obstruction lives at essentially every coarse mode**; the q=0 proof is
+where it is *provable*, not where it lives. The general version stays conjectured.
+
+This also closes the decimation-vs-block-averaging question flagged as load-bearing for every
+number in F14/F23. **It was not load-bearing.**
+
+**And the M ≥ 4 wall has a proof**, not just my empirical "no r admits a positive law at depth ≤ 8":
+it holds at *any* depth and *any* width.
+
+### Status
+Phase 2: closed. One time-boxed item outstanding — the dispersive test (u_t = u_xxx), approved
+solely because the sign condition is *proved at q = 0 and conjectured elsewhere*, is the phase's
+only surviving result, and is on the published page. Either outcome is useful: confirmation makes
+it quotable on a second system class; refutation means pulling it back to q = 0 before anyone
+builds on it.
