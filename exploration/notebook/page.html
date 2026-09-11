@@ -208,7 +208,25 @@ footer{border-top:1px solid var(--rule-2);padding-top:20px;color:var(--ink-3);fo
 ‖w‖₁ = 1&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp; |e| ≤ <b>L·τ</b><span class="an">&nbsp;&nbsp;&nbsp;&nbsp;linear in the number of levels</span>
 ‖w‖₁ = 1+δ&nbsp;→&nbsp;&nbsp; |e| ≤ <i>τ (1+δ)<sup>L</sup> / δ</i><span class="an">&nbsp;&nbsp;geometric</span>
     </div>
-    <p class="col">Which means the CFL condition was never really a constraint on the time step.
+    <p class="col"><b>Amended.</b> That bound is a worst case over adversarial error patterns, and
+    it is generically nowhere near attained. Lax–Wendroff at ν = 0.4 has ‖w‖₁ = 1.24 — my bound
+    predicts blow-up — yet its symbol has modulus exactly 1, and 512-fold composition reaches
+    ‖w‖₁ = 1.59 against a bound of 6.8 × 10⁴⁷. Composition <em>expels</em> the negative lobes. So:</p>
+    <div class="tw"><table>
+      <thead><tr><th></th><th>‖w‖₁ = 1 (positivity)</th><th>von Neumann max|ĝ| ≤ 1</th></tr></thead>
+      <tbody>
+        <tr><td>sufficient for stability</td><td class="win">yes</td><td class="win">yes</td></tr>
+        <tr><td>necessary</td><td class="lose">no</td><td>yes, asymptotically</td></tr>
+        <tr><td>exact at every depth</td><td class="win">yes, no transient</td><td>asymptotic only</td></tr>
+        <tr><td>needs translation invariance</td><td class="win">no</td><td class="lose">yes</td></tr>
+        <tr><td>computable on scattered points</td><td class="win">yes</td><td class="lose">no</td></tr>
+      </tbody>
+    </table></div>
+    <p class="col"><strong>Positivity is the certificate you can always compute; the symbol is the
+    sharp criterion you can only sometimes compute.</strong> Scattered meshfree geometry has no
+    symbol, so positivity is the only certificate available there — at the real cost of rejecting
+    perfectly stable schemes like Lax–Wendroff. That cost belongs in the open, not hidden.</p>
+    <p class="col">What does survive intact: the CFL condition was never really a constraint on the time step.
     Classical FTCS at the benchmark gives <code>w = [0.4727, 0.1000, 0.4273]</code> — all
     non-negative, ‖w‖₁ = 1.000000 — and the textbook condition <em>r ≤ ½</em> is precisely the
     condition that the middle weight stays non-negative. Positivity, upwind Courant ≤ 1 and cell
@@ -320,6 +338,34 @@ dM<sub>q</sub>/dτ  =  α·q(q−1)·M<sub>q−2</sub>  +  c·q·M<sub>q−1</su
 </section>
 
 <section>
+  <div class="sec-head"><h2>A trilemma that does survive</h2><span class="eyebrow">F14 · coarse-graining</span></div>
+  <div class="stack">
+    <p class="col">The retracted argument was about accuracy. This one is about
+    <em>coarse-graining</em>, it was measured rather than assumed, and it is the result the
+    programme should have had in the first place.</p>
+    <p class="col">Coarse-graining a scheme in space by a factor M admits an <strong>exact, finite
+    Mori–Zwanzig memory of exactly M − 1 lags</strong> — by Cayley–Hamilton on the M-dimensional
+    alias subspace. Memory kernels are normally infinite; here the truncation is exact. And
+    positivity does not survive it:</p>
+    <div class="tw"><table>
+      <thead><tr><th>coarsening factor M</th><th>positive coarse scheme exists?</th><th class="n">condition</th></tr></thead>
+      <tbody>
+        <tr><td>2</td><td class="win">only in a narrow window</td><td class="n">r ≥ 1 − 1/√2 = 0.29289</td></tr>
+        <tr><td>≥ 3</td><td class="lose">never, at any r</td><td class="n">—</td></tr>
+      </tbody>
+    </table></div>
+    <p class="col">Since FTCS needs r ≤ ½, coarsening by two is safe only in the window
+    0.293 ≤ r ≤ 0.5 — that is, only when the fine scheme is already running near its stability
+    limit. Under RG-consistent coarsening, where Δt scales as M², memory instead collapses to an
+    M-independent floor e^{−2π²r}, confirmed over three decades in r.</p>
+    <div class="chain"><span>You cannot coarse-grain by M ≥ 3,</span><span class="ar">·</span>
+      <span>stay local and memoryless,</span><span class="ar">·</span><span>and stay positive.</span></div>
+    <p class="col">Which reads, in the programme's own terms: <strong>memory is the price of
+    coarse-graining space faster than the dynamics mixes.</strong></p>
+  </div>
+</section>
+
+<section>
   <div class="sec-head"><h2>Ruled out</h2><span class="eyebrow">kept deliberately</span></div>
   <div class="stack">
     <p class="col">Four claims died this session, three of them mine. They are here because a
@@ -330,6 +376,14 @@ dM<sub>q</sub>/dτ  =  α·q(q−1)·M<sub>q−2</sub>  +  c·q·M<sub>q−1</su
       <p>Mine, and it was this page's headline. The Jensen inequality is true; the order barrier I
       drew from it is not. FTCS at r = 1/6 is non-negative and fourth-order. Detailed above — it is
       the most important thing that happened this session.</p>
+    </div></div>
+
+    <div class="find out"><span class="chip c-out">amended</span><div class="body">
+      <h3>‖w‖₁ = 1 is sufficient for stability, not necessary</h3>
+      <p>Also mine. The ℓ¹ bound is a worst case that composition does not realise — Lax–Wendroff
+      is the counterexample. Positivity keeps its real advantages (exact at every depth, no
+      translation invariance needed, computable on scattered points) but it is a conservative
+      certificate, and it rejects good schemes.</p>
     </div></div>
 
     <div class="find out"><span class="chip c-out">ruled out</span><div class="body">
@@ -406,15 +460,16 @@ exact&nbsp;&nbsp;<b>½(Δx − cΔt)² + αΔt</b>&nbsp;&nbsp;=&nbsp;&nbsp;<b>½
       state-dependent-coefficient diagnostic (slope −0.992 on Burgers) and the positivity
       certificate on w, which a jet estimate cannot give.</p></div>
     <div class="thread"><span class="t-id">T4</span><h3>RL, redesigned</h3>
-      <span class="chip c-open">open</span>
+      <span class="chip c-open">the only one still open</span>
       <p>A validation instrument with a computable optimum via dynamic programming. Global scheme
       selection turned out trivial — 15/18 optimal actions sit on a boundary — so learning has to
       act where the choice is genuinely local.</p></div>
     <div class="thread"><span class="t-id">T5</span><h3>Composition, coarse-graining</h3>
-      <span class="chip c-open">open</span>
-      <p>‖w‖₁ is submultiplicative, so positivity is exactly the condition for an agent to compose
-      with itself at every scale. Testing whether coarse-graining trades memory against positivity
-      at fixed locality.</p></div>
+      <span class="chip c-measured">closed, positive</span>
+      <p>Cumulant defects are <em>exactly</em> additive under composition, so modified-equation
+      coefficients are step-count independent (α = 0.09977043 at every L from 1 to 512). Orders
+      take the min and never fall below it. Coarse-graining destroys positivity for M ≥ 3 and buys
+      it back only with memory.</p></div>
   </div>
 </section>
 
