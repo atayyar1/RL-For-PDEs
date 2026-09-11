@@ -6,8 +6,50 @@ obstruction theorem the numbers below test. Claims marked **[classical]**,
 
 Scripts: `positioning_check.py` (obstruction + LP verification), `task3_iterated.py`
 (Task 3 + restriction operator, log in `run_task3.log`), figure
-`figures/task3_restriction.png` at 150 dpi. Setup throughout: periodic FTCS on N=120,
-pure diffusion unless stated, T5's operating point r = 0.45.
+`figures/task3_restriction.png` at 150 dpi; `task2_systems.py` (system classes, log in
+`run_task2.log`, figure `figures/task2_hypotheses.png`). Setup throughout: periodic FTCS on
+N=120, pure diffusion unless stated, T5's operating point r = 0.45.
+
+---
+
+## THE RESULT, AND EXACTLY WHAT IT IS NOT
+
+The thread's one durable finding, stated one-directionally:
+
+> **A discarded mode that decays monotonically — a real eigenvalue in (0, 1) — destroys
+> the coarse maximum principle, at every memory depth and every stencil width.**
+>
+> Corollary, unconditional and separately proved (R6): **a unitary propagator (|g| ≡ 1)
+> admits a non-negative coarse law only if it is an exact lattice translation.**
+
+Evidence: proved at the constant coarse mode (POSITIONING.md §2.1); 16/16 where it applies;
+0 counterexamples in 39 cases across 13 system classes. The sharp instance is that the
+**exact heat semigroup cannot be positively coarse-grained at any M or depth, while crude
+FTCS can** — accuracy and coarse-grainability are in tension, and scale separation makes
+coarse-graining harder, not cheaper.
+
+**Five scope limits. All five are load-bearing; quote them with the result.**
+
+1. **Proved at one coarse mode only.** §2.1 proves it at q = 0. The all-q version is
+   **[conjectured]**. R4 shows the obstruction is *not* localised at q = 0 — exempting 29
+   of 30 coarse modes still leaves M=4 infeasible — so the proof's location is not the
+   phenomenon's location. A proof at one mode plus a conjecture elsewhere is the honest
+   object; the general claim is not established.
+2. **Necessary, not sufficient. It excludes; it does not admit.** 15 of 39 cases carry no
+   offending alias and are still infeasible at depth ≤ 8. Do not read the sign condition as
+   a characterisation of when positivity survives, and do not state it as a biconditional —
+   the "exactly when" form is false and was refuted by the dispersive test (R6).
+3. **Oscillation buys nothing on its own.** Dispersive propagators are oscillatory and fail
+   anyway; every one of the 13 systems fails at M ≥ 4. Nothing measured here makes
+   hierarchies cheap.
+4. **Real eigenvalues only.** The §2.1 argument needs g real. Complex-spectrum systems
+   (advection, dispersion) are outside it and need the separate unit-modulus argument, which
+   covers only the |g| ≡ 1 edge.
+5. **Setting.** Linear, constant-coefficient, 1-D, periodic, uniform grid; exact
+   (zero-tolerance) feasibility; decimation or box-average restriction; depth ≤ 10,
+   half-width ≤ 3. No 2-D, no nonlinear, no variable coefficients. LP noise floor ~1e−10 —
+   see the limitations section for the one cell (M=2, r=0.25) that sits inside it and is
+   therefore **undetermined, not feasible**.
 
 ---
 

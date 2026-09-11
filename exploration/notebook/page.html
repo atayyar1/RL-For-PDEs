@@ -404,9 +404,18 @@ dM<sub>q</sub>/dτ  =  α·q(q−1)·M<sub>q−2</sub>  +  c·q·M<sub>q−1</su
     exp(−αk²τ) &gt; 0 always and the sign condition can never be met. The crude stencil overshoots
     into negative g, and can. <strong>The most accurate diffusion operator cannot be positively
     coarse-grained; the crude one can.</strong></p>
-    <div class="chain"><span>Coarse-graining preserves a maximum principle</span><span class="ar">·</span>
-      <span>when the discarded modes <b>oscillate</b>,</span><span class="ar">·</span>
-      <span>and destroys it when they merely decay.</span></div>
+    <div class="chain"><span>A discarded mode that <b>decays monotonically</b></span><span class="ar">·</span>
+      <span>a real eigenvalue in (0,1)</span><span class="ar">·</span>
+      <span>destroys the coarse maximum principle,</span><span class="ar">·</span>
+      <span>at every memory depth and every stencil width.</span></div>
+    <p class="note"><b>Corrected.</b> This page previously carried the biconditional form —
+    "positivity survives exactly when the discarded modes oscillate" — and the forward half is
+    false. Dispersive propagators are as oscillatory as it gets (unitary, |g| = 1) and are
+    infeasible at M = 2, 3 and 4, damped and undamped alike. <b>Oscillation is necessary, not
+    sufficient.</b> The one-directional statement above is what was actually tested: proved at the
+    constant coarse mode, verified 16/16 where it applies, never falsified across 39 cases and 13
+    system classes. The all-q version remains conjectured — and the block-averaging control showed
+    the proof's location is not the phenomenon's location.</p>
     <p class="col">Two threads reached that from opposite directions: the only operator you can
     coarse-grain <em>for free</em> is one that has already discarded what the coarse grid discards;
     the only one you can coarse-grain <em>positively</em> is one that is crude in a specific way.</p>

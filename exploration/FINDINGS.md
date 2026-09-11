@@ -1114,3 +1114,82 @@ the discarded modes oscillate and destroys it when they merely decay — and **o
 non-dissipative dynamics cannot be positively coarse-grained. Everything else came back negative,
 tautological, or classical. The remaining M ≥ 4 infeasibility is a **proof gap** (the all-q
 obstruction is conjectured), which is a mathematics task, not a compute task.
+
+## F39 — ⛔ The published sentence was a false biconditional; corrected
+M1 flagged this as urgent and was right. The page carried:
+
+> ~~"Coarse-graining preserves a maximum principle when the discarded modes oscillate, and destroys
+> it when they merely decay."~~
+
+The first clause asserts sufficiency and **it is false**. Dispersive propagators are as oscillatory
+as it gets — unitary, |g| = 1, entirely non-decaying — and are infeasible at M = 2, 3 and 4, damped
+and undamped alike. **Oscillation is necessary, not sufficient.** The tested form is one-directional:
+
+> **A discarded mode that decays monotonically — a real eigenvalue in (0,1) — destroys the coarse
+> maximum principle, at every memory depth and every stencil width.**
+
+Proved at the constant coarse mode, verified 16/16 where it applies, never falsified across 39
+cases and 13 system classes. The all-q version stays **conjectured**, and the block-averaging
+control (R4) showed the proof's location is not the phenomenon's location. Page corrected to v9
+with the retraction visible; M1 struck it from its own files so it cannot be re-quoted.
+
+Worth noting the sequence: M1 ran the dispersive case, found it refuted its own prediction, and
+then told me the sentence *I* had published was half wrong — applying the criterion I had stated
+when clearing the experiment ("refutation means pulling it back to q=0"). That is the thread
+holding me to my own stated standard, which is the behaviour the method was for.
+
+## F40 — T3 closes: the answer is no, and the fallback does not hold either
+**Does the jet/moment route contribute anything once weak-form SINDy supplies the coefficients? No.**
+Rollout error is truncation-dominated below |Δc|/c ≈ 3e-3; above it the sensitivity is linear
+(d log err / d log|Δc| = 0.898). WSINDy sits at **3.4e-4 even at 1% noise** — below threshold
+everywhere.
+
+> Where the jet route is good enough to matter, it does not matter; where it would matter, it is
+> the one that fails.
+
+At η ≤ 1e-4 the *true* coefficients sometimes give a worse rollout (6.68e-4) than estimated ones
+(3.88e-4).
+
+**Positivity is worth 0.16%.** Certified vs uncertified with true coefficients: 6.6807e-4 vs
+6.6913e-4. Certified-with-wrong never beat uncertified-with-truth at any drift.
+
+**The ‖w‖₁ correction is confirmed and stronger than I stated: 444 levels at ‖w‖₁ = 9.2, no
+divergence.** T3 annotated rather than silently edited its earlier 37.3% figure, which was von
+Neumann on uniform one-step stencils — sharp there, and it does not transfer.
+
+**The certificate never misleads**: max|u| pinned at 1.2942 ≤ 1.2989 at every drift. A convex
+combination cannot amplify, so the stability claim stays true *while certifying the wrong
+operator*. At η = 1e-2 it **withdrew rather than lied** (α̂ 39% low breaks feasibility; c error
+alone never did, even at 30%).
+
+**T3 retracts its own Part II §5 on my suggestion, and then declines the credit for it.**
+`solve_maxent` overturns "moment rows are the wrong tool" — max|w_ME − w_K| = **7.2e-8**, i.e.
+max-entropy reconstructs the Gaussian propagator from moments alone, beating its min-norm QP by
+22,000×. **But the gain is not positivity**: the LP vertex is equally non-negative and is the worst
+of three at large spread; everything sits within a factor of 3; at small spread non-positive
+min-norm beats maxent; and maxent fails on 2–6% of feasible geometries, where the LP fallback is
+the worse point. That independently confirms F37's reading — *the choice of point predicts
+everything, positivity alone predicts nothing.*
+
+`manuscript_outline.md` withdrawn. The one salvageable result is unrelated to integrators: the
+non-locality detector α_eff(R) ∼ R^(2−2s), recovering the fractional order to 0.02 absolute. A short
+methods note needing real data and a comparison against MSD-scaling estimators — and it should not
+carry this thread's framing.
+
+## F41 — Two standing checks, from three threads' worth of the same error
+Both are failure modes where **the output looks like a result**.
+
+1. **Never write the conclusion into the output text.** Read it off the table instead. M1 caught
+   this in T5's Observation 4 only because it ran the script before writing the criticism and the
+   table contradicted the paragraph above it. I then committed the identical bug two hours later
+   (asserting "the stack is full rank N" while the data said 23/24).
+2. **A degenerate objective makes every feasible point optimal**, so the solver returns an
+   arbitrary vertex and *any structure you see in it is an artefact of the pivot rule.* The check
+   is cheap: **re-solve with a perturbed or randomised objective and see which features survive.**
+   One root cause behind three separate threads — M1's B₂ = 0.6917·I vs T5's B₂ = 0 (F38),
+   `solve_positive` returning a useless 3-non-zero stencil (F30), and an uncontrolled positivity
+   comparison (F37). Credit: M1 for the general statement.
+
+A third, from my own record: **before running a comparison, measure the noise floor of the
+apparatus and check the expected effect exceeds it** (F29) — which T2 arrived at independently
+when it withdrew its own 78.1× (F37).
