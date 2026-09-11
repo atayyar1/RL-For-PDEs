@@ -369,3 +369,53 @@ wide-stencil idea has now lost its edge at both ends.
 **To settle F16 under variable coefficients** the upgrade must actually be an upgrade. Either
 correct the moment rows for local coefficient variation (include α'(x), α''(x) terms), or make
 the expensive option a *sub-stepping* upgrade rather than a *widening* one. Not yet done.
+
+## F18 — ⛔ F2 RETRACTED (partly): the "(kΔt)² accuracy floor" was one bad configuration
+F2 claimed accuracy binds long before stability, giving only a ~2.2× speedup, and that a
+"(kΔt)² floor" was irreducible. T2 refutes this: I measured it at a single capture factor
+s = mΔx/σ = 1.86, using the 3-row Taylor system. Sweeping s with moment rows, **pure diffusion**:
+
+| s = mΔx/σ | 2.00 | 4.33 | 6.33 | 8.33 |
+|---|---|---|---|---|
+| error | 8.7e-4 | 8.8e-7 | 2.4e-11 | **1.5e-14** |
+
+Nine orders at **fixed** kΔt, with w ≥ 0 throughout. So there is no floor; the constant is
+~exp(−s²/2) and s is a free design choice I had pinned at a bad value. F2's speedup number is
+void. Credit: T2.
+
+**But it does not reproduce with advection**, and this is an open discrepancy. At c = 1
+(cell-Pe 0.05, drift 0.9 cells) the error floors at **3.83e-7** from s ≈ 6 onward, regardless of
+stencil width or moment order up to p = 10. Ruled out as causes:
+- solver tolerance — the moment residual is 1.1e-16;
+- boundaries — free-space convolution and the Dirichlet series agree to 2.2e-16;
+- window centring — centring on the drifted kernel centre changes nothing past s ≈ 6.
+- the exact **sampled heat kernel hits the identical floor**, so it is not the LP's doing.
+
+Cause unresolved. It matters because F6's headline numbers were measured in the advective case.
+Flagged for T2's exact configuration rather than guessed at.
+
+## F19 — ⛔ Two more of my claims fall
+- **The 3-row LP does not recover the heat kernel.** I suggested to T2 that positivity plus the
+  three consistency rows would land near the sampled Gaussian. It does not: the LP returns a
+  basic feasible solution with **≤3 non-zeros** (obvious in hindsight — three equality
+  constraints), TV distance 0.88 from the kernel at m = 12. Verified here.
+- **F17's conclusion is wrong.** I reported that the wide-stencil advantage "erodes under
+  variable coefficients" because widening incurs coefficient-freezing error. The *diagnosis* was
+  right for my implementation and the *conclusion* was wrong: freezing is avoidable. T2 builds
+  rows from the local Taylor coefficients of α(x) — exponentiating on a polynomial basis, then
+  projecting to w ≥ 0, with no fundamental solution anywhere — and reports **7–20× over RK4+FD6**,
+  an order-matched, temporally-accurate competitor, at α_max/α_min = 9, while staying monotone.
+  That reverses F17 and is the strongest engineering result the programme has produced.
+
+## F20 — T2's other corrections (self-reported, worth recording)
+- Withdrew its own advection cap `k ≤ 2α/c²` and the cell-Péclet barrier `ν·Pe² ≤ 2`; both were
+  artefacts of the dropped u_tt terms. A positive stencil exists at **every** cell Péclet up to
+  20, and at high Pe the frontier is **linear** in m, not quadratic.
+- Its corrected frontier `floor([√(r² + ν²m²) − r]/ν²)` now agrees with T5's and with my own LP
+  check — three independent routes to the same closed form.
+- Found a metric error of its own: measuring the symbol to θ = π hits an aliasing floor where
+  W(π) is real for any real w, which made positivity look free everywhere. On the resolved band
+  θ ≤ π/2: **diffusion-dominated, positivity is nearly free** (a 10× ‖w‖₁ budget buys 1.1×);
+  **advection-dominated sub-cell, it costs >10⁵×** (Godunov again).
+- Consequence worth keeping: monotonicity is *not* what limits this scheme in the diffusive
+  regime, which weakens "we preserve monotonicity" as a selling point.
