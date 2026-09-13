@@ -57,6 +57,13 @@ class Problem:
         """
         scalar = np.ndim(x) == 0
         x = np.atleast_1d(np.asarray(x, float))
+        beta = self.c / (2 * self.alpha) if self.alpha else 0.0
+        if beta > 20.0:
+            # G1: exp(beta x) overflows the gauge transform for alpha <= ~0.01 at c=1
+            # (max|u| = 1.4e5 at alpha=0.01, 1e55 at 0.003). Refuse rather than return
+            # garbage; use a validated numerical reference (e.g. Crank-Nicolson) instead.
+            raise ValueError(f"u_true: beta=c/(2 alpha)={beta:.1f} > 20; the sine-series "
+                             "gauge transform overflows. Use a numerical reference.")
         if t == 0.0:
             # BUG FIX: at t=0 the transformed series has NOT been damped, and
             # v0 = u0*exp(-beta x) has non-zero second derivative at the walls, so

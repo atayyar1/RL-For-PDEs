@@ -92,7 +92,7 @@ def solve_positive(A, b):
     return r.x if r.status == 0 else None
 
 
-def solve_maxent(A, b, tol=1e-13, iters=200):
+def solve_maxent(A, b, tol=1e-11, iters=200, accept=1e-9):
     """The MAXIMUM-ENTROPY point of {w >= 0 : A w = b}. Prefer this to solve_positive.
 
     `solve_positive` runs an LP, and linear programming returns VERTICES: with 3
@@ -136,7 +136,14 @@ def solve_maxent(A, b, tol=1e-13, iters=200):
                 break
             t_ *= 0.5
         lam = lam - t_ * step
-    return None
+    # G1 found the Armijo line search stalls at |g| ~ 1e-13..1e-10 on 10-25% of
+    # FEASIBLE stencils, so a hard tol=1e-13 returned None for a correct iterate
+    # and every caller that counted None as "infeasible" over-counted. Return the
+    # final iterate if it is consistent to `accept`.
+    z = R.T @ lam
+    w = np.exp(z - z.max())
+    w /= w.sum()
+    return w if np.abs(R @ w - tgt).max() < accept else None
 
 
 def solve_min_l1(A, b):

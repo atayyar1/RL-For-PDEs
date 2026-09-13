@@ -1310,3 +1310,57 @@ Green's function — is by KG07 Theorem 1 an instance of their exploration phase
 unknown-operator coupling, adjoint-free influence — every one computable, classical, or published,
 and the last two were closed without a single experiment. G1 (certificate vs filter on scattered
 learned operators) is the only thing standing from this direction.
+
+## F45 — ⭐⭐⭐ G1: the certificate replaces the filter. Kill condition not met.
+6,730 runs, 1-D, periodic and Dirichlet, scattered points at jitter 0.1–0.45 and random, cell
+Péclet 0.1–10, safety factors 0.5 and 0.9. Scope limits lead `threads/G1-certified-marching/RESULTS.md`.
+
+**1. The consistency-only operator as both 2026 papers build it is unstable 86% of the time**
+(167/195 periodic; RK3 does not help, 160/195) — including on the **uniform grid at K ≥ 5 at any
+Δt**. The mechanism is closed-form and verified here exactly: the min-norm p=2 consistent Laplacian
+on 5 uniform points is **(2, −1, −2, −1, 2)/7h²**, whose symbol at Nyquist is **+4/7h² —
+anti-diffusive** (classical: −4/h²). Forward Euler then gives |g(π)| = 1 + 4r/7; measured 1.1428,
+predicted 1.1429. Blow-up time is independent of initial-condition wavenumber (no smooth-data
+regime). *This is why SpeND defers stability and NeMDO needs a filter.*
+
+**2. The certificate replaces the filter.** A NeMDO-style hyperviscous filter, tuned to the weakest ε
+that stabilises, works on jitter ≤ 0.25 at **15–34× higher error than maxent** (periodic) and
+**200–2600× on Dirichlet** — it pays its dissipation in the outflow layer. At jitter 0.45, on random
+points, and at Pe = 10, **no ε in [0, 1/8] stabilises** (the consistency-built D4 is itself unstable
+there); maxent is stable on all of those (0/9 vs 9/9). Lower error wherever the filter works, and
+works where it does not.
+
+**3. Certificate is exact and not necessary.** 1970/1970 certified operators have growth ≤ 1+1e-9
+(growth envelope maxₙ‖Mⁿ‖ — spectral radius is meaningless for these non-normal matrices, 0.699 vs
+0.900 on matrices equal to 5e-16). 826/1609 uncertified operators are also stable.
+
+**4. On one-step propagator rows, positivity is a detector.** Min-norm (= SpeND's projection with
+w ≈ 0) is unstable 45/195, and **every one of the 45 has a positivity-infeasible node** — 0
+feasible-and-unstable out of 89, replicated on Dirichlet (0/89), safety 0.9 (0/68), mixed time
+levels (0/30). Widening fixes 19/45. SpeND's spectral objective with the |g| ≤ 1 hinge: the hinge
+is identical to no hinge.
+
+**5. Accuracy: maxent wins at Pe ≤ 1 and loses at Pe ≥ 3.3.** At Pe ≤ 1 maxent is 5–50× better than
+every other consistent point and every LP vertex (20 random objectives: growth identical, error
+spread ×4–10, all worse). At Pe ≥ 3.3 the spectral objective is 0.45–0.6× of maxent, because
+positivity is infeasible at most nodes there. **The limit is classical and derived**: positivity
+needs |ξ_L|·ξ_R ≤ 2αΔt, i.e. ν ≥ 1 − 2/Pe on a uniform grid; widening cannot help, only Δt can.
+Measured: 45–81% of nodes infeasible at Pe = 3.3, safety 0.5; 0% at safety 0.9 on jitter ≤ 0.1.
+
+**6. Reduction.** Every propagator arm is Lax–Wendroff to 1e-15 and MOL is FTCS to 1e-16 at K = 3.
+Nothing reduces to LW at K ≥ 5 (0.04–0.44 deviation; weight outside ±h).
+
+### Two bugs in the shared library, found by G1 and fixed
+- **`solve_maxent` returned `None` on 10–25% of feasible stencils.** The Armijo line search stalls at
+  |g| ~ 1e-13…1e-10 with tol = 1e-13 unreachable; the iterate was correct. Any thread that counted
+  `None` as infeasible over-counted. Fixed: tol 1e-11, and the final iterate is returned if
+  consistent to 1e-9. **F27/F42 feasibility percentages are lower bounds and should be re-run.**
+- **`Problem.u_true` is garbage for α ≤ 0.01 at c = 1** — exp(βx) overflows the gauge transform
+  (max|u| = 1.4e5 at α = 0.01, 1e55 at 0.003). Now raises for β > 20 rather than returning nonsense.
+  G1 used Crank–Nicolson at 16001 points, validated to 1.3e-8 at α = 0.1.
+
+### Honest shape
+Not "positivity fixes the learned operator." For the papers' object (spatial operator + separate
+stepper): **certificate replaces filter** at lower error. For the one-step object: **detector plus
+accuracy** at low Péclet, with a classical, derived limit at Pe > 2. An increment on SpeND — and a
+real one, since it answers the question its authors say they are working on, with a mechanism.

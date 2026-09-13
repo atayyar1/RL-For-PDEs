@@ -438,6 +438,45 @@ dM<sub>q</sub>/dτ  =  α·q(q−1)·M<sub>q−2</sub>  +  c·q·M<sub>q−1</su
 </section>
 
 <section>
+  <div class="sec-head"><h2>Against the 2026 literature: the certificate replaces the filter</h2><span class="eyebrow">F45 · 6 730 runs</span></div>
+  <div class="stack">
+    <p class="col">Positioning first, this time with searches rather than recall: every component of
+    "discover the discrete integrator from data" is published, and two papers — NeMDO (March 2026)
+    and SpeND (2 September 2026) — learn a map from local scattered geometry to consistent stencil
+    weights, which is this programme's construction with a network in place of the pseudoinverse.
+    Neither has a sign condition on the weights. SpeND defers long-time stability to future work;
+    NeMDO marches only with a high-order filter plus a trained hyperviscous operator. One thread
+    survived positioning, and this is what it found.</p>
+    <p class="col"><strong>The consistency-only operator, as both papers build it, is unstable 86% of
+    the time</strong> — including on a uniform grid. The mechanism is closed-form: the minimum-norm
+    consistent Laplacian on five uniform points is</p>
+    <div class="eq">(2, −1, −2, −1, 2) / 7h²<span class="an">&nbsp;&nbsp;&nbsp;&nbsp;symbol at Nyquist  +4/7h²  — anti-diffusive (classical: −4/h²)</span>
+forward Euler:  |g(π)| = 1 + 4r/7<span class="an">&nbsp;&nbsp;&nbsp;&nbsp;predicted 1.1429, measured 1.1428</span></div>
+    <p class="col">That is why one paper defers stability and the other needs a filter.</p>
+    <div class="tw"><table>
+      <thead><tr><th>point set</th><th>NeMDO-style filter (weakest stabilising ε)</th><th>maximum-entropy positive</th></tr></thead>
+      <tbody>
+        <tr><td>jitter ≤ 0.25, periodic</td><td class="lose">stable, 15–34× the error</td><td class="win">stable</td></tr>
+        <tr><td>jitter ≤ 0.25, Dirichlet</td><td class="lose">stable, 200–2600× the error</td><td class="win">stable</td></tr>
+        <tr><td>jitter 0.45, random points, Pe = 10</td><td class="lose">no ε stabilises (9/9 fail)</td><td class="win">stable (0/9 fail)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="chain"><span>Lower error wherever the filter works,</span><span class="ar">·</span>
+      <span>and it works where the filter does not.</span></div>
+    <p class="col">The certificate is exact — 1 970 of 1 970 certified operators have growth ≤ 1 —
+    and not necessary — 826 of 1 609 uncertified ones are also stable. On one-step rows it acts as a
+    <em>detector</em>: every unstable configuration has a positivity-infeasible node, zero
+    feasible-and-unstable out of 89, replicated three ways. Everything reduces to Lax–Wendroff to
+    10⁻¹⁵ on a uniform three-point stencil.</p>
+    <p class="note"><b>Scope, stated by the thread.</b> One dimension; periodic and Dirichlet; the
+    accuracy advantage of maximum entropy (5–50× at Pe ≤ 1) <em>inverts</em> at Pe ≥ 3.3, where
+    positivity is infeasible at most nodes — a classical, derived limit, ν ≥ 1 − 2/Pe, that widening
+    cannot move. Two bugs in this programme's own library were found and fixed along the way. This is
+    an increment on SpeND, and it answers the question its authors say they are working on.</p>
+  </div>
+</section>
+
+<section>
   <div class="sec-head"><h2>Ruled out</h2><span class="eyebrow">kept deliberately</span></div>
   <div class="stack">
     <p class="col">Four claims died this session, three of them mine. They are here because a
