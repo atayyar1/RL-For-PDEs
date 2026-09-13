@@ -31,9 +31,14 @@ which is Ali's construction with a network in place of the pseudoinverse.
 
 Read in full, both 2026 papers share the same three absences:
 
-1. **Neither time-marches with its learned operators.** SpeND: "work in progress addresses …
-   eigenvalue stability and sustained resolving power over long integration times." NeMDO: spatial
-   operators only. Both evaluate on static fields.
+1. **⛔ Corrected by G1 (full-PDF read).** SpeND does not time-march — confirmed verbatim: "work in
+   progress addresses … eigenvalue stability and sustained resolving power over long integration
+   times." But **NeMDO does**: §V.F runs the 2-D weakly-compressible Taylor–Green vortex on a
+   disordered Eulerian node set to t\* = 10. Its stability comes from **added dissipation, not the
+   operator** — "to improve numerical stability we dealiase the solution with a high-order filter
+   at each time-step … we train a hyperviscous operator GNN^hyp." No long-time study, no unfiltered
+   run, an empirical eigenvalue section (§V.C) but no theorem. My original "neither marches" came
+   from a fetch summary that missed §V.F; recorded as an instance of trusting the summariser.
 2. **Neither discusses the sign of the learned weights** — no positivity, monotonicity, maximum
    principle, or von Neumann analysis. Consistency only.
 3. **Neither chooses where to evaluate.** Point sets are given (k-nearest in NeMDO; prescribed
@@ -46,9 +51,12 @@ generating-function rows reduce to FTCS / Lax–Wendroff exactly on a uniform gr
 
 ## The two gaps, and what would close each
 
-**G1 — certified scattered learned operators under time-marching.** Do consistency-only learned
-operators (SpeND-style) go unstable when actually marched? Does a positivity projection fix it, and
-at what accuracy cost? Prior-art risk **low** — both papers defer this explicitly. **Kill condition:
+**G1 — certified scattered learned operators under time-marching.** Sharpened after the NeMDO
+correction: **can a positivity certificate replace the ad-hoc filter?** NeMDO marches only with a
+high-order dealiasing filter plus a trained hyperviscous operator; SpeND does not march. Neither has
+a sign condition on the weights (grep over both full PDFs: zero relevant hits). Nearest misses —
+Nasser–Adcroft 2606.17497 (TVD-penalised learned FV), Gueyffier 2607.20171 (entropy-stable learned
+FV), FINO 2509.26186 — are grid/mesh-based or soft. Prior-art risk **low**. **Kill condition:
 if consistency-only rollouts are already stable on every test, positivity is redundant here.**
 
 **G2 — active placement when the operator is unknown.** Every RL-for-numerics paper uses a *known*
