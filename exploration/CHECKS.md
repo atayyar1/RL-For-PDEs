@@ -38,10 +38,14 @@ being claimed. (F30, F37, F38)
 
 ---
 
-### 4. Spectral radius means nothing for a non-normal matrix
-Learned and scattered-point operators are non-normal. Two matrices equal to 5e-16 returned spectral
-radii of 0.699 and 0.900. Use the growth envelope maxₙ ‖Mⁿ‖ over the horizon you care about.
-Credit: G1.
+### 4. Do not read stability off the spectral radius of a scattered-point operator
+The assembled one-step maps are non-normal. `eigvals` returned ρ = 0.699 and 0.900 for two matrices
+equal to 5e-16, and **an operator with ρ < 1 can grow by 10²–10⁴ before it decays.** Measure the
+growth envelope maxₙ ‖Mⁿ‖∞ over a log-spaced set of n up to the horizon (repeated squaring — cheap
+at N ≤ 400), or march; use ρ only as a lower bound on what to expect.
+
+*Cost of skipping it*: the first G1 smoke run classified identical operators as stable and unstable
+by pivot noise in the eigensolver. (G1)
 
 ### 5. Do not trust the summariser over the source
 A WebFetch summary of NeMDO said "spatial operators only." Section V.F time-marches a Taylor–Green
