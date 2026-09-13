@@ -1248,3 +1248,38 @@ their overdetermined regression, where NNLS fails because a bound constraint pic
 from a huge null space at cond ≈ 1e17. My *conclusion* was right — re-run with an interior
 parametrisation (softmax) and positivity helps under noise, 2.19e-4 vs 4.44e-4 at η=1e-4 — but for
 a different reason than I gave. Fourth instance today of right conclusion, wrong mechanism.
+
+## F43 — ⛔ G2 killed by positioning: the active/unknown-operator coupling is published three times over
+My stated criterion for when RL earns its place — *the optimal decision must depend on information
+the agent can only get by acting* — appears **verbatim** in Krause & Guestrin, ICML 2007, "Nonmyopic
+active learning of GPs": *"if the GP model parameters are completely known, the predictive variances
+do not depend on observed values, and hence nothing is lost by committing to sampling locations in
+advance."* Their Theorem 1 bounds the advantage of *any* sequential policy over the best a-priori
+design by the prior entropy H(Θ) of the unknown parameters; §6 extends to nonstationary GPs with
+local structure — the spatial analogue of α(x). They ran a-priori, random, three exploration
+strategies and the joint policy: ~50% RMS gap, "none of the exploration strategies dominates".
+
+The principle is Feldbaum 1960 (dual control). The A-vs-B-vs-C comparison is Zimmerman,
+Environmetrics 2006 (+ Zhu–Stein, Diggle–Lophaven): design for prediction with known covariance vs
+for parameter estimation vs for plug-in prediction — "largely antithetical", with the compromise
+being **space-filling plus a few clustered points**. Sequential OED with an RL policy on PDE inverse
+problems: Shen & Huan CMAME 2023, arXiv 2601.05868 (Jan 2026). Moving sensors for spatially varying
+coefficients: Uciński 2004.
+
+The specific items I named all have a **known** operator (Dellnitz, Yang, Foucart — RL replaces a
+controller or error estimator), a fixed grid where "adaptive" means coefficients not locations
+(STENCIL-NET, Bar-Sinai), or choose *which simulations* to run rather than *where* (Li/Musekamp).
+
+**What is not published**: this exact instance. But KG07 Theorem 1 already predicts the sweep's
+shape — a hump inside the L_α band, zero at both edges, height bounded by the prior entropy of α as
+seen from the target. An experiment could only measure what fraction of a known bound is attained.
+
+**And a structural flaw in my design**: arm A builds the adjoint from the *estimated* operator,
+which reintroduces the known-operator assumption one step later — the REEVALUATION filter failing
+inside the method. The only version the table does not cover is learning the influence function
+where no adjoint exists.
+
+**Decision: G2 does not run.** Measuring the attained fraction of a 2007 bound on a toy problem
+serves neither the book nor the thesis. Third time in this programme that the corner I identified
+as open was published under essentially its own description; the "30% that it works and is new"
+I quoted two days ago was, in the event, about 0%.
