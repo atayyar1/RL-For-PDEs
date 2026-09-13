@@ -187,3 +187,36 @@ steering, crisis management") — unknown is a **source term**, operator known, 
 a prediction QoI, both static placement and dynamic steering. Sequential + goal-oriented on a PDE
 inverse problem, but not a coefficient field. It confirms the pattern in the table rather than
 closing the "not found" cell.
+
+---
+
+## Addendum (2026-09-13, on request) — learning the influence function where no adjoint exists
+
+**Closed, from three sides.** The influence function G(x,t; x\*,t\*) *is* the Green's function of
+the operator, restricted to one target column, so "learn the influence function from evaluations
+alone with an unknown operator" is the title of an existing literature: **Boullé, Kim, Shi &
+Townsend, "Learning Green's functions associated with time-dependent PDEs", *JMLR* 23 (2022)**
+(parabolic, from input–output pairs, with sample-complexity bounds via randomised SVD of
+Hilbert–Schmidt operators and a hierarchical space-time partition); Boullé & Townsend, "Elliptic
+PDE learning is provably data-efficient" (2023); and, verbatim, **"Operator learning without the
+adjoint", arXiv 2401.17739** — none of which chooses where to evaluate or targets a point. The
+*target-specific, adjoint-free* estimate from samples is **ensemble sensitivity — Ancell & Hakim,
+*Mon. Wea. Rev.* 135:4117 (2007)**: regress an ensemble of states onto a single-point forecast
+metric (their example is sea-level pressure at one point in Washington State), which they prove
+equals the error covariance projected onto the adjoint sensitivity, and which they then use for
+*observation targeting* — i.e. F16's influence-weighted placement with the adjoint replaced by a
+regression on evaluations, and no operator opened. And **KG07 §6 does already contain the
+corner**: in a GP the influence of an observation at s on the prediction at y is the kernel through
+Σ_yA Σ_AA⁻¹, so learning the local kernel parameters Θ⁽ⁱ⁾ by exploration *is* learning the influence
+structure, and Ancell–Hakim's regression is the same covariance object estimated from an ensemble
+rather than a parametric prior; what KG07 lacks is only the single-point target (its criterion is
+field-wide MI), which Ancell–Hakim supplies. The two learned-adjoint papers the lead named do not
+drop the operator: **arXiv 2102.12450** solves a *known* adjoint PDE in strong form with a
+feedforward network (an accelerator), and **E2N, arXiv 2207.11233** replaces the error-estimation
+step with a network trained on local mesh/physics features, with the primal solved classically.
+**Nearest miss, not found**: choosing *where* to evaluate in order to learn one target column of
+the Green's function (active learning of a Green's function, or active ensemble sensitivity). The
+closest are "Learning Where to Simulate" (arXiv 2606.09949) and physics-based active learning for
+neural operators (2605.21348), both field-wide surrogate training — but by KG07 Theorem 1 that
+missing piece is again "reduce the entropy of the covariance parameters that matter for the
+target", an instance of their exploration phase rather than a new problem. Thread closed.

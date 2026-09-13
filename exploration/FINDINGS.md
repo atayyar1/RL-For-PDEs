@@ -1283,3 +1283,30 @@ where no adjoint exists.
 serves neither the book nor the thesis. Third time in this programme that the corner I identified
 as open was published under essentially its own description; the "30% that it works and is new"
 I quoted two days ago was, in the event, about 0%.
+
+## F44 — ⛔ The last "active" corner is closed from three sides. G2 built nothing.
+"Learn the influence function where no adjoint exists" — the one direction G2's table did not cover:
+
+1. **The influence function is one column of the Green's function**, and learning Green's functions
+   from evaluations with an unknown operator is an existing literature: Boullé, Kim, Shi & Townsend,
+   JMLR 2022 (time-dependent PDEs, sample-complexity bounds); Boullé & Townsend 2023 ("Elliptic PDE
+   learning is provably data-efficient"); and, verbatim, **"Operator learning without the adjoint"**,
+   arXiv 2401.17739.
+2. **The target-specific, adjoint-free estimate from samples, used for placement, is ensemble
+   sensitivity**: Ancell & Hakim, MWR 2007 — regress an ensemble onto a single-point forecast
+   metric, proven equal to the error covariance projected onto the adjoint sensitivity, then used
+   for observation targeting. That is F16 with the adjoint replaced by a regression on evaluations.
+3. **KG07 §6 already contains it**: in a GP the influence of an observation at s on the prediction
+   at y is Σ_yA Σ_AA⁻¹, so exploration over local kernel parameters *is* learning the influence
+   structure. Ancell–Hakim is the same covariance object estimated from an ensemble.
+
+The two learned-adjoint papers I named do not drop the operator: 2102.12450 solves a *known*
+adjoint PDE with a net (an accelerator); E2N 2207.11233 replaces the error-estimation step only.
+Nearest unfound piece — actively choosing where to evaluate to learn *one target column* of the
+Green's function — is by KG07 Theorem 1 an instance of their exploration phase, not a new problem.
+
+**Status of the "active" axis of the programme: closed by positioning alone.** Six framings —
+(m,k) selection, known-operator placement, coarse-graining depth, positivity feasibility,
+unknown-operator coupling, adjoint-free influence — every one computable, classical, or published,
+and the last two were closed without a single experiment. G1 (certificate vs filter on scattered
+learned operators) is the only thing standing from this direction.
