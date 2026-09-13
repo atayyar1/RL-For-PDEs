@@ -83,8 +83,15 @@ Two apparatus bugs found and worked around, both worth reporting to the programm
 ## 2. Does the projected operator reduce to FTCS / Lax–Wendroff on a uniform grid? — `uniform_reduction.py`, `figures/uniform_reduction.png`
 
 **[measured]** At K = 3 the system is fully determined: every propagator arm equals the
-LW-diffusion row to 1e-15 and MOL-FE equals FTCS to 1e-16, at Pe = 0.1, 1 and 3.3. **At K ≥ 5
-nothing reduces to LW** — LW is the 3-point member and every arm spends the free directions:
+LW-diffusion row to 1e-15 and MOL-FE equals FTCS to 1e-16, at Pe = 0.1, 1 and 3.3.
+
+**Limit of the construction, stated plainly: the projected operator reduces to the classical
+scheme only on the minimal (3-point) stencil.** At K ≥ 5 nothing reduces to LW — not the
+minimum-norm point, not the Gaussian projection, not the spectral objective, not maximum entropy,
+not the LP vertex. LW is the unique 3-point member of the affine subspace and every arm spends the
+free directions elsewhere, so a "generalises the classical schemes" claim for this construction is
+true for three-point stencils and false beyond them; what generalises is the *consistency*, not
+the scheme. Measured deviations:
 max|w − LW| on the three central weights is 0.05–0.26 (minnorm), 0.04–0.09 (projgauss),
 0.05 (spectral), 0.04–0.09 (maxent), 0.03–0.44 (LP vertex), and every arm puts 1e-2…1e-1 of weight
 outside ±h. The generating-function rows reduce; the *projection* reduces only when there is
@@ -176,8 +183,16 @@ subspace. Feasibility bounds the *min-norm* point, not the subspace.
 
 The filter arm reproduces NeMDO's stabilisation: after each forward-Euler step apply
 F = I − ε h⁴D₄ with D₄ the unique p = 4 stencil on the 5 nearest nodes ((1,−4,6,−4,1) on a uniform
-grid), ε scanned from 0 to 1/8 and set to the **smallest value with growth ≤ 10** — the weakest
-filter that stabilises, so the comparison is accuracy at matched stability. Walls and the two
+grid). **Tuning procedure, stated exactly because the accuracy numbers depend on it**: for each
+configuration ε is scanned over {0} ∪ 28 log-spaced values in [1e-4, 1/8] and set to the
+*smallest* value whose growth envelope over the full horizon is ≤ 10 (growth ≤ 1 is not required;
+a bounded transient is accepted). This is the most favourable setting the filter can have: the
+stable set in ε is a band (§4.2, next paragraph), every stable ε above the chosen one adds
+dissipation and therefore error, and every ε below it is unstable. A "better tuned" filter in
+the sense of more accurate does not exist within this family; a different filter family (sharper
+than a 5-point D₄) is not constructible from p = 4 consistency on scattered nodes without a wider
+stencil, and the wider min-norm D₄ is sign-indefinite (measured, the K = 7 version was unstable
+on its own). So the comparison is accuracy at matched stability with the filter at its optimum. Walls and the two
 nodes beside each wall are left unfiltered (a one-sided D₄ is not dissipative; with it filtered,
 every Dirichlet run failed — `results/sweep_filt_dir_s05_wallbug.csv`).
 

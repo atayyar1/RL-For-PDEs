@@ -38,6 +38,16 @@ being claimed. (F30, F37, F38)
 
 ---
 
+### 4. Spectral radius means nothing for a non-normal matrix
+Learned and scattered-point operators are non-normal. Two matrices equal to 5e-16 returned spectral
+radii of 0.699 and 0.900. Use the growth envelope maxₙ ‖Mⁿ‖ over the horizon you care about.
+Credit: G1.
+
+### 5. Do not trust the summariser over the source
+A WebFetch summary of NeMDO said "spatial operators only." Section V.F time-marches a Taylor–Green
+vortex to t* = 10. The brief built on the summary was wrong; the full-text read caught it. Read the
+section, not the digest, before stating what a paper does not do.
+
 ### And one for choosing what to work on
 Before starting a thread, **name the classical assumption it drops, and check the method does not
 reintroduce it.** Phase 1 hit ten classical results in one session because it did not. Two threads
