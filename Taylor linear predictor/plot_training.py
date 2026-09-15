@@ -67,7 +67,7 @@ def ema(y, alpha):
     return s
 
 
-def derived(run, cfg, n_actions):
+def derived(run, cfg, n_actions, multidiscrete=False):
     """The quantities we keep recomputing by hand."""
     d = {}
     if 'rollout/mean_r_acc' in run:
@@ -88,9 +88,23 @@ def derived(run, cfg, n_actions):
 
     if 'train/entropy_loss' in run:
         st, ent = run['train/entropy_loss']
-        d['eff_actions'] = (st, np.exp(-ent))          # SB3 logs -H
-        d['max_actions'] = cfg['N'] * n_actions
+        if multidiscrete:
+            # MultiDiscrete: SB3 logs the JOINT entropy, i.e. the sum over the
+            # N per-walker heads. exp(H/N) is one walker's effective choice count.
+            d['eff_actions'] = (st, np.exp(-ent / cfg['N']))
+            d['max_actions'] = n_actions
+        else:
+            d['eff_actions'] = (st, np.exp(-ent))      # SB3 logs -H
+            d['max_actions'] = cfg['N'] * n_actions
     return d
+
+
+def x_axis(run, use_episodes):
+    """Return (steps->x mapper, axis label)."""
+    if use_episodes and 'rollout/n_episodes' in run:
+        est, ev = run['rollout/n_episodes']
+        return (lambda s: np.interp(s, est, ev)), 'episodes'
+    return (lambda s: s), 'timesteps'
 
 
 # (title, [(tag, label, linestyle)], log_y, reference_lines)
@@ -143,6 +157,10 @@ def main():
     ap.add_argument('--w-err', type=float, default=None)
     ap.add_argument('--n-walkers', type=int, default=None)
     ap.add_argument('--t-star', type=float, default=None)
+    ap.add_argument('--x', choices=['timesteps', 'episodes'], default='timesteps',
+                    help="x-axis; 'episodes' needs rollout/n_episodes in the log")
+    ap.add_argument('--multidiscrete', action='store_true',
+                    help='action space is MultiDiscrete([n_actions]*N)')
     args = ap.parse_args()
 
     labels = args.labels or [os.path.basename(os.path.normpath(p)) for p in args.runs]
@@ -167,6 +185,7 @@ def main():
                 if tag not in run:
                     continue
                 st, v = run[tag]
+                st = x_axis(run, args.x == 'episodes')[0](st)
                 ax.plot(st, ema(v, args.smooth), style,
                         color=colors[(ri * len(series) + si) % 10], lw=1.4,
                         label=name if len(data) == 1 else lab + ': ' + name)
@@ -188,9 +207,10 @@ def main():
     # err_norm -- what the reward actually sees
     ax = axes[k]
     for ri, (lab, run, cfg) in enumerate(data):
-        d = derived(run, cfg, args.n_actions)
+        d = derived(run, cfg, args.n_actions, args.multidiscrete)
         if 'err_norm' in d:
             st, v = d['err_norm']
+            st = x_axis(run, args.x == 'episodes')[0](st)
             ax.plot(st, ema(v, args.smooth), color=colors[ri % 10], lw=1.4, label=lab)
     ax.axhline(1.0, color='red', ls=':', lw=1, label='ceiling (failed solve)')
     ax.axhline(0.0, color='green', ls=':', lw=1, label='at err_tol')
@@ -201,9 +221,10 @@ def main():
     # fraction of episodes pinned at the ceiling
     ax = axes[k + 1]
     for ri, (lab, run, cfg) in enumerate(data):
-        d = derived(run, cfg, args.n_actions)
+        d = derived(run, cfg, args.n_actions, args.multidiscrete)
         if 'failed_frac' in d:
             st, v = d['failed_frac']
+            st = x_axis(run, args.x == 'episodes')[0](st)
             ax.plot(st, ema(v, args.smooth), color=colors[ri % 10], lw=1.4, label=lab)
     ax.set_title('failed-solve fraction (lower bound)\nthese episodes carry no gradient',
                  fontsize=9)
@@ -214,9 +235,10 @@ def main():
     # policy entropy expressed as an effective action count
     ax = axes[k + 2]
     for ri, (lab, run, cfg) in enumerate(data):
-        d = derived(run, cfg, args.n_actions)
+        d = derived(run, cfg, args.n_actions, args.multidiscrete)
         if 'eff_actions' in d:
             st, v = d['eff_actions']
+            st = x_axis(run, args.x == 'episodes')[0](st)
             ax.plot(st, ema(v, args.smooth), color=colors[ri % 10], lw=1.4, label=lab)
             ax.axhline(d['max_actions'], color=colors[ri % 10], ls=':', lw=1,
                        label='uniform = %d' % d['max_actions'])
@@ -228,7 +250,7 @@ def main():
     for ax in axes[k + 3:]:
         ax.axis('off')
     for ax in axes[:k + 3]:
-        ax.set_xlabel('timesteps', fontsize=8)
+        ax.set_xlabel(x_axis(data[0][1], args.x == 'episodes')[1], fontsize=8)
 
     fig.suptitle(' | '.join(
         '%s  (t*=%s, err_tol=%.0e, N=%d)'
@@ -249,7 +271,7 @@ def main():
             w = max(1, len(v) // 20)
             print('%-28s %11.4g %11.4g %11.4g'
                   % (tag.split('/')[-1], v[:w].mean(), v[-w:].mean(), better(v)))
-        d = derived(run, cfg, args.n_actions)
+        d = derived(run, cfg, args.n_actions, args.multidiscrete)
         if 'eff_actions' in d:
             _, e = d['eff_actions']
             print('%-28s %11.0f %11.0f   (uniform = %d)'
