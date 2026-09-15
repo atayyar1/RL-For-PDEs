@@ -1,0 +1,177 @@
+
+==============================================================================
+1A.  Support / weight law:  composition = pushforward of product under +
+==============================================================================
+  general composition matches brute-force sum_ij w_i v_ij delta_{d_i+e_ij} :  err = 0.00e+00
+  uniform sub-agents (contiguous) == np.convolve                   :  err = 0.00e+00   offsets [-2,3] = [-2,3]
+
+==============================================================================
+1B.  Moment composition law (binomial / shift convolution)
+==============================================================================
+  Symbol:   W(s) = sum_i w_i exp(<s, d_i>),   M_{p,q}(w) = d_s^p d_t^q W(0).
+  General composition:      W_comp(s) = sum_i w_i e^{<s,d_i>} V_i(s)
+  Moment-homogeneous case:  W_comp(s) = W(s) V(s)   =>  moments convolve binomially.
+
+  (i) Homogeneous sub-agents:  M_{p,q}(w*v) = sum_{a,b} C(p,a)C(q,b) M_{a,b}(w) M_{p-a,q-b}(v)
+      max RELATIVE error over all (p,q), p<=4, q<=3:  6.027e-15
+
+  (ii) Heterogeneous sub-agents:  M_{p,q}(comp) = sum_i w_i sum_{a,b} C(p,a)C(q,b) xi_i^a tau_i^b M_{p-a,q-b}(v_i)
+      max RELATIVE error over all (p,q):  4.576e-16
+
+==============================================================================
+1C.  Symbolic check of the shift structure (sympy)
+==============================================================================
+  W_comp - W*V  (homogeneous sub-agents)  simplifies to: 0
+  log W_comp = log W + log V  =>  CUMULANTS ADD.  Check kappa_2 additivity symbolically:
+    kappa_2(w)+kappa_2(v)-kappa_2(w*v) = 0
+
+==============================================================================
+1D.  THEOREM 1 (closure).  Exactness on a translation-invariant class.
+==============================================================================
+  Statement.  Let S be any set of functions on space-time that is invariant under
+  the translations used (here: any linear space of exact solutions of a
+  constant-coefficient PDE).  If w reproduces every u in S at its own centre, and
+  EVERY sub-agent v_i reproduces every u in S at its own centre, then the composite
+  reproduces every u in S at z*.  One line:
+        sum_i w_i sum_j v_ij u(z*+d_i+e_ij) = sum_i w_i u(z*+d_i) = u(z*).
+  No hypothesis on supports, weights, homogeneity, or positivity.  Two instances:
+
+  (a) S = Pi_r, space-time polynomials of total degree <= r.
+      OBSTRUCTION: a SINGLE-TIME-LEVEL stencil (all tau_i = tau) can never be
+      Pi_r-exact for r >= 1, because M_{0,1} = tau * sum_i w_i = tau != 0.
+      So Pi_r is the wrong class for evolution agents.  Verify:
+      FTCS (1 level): min ||A w - b||_2 over all w for Pi_1-exactness = 7.071e-01
+      2 time levels : min ||A w - b||_2 over all w for Pi_1-exactness = 8.006e-16
+
+  (b) S = Theta_r, the PDE-adapted (heat/drift) polynomials for u_t + c u_x = alpha u_xx:
+          Theta_n(x,t) = H_n(x - c t, t),  H_n(y,t) = n! sum_k (alpha t)^k y^(n-2k) / (k!(n-2k)!)
+      Theta_0=1, Theta_1=y, Theta_2=y^2+2 alpha t, Theta_3=y^3+6 alpha t y, ...
+      These ARE reachable at one time level.  This is the right exactness class.
+      PDE residual of Theta_0: 0
+      PDE residual of Theta_1: 0
+      PDE residual of Theta_2: 0
+      PDE residual of Theta_3: 0
+      PDE residual of Theta_4: 0
+
+  Theta_n-exactness <=> the n-th CUMULANT DEFECT eps_n vanishes.  Check on FTCS:
+      n=0:  Theta_n defect = +0.000000e+00   eps_n = +0.000000e+00   MATCH
+      n=1:  Theta_n defect = +8.673617e-19   eps_n = +2.710505e-19   MATCH
+      n=2:  Theta_n defect = -2.108066e-07   eps_n = -2.108066e-07   MATCH
+      n=3:  Theta_n defect = +7.944448e-08   eps_n = +7.944448e-08   MATCH
+      n=4:  Theta_n defect = -1.578149e-08   eps_n = -1.578162e-08   differ
+      (eps_2 = -c^2 dt^2 = -2.108066e-07  <- FTCS's negative numerical diffusion)
+
+  Theorem 1 test on S = Theta_2, 200 random HETEROGENEOUS compositions:
+   r=1 (200 valid draws): max rel. Theta_{<=r} defect of composite = 4.57e-16   |  Theta_{r+1} defect = 6.95e-01
+   r=2 (200 valid draws): max rel. Theta_{<=r} defect of composite = 3.44e-15   |  Theta_{r+1} defect = 5.23e-01
+   r=3 (200 valid draws): max rel. Theta_{<=r} defect of composite = 1.06e-14   |  Theta_{r+1} defect = 5.05e-01
+
+   => order is INHERITED, and it takes the MIN; it does not add.
+
+==============================================================================
+1E.  THEOREM 2 (submultiplicativity of the l1 norm).
+==============================================================================
+   ||w_comp||_1 <= ||w||_1 * max_i ||v_i||_1 :  violations 0/4000
+   ratio lhs/rhs  -- median 0.6167, max 0.999761, min 0.0805
+
+   Equality case: nonneg weights & disjoint-or-sign-aligned supports.
+     FTCS (w>=0): L=   1  ||w^{*L}||_1 = 1.000000000000   min w = 1.000e-01
+     FTCS (w>=0): L=   2  ||w^{*L}||_1 = 1.000000000000   min w = 8.545e-02
+     FTCS (w>=0): L=   4  ||w^{*L}||_1 = 1.000000000000   min w = 3.120e-02
+     FTCS (w>=0): L=   8  ||w^{*L}||_1 = 1.000000000000   min w = 1.111e-03
+     FTCS (w>=0): L=  64  ||w^{*L}||_1 = 1.000000000000   min w = 2.318e-24
+     FTCS (w>=0): L= 512  ||w^{*L}||_1 = 1.000000000000   min w = 8.338e-190
+
+   Geometric compounding when ||w||_1 > 1:
+     w=(-.25,1.5,-.25): L=  1  ||w^{*L}||_1 =       2.0000   2^L =       2.0000
+     w=(-.25,1.5,-.25): L=  2  ||w^{*L}||_1 =       4.0000   2^L =       4.0000
+     w=(-.25,1.5,-.25): L=  4  ||w^{*L}||_1 =      16.0000   2^L =      16.0000
+     w=(-.25,1.5,-.25): L=  8  ||w^{*L}||_1 =     256.0000   2^L =     256.0000
+     w=(-.25,1.5,-.25): L= 16  ||w^{*L}||_1 =   65536.0000   2^L =   65536.0000
+
+   Positivity is preserved under composition (products & sums of nonnegatives):
+     2000 random positive x positive compositions all positive & mass-1:  True
+
+==============================================================================
+1F.  THEOREM 1' -- cumulant defects are EXACTLY additive under composition.
+==============================================================================
+  The exact propagator over time tau is a Levy (infinitely divisible) kernel:
+      kappa_1 = -c tau,  kappa_2 = 2 alpha tau,  kappa_n = 0 (n>=3)  -- ALL LINEAR IN tau.
+  Cumulants add under convolution; the exact target also adds.  Hence for stencils
+  advancing the same tau,
+      eps_n(w * v) = eps_n(w) + eps_n(v)      EXACTLY (no O(.) remainder),
+  and after L self-compositions   eps_n(w^{*L}) = L eps_n(w).
+  Consequence: the modified-equation coefficients are L-INDEPENDENT:
+      alpha_eff = kappa_2(w^{*L}) / (2 L dt) = alpha + eps_2/(2 dt),  for every L.
+
+       L      eps_2(w^*L)       L*eps_2(w)    rel err      eps_3(w^*L)       L*eps_3(w)    alpha_eff
+       1  -2.10806622e-07  -2.10806622e-07   0.00e+00   7.94444790e-08   7.94444790e-08   0.09977043
+       2  -4.21613244e-07  -4.21613244e-07   0.00e+00   1.58888958e-07   1.58888958e-07   0.09977043
+       4  -8.43226488e-07  -8.43226488e-07   1.29e-13   3.17777916e-07   3.17777916e-07   0.09977043
+       8  -1.68645298e-06  -1.68645298e-06   6.43e-14   6.35555832e-07   6.35555832e-07   0.09977043
+      32  -6.74581190e-06  -6.74581190e-06   0.00e+00   2.54222333e-06   2.54222333e-06   0.09977043
+     128  -2.69832476e-05  -2.69832476e-05   6.43e-14   1.01688933e-05   1.01688933e-05   0.09977043
+     512  -1.07932990e-04  -1.07932990e-04   3.21e-13   4.06755733e-05   4.06755733e-05   0.09977043
+   alpha = 0.1,  alpha + eps_2/(2 dt) = 0.09977043  = alpha - c^2 dt/2 = 0.09977043
+   -> FTCS's well-known negative numerical diffusion, recovered as an additive defect.
+
+==============================================================================
+1G.  COUNTEREXAMPLE HUNT.  What actually degrades under composition?
+==============================================================================
+  (i) NOT the order.  Thm 1 forbids the composite from dropping below min(r_w, r_v).
+      A search for a violation is therefore pointless; we searched anyway (1D): none.
+  (ii) The INHOMOGENEOUS one-step conditions are NOT inherited as identities.
+      w and v each exact for step dt  =/=>  w*v exact for step 2dt.
+      M_2(w*w)       = 1.84076342e-04
+      required for 2dt (= 2 alpha (2dt) + (c 2dt)^2) = 1.84497956e-04
+      shortfall      = -4.21613244e-07   = 2 * single-step shortfall (-4.21613244e-07)
+
+  (iii) HETEROGENEOUS sub-agents: defects are AVERAGED WITH SIGNED WEIGHTS.
+        Theta_n is an Appell/binomial-type sequence: Theta_n(z+z') = sum_k C(n,k) Theta_k(z) Theta_{n-k}(z').
+        Feeding that through the composition gives the EXACT law
+            D_n(comp) = D_n(w) + sum_i w_i sum_k C(n,k) Theta_k(d_i) d^{(i)}_{n-k},
+        which, when every sub-agent is Theta_{n-1}-exact, collapses to
+            D_n(comp) = D_n(w) + sum_i w_i d^{(i)}_n,
+        hence   |D_n(comp) - D_n(w)| <= ||w||_1 max_i |d^{(i)}_n|,  ATTAINED when
+        sign(d^{(i)}_n) = sign(w_i).  ||w||_1 > 1 amplifies sub-agent defects.
+        ||w||_1        D_2(w)      D_2(comp)   D_2(w)+sum w_i d_i   ||w||_1 max|d_i|
+         1.3429    -2.236e-19   6.321789e-08         6.321789e-08       5.571077e-07
+         1.5000    -2.168e-19   9.528459e-08         9.528459e-08       6.223011e-07
+         3.0000    -2.439e-19   4.013758e-07         4.013758e-07       1.244602e-06
+         8.0000    -2.168e-19   1.421680e-06         1.421680e-06       3.318939e-06
+      (columns 3 and 4 agree to round-off: the law is exact, and col 5 is attained.)
+
+  (iv) THE SHARP ONE: individually consistent, composite ILL-POSED.
+       Consistency constrains eps; it does not constrain its SIGN.  A stencil with
+       kappa_2 < 0 is a perfectly good first-order-consistent one-step scheme but its
+       composite is not a kernel at all (negative variance) and amplifies.
+                               scheme        kappa_2   ||w||_1    max|g|   max|g|^1089
+               FTCS adv-diff (r=0.45)    9.16166e-05   1.00000  1.000000             1
+        FTCS pure advection (alpha=0)   -2.10807e-07   1.04545  1.001033         3.077
+     central adv + tiny diff r=0.0005   -1.08776e-07   1.04445  1.000275         1.349
+   Note the middle two are 1st-order CONSISTENT (M_0=1, M_1=-c dt) yet kappa_2 < 0.
+   Lax equivalence in cumulant language: consistency fixes eps_n; stability fixes sign(kappa_2).
+
+==============================================================================
+1H.  The honest counterexample: HIGHER ORDER LOSES TO POSITIVITY AT LARGE L.
+==============================================================================
+  Build the unique 5-point one-level stencil exact on Theta_0..Theta_4 (2nd order in
+  time, 4th in space) and race it against 3-point positive FTCS under composition.
+   w5 = [0.070576 0.20435  0.482708 0.184684 0.057682]   sum=1.000000000000   ||w5||_1=1.00000000   min=0.057682
+   eps(w5)   = [ 0. -0.  0.  0.  0.  0.]
+   eps(ftcs) = [ 0.  0. -0.  0. -0. -0.]
+
+        L    FTCS (pos, 1st ord)    w5 (4th ord, indef)      ratio
+        1           2.135220e-02           7.084810e-04     0.0332
+        2           3.191511e-02           1.073974e-03     0.0337
+        4           3.565730e-02           1.233944e-03     0.0346
+        8           2.265611e-02           8.144584e-04     0.0359
+       16           1.112837e-02           2.286405e-04     0.0205
+       32           5.601348e-03           5.985193e-05     0.0107
+       64           2.917440e-03           1.687321e-05     0.0058
+      128           1.643117e-03           5.108752e-06     0.0031
+      256           1.110207e-03           1.642109e-06     0.0015
+      512           9.380853e-04           5.502494e-07     0.0006
+     1089           8.803228e-04           1.720878e-07     0.0002
+   no crossover in this range
+   ||w5||_1 = 1.000000  ->  worst-case growth ||w5||_1^L at L=1089: 1.000e+00; actual max|g|^L = 1.000e+00

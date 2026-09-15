@@ -1,0 +1,175 @@
+
+==============================================================================
+4A.  THEOREM: the coarse law is EXACT with exactly M time levels.
+==============================================================================
+   Periodic fine grid N=120; keep every M-th point, Nc = N/M.  The fine operator is
+   circulant with symbol g(theta_j)= sum_k w_k e^{i k theta_j}, theta_j = 2 pi j/N.
+   Restriction to every M-th point ALIASES the M fine modes j, j+Nc, ..., j+(M-1)Nc onto
+   one coarse mode, so for each coarse mode q the retained observable is
+        U^n_q = sum_{l=0}^{M-1} a_l g_l^n ,
+   a sum of exactly M geometric sequences.  Operator form: the alias subspace is an
+   M-dimensional INVARIANT subspace of the fine operator; the coarse observable is one
+   linear functional on it; Cayley-Hamilton on that M x M block gives an exact order-M
+   recurrence with characteristic polynomial prod_l (z-g_l).  Hence
+        B_p has symbol (-1)^{p+1} e_p(g_0,...,g_{M-1})   (elementary symmetric functions),
+   the memory is EXACTLY M-1 lags, and it TERMINATES.  This is not an approximation, and
+   it is unusual: MZ memory kernels are normally infinite.  Finiteness here comes from the
+   fine operator being finite-dimensional AND block-diagonal over alias classes.
+
+   Direct check: evolve the fine scheme, restrict, test the recurrence.
+      M    Nc    resid, M-1 lags    resid, M-2 lags   resid, Markov only
+      2    60          5.906e-16          8.372e-01            8.372e-01
+      3    40          4.021e-16          2.186e-01            7.462e-01
+      4    30          5.528e-16          2.394e-01            8.741e-01
+      5    24          7.301e-16          6.465e-02            7.047e-01
+      6    20          6.901e-16          2.820e-02            4.905e-01
+      8    15          1.030e-15          5.438e-03            2.961e-01
+     10    12          1.455e-15          9.530e-04            1.612e-01
+     12    10          1.509e-15          3.075e-04            3.277e-01
+     15     8          2.166e-15          3.274e-05            5.152e-01
+     20     6          3.025e-15          4.014e-07            1.006e+00
+     24     5          9.675e-15          5.265e-08            1.435e+00
+
+==============================================================================
+4B.  Fitted memory: the irreducible residual as a function of p
+==============================================================================
+   Forget the theorem and FIT, as one would in practice.  Because every operator in
+   sight is circulant, an unrestricted coarse-convolution fit decouples per coarse mode:
+   for each q, least-squares for (b_1..b_p) in  Uhat^{n+1}_q = sum_j b_j Uhat^{n+1-j}_q.
+   That is exactly equivalent to the full physical-space fit and is cheap.
+
+      M          p=1         p=2         p=3         p=4         p=5         p=6         p=7
+      2    3.215e-01   5.044e-13   9.930e-13   4.398e-13   7.631e-13   3.513e-13   6.297e-13
+      3    2.193e-01   1.685e-02   1.272e-11   7.389e-11   1.987e-11   4.282e-11   3.026e-11
+      4    3.230e-01   4.030e-02   1.130e-02   2.924e-10   1.204e-09   1.925e-10   7.938e-10
+      6    3.231e-01   7.584e-02   2.680e-02   6.928e-03   1.312e-03   5.542e-10   2.186e-09
+      8    3.350e-01   6.975e-02   2.650e-02   9.918e-03   4.247e-03   1.310e-03   1.881e-04
+   -> the residual collapses to round-off exactly at p = M, and not one lag before.
+   -> MEMORY REQUIRED GROWS LINEARLY WITH THE COARSENING FACTOR M.
+
+==============================================================================
+4C.  Does the kernel decay?  No -- and the Markov term is not even dominant.
+==============================================================================
+      M    ||B_1||_1   ||B_2||_1   ||B_3||_1   ||B_4||_1   ||B_5||_1   ||B_6||_1  sum_p||B_p||_1
+      2       0.2000      0.8000           -           -           -           -          1.0000
+      3       0.3000      0.5760      0.2432           -           -           -          1.1192
+      4       0.4000      0.7479      0.1576      0.1569           -           -          1.4624
+      5       0.5000      0.9099      0.2930      0.1742      0.0572           -          1.9343
+      6       0.6000      1.0619      0.4648      0.2960      0.0686      0.0302          2.5214
+      8       0.8000      1.3359      0.9135      0.5806      0.2946      0.0853          4.0388
+     10       1.0000      1.5698      1.4959      0.8834      0.7462      0.2118          6.0711
+     12       1.2000      1.7638      2.2038      1.1618      1.4795      0.3560          8.7102
+     15       1.5000      1.9798      3.4837      1.4451      3.2025      0.4583         13.9867
+     20       2.0000      2.1397      6.1314      1.2394      7.9555      0.5330         30.6012
+     24       2.4000      2.0876      8.6407      0.1456     13.5216      3.5969         62.1513
+
+   The kernel does not decay in p.  ||B_2||_1 > ||B_1||_1 for every M from 2 to 20 (it
+   finally dips below at M=24), and at large M the LARGEST operator is not the Markov one
+   at all: at M=20 the biggest is ||B_5||_1 = 7.96 against ||B_1||_1 = 2.00.  Space-only
+   coarse-graining at the fine time step therefore does not add a small memory correction
+   to a Markov law -- memory dominates it, with no exponential decay to truncate and hence
+   no cheap approximate closure in this variable.  (Section 4E shows this is an artefact of
+   coarsening space without coarsening time.)
+
+==============================================================================
+4D.  *** Is the coarse scheme still POSITIVE? ***   (space-only, K=1)
+==============================================================================
+   B_p symbol = (-1)^{p+1} e_p(g_0..g_{M-1}): the signs ALTERNATE with the lag.  Whether
+   that lands on a nonnegative stencil depends on the signs of the aliased g_l, hence on r.
+   'POS' = every entry of every B_p is >= 0 (a monotone / maximum-principle scheme);
+   the bracketed number is sum_p ||B_p||_1, which equals 1 exactly when POS.
+
+   fine symbol g(theta) = 1-2r+2r cos(theta) - i ra sin(theta);  Re g spans [1-4r, 1].
+   at r = 0.45: [-0.800, 1.000]  -- negative for theta near pi.
+
+      M         r=0.45        r=0.35        r=0.30        r=0.25        r=0.15        r=0.05
+      2      POS(1.00)     POS(1.00)     POS(1.00)     neg(1.25)     neg(1.89)     neg(2.61)
+      3      neg(1.12)     neg(1.17)     neg(1.51)     neg(2.13)     neg(3.81)     neg(5.85)
+      4      neg(1.46)     neg(1.47)     neg(2.26)     neg(3.52)     neg(7.09)    neg(12.00)
+      5      neg(1.93)     neg(2.14)     neg(3.31)     neg(5.57)    neg(12.65)    neg(23.68)
+      6      neg(2.52)     neg(2.92)     neg(4.76)     neg(8.58)    neg(22.03)    neg(45.85)
+      8      neg(4.04)     neg(4.71)     neg(9.16)    neg(19.33)    neg(64.51)   neg(167.90)
+     10      neg(6.07)     neg(7.40)    neg(16.91)    neg(42.18)   neg(185.36)   neg(607.88)
+     12      neg(8.71)    neg(11.78)    neg(30.90)    neg(90.69)   neg(529.20)  neg(2194.03)
+     15     neg(13.99)    neg(21.49)    neg(74.30)   neg(282.71)  neg(2543.17) neg(15023.48)
+     20     neg(30.60)    neg(60.45)   neg(314.24)  neg(1863.23) neg(34730.83)neg(370736.04)
+     24     neg(62.15)   neg(128.00)   neg(992.15)  neg(8405.19)neg(281107.00)neg(4818136.31)
+
+   ANSWER (corrected -- an earlier draft claimed M=2 was positive at every r; it is not).
+
+   M = 2 is positive exactly when r is LARGE ENOUGH.  The centre weight of B_2 is
+        (B_2)_0 = -(1-2r)^2 + 2r^2 - ra^2/2 = -(4r^2 - 8r + 2 + ra^2)/2   (sympy),
+   which is >= 0 iff  r >= 1 - sqrt(2 - ra^2)/2  ->  1 - 1/sqrt(2) = 0.292893 as ra -> 0.
+        measured threshold by bisection : r* = 0.293048
+        analytic 1 - 1/sqrt(2)          : 0.292893
+   At r = 0.45 the coarse M=2 law is the positive, mass-1, three-term scheme
+        U^{n+1}_j = 0.2 U^n_j + B_2 * U^{n-1},   B_2 ~ (0.2235, 0.3940, 0.1825),
+   so the maximum principle survives coarsening by 2 -- but only for r >= 0.293.
+
+   M >= 3 is NOT positive at ANY r tested, and sum_p ||B_p||_1 grows fast with M.
+   So stability and coarse-graining ARE in tension, with a threshold: the tension begins
+   at M = 3, and for M = 2 only once r drops below 1 - 1/sqrt(2).
+   Since FTCS itself needs r <= 1/2, the window where coarsening by 2 is safe is
+   r in [0.293, 0.5] -- i.e. ONLY when the fine scheme is run near its stability limit,
+   so that one fine step already mixes a full cell.
+
+      M         2        3        4        5        6        8       10       12       15       20       24
+     l1     1.000    1.119    1.462    1.934    2.521    4.039    6.071    8.710   13.987   30.601   62.151
+   fit: sum_p ||B_p||_1 ~ exp(0.1828 M): GEOMETRIC growth in the coarsening factor.
+   That l1 norm is the l_inf amplification bound per coarse step, so space-only
+   coarse-graining loses the maximum principle by a factor compounding with M.
+
+==============================================================================
+4E.  RG-CONSISTENT (diffusive) coarsening: memory is crushed to an M-independent floor
+==============================================================================
+   Space-only coarsening is not the RG-natural move.  Diffusive scaling pairs
+   dx -> M dx with dt -> M^2 dt, holding r = alpha dt/dx^2 FIXED (the scheme sits at a
+   fixed point of the scaling).  One coarse step = K = M^2 fine steps.
+
+      M      K   ||B_1||_1     min B_1    sum B_1  B_1>=0?  ||B_2||/||B_1||   sum||B_p||_1-1   min all B_p
+      2      4    1.409600   -5.70e-17   1.409600     True        2.906e-01        8.192e-01     -1.10e-01
+      3      9    0.999911   -1.17e-16   0.999911     True        1.221e-02        1.212e-02     -2.98e-03
+      4     16    1.028147   -1.25e-16   1.028147     True        2.738e-02        5.630e-02     -7.52e-03
+      5     25    0.999991   -1.48e-16   0.999991     True        3.449e-04        3.363e-04     -1.13e-04
+      6     36    1.000325   -1.42e-16   1.000325     True        3.244e-04        6.490e-04     -1.06e-04
+      8     64    1.000001   -7.86e-18   1.000001     True        1.160e-04        1.167e-04     -2.74e-05
+     10    100    1.000000    4.53e-09   1.000000     True        1.249e-04        1.249e-04     -2.77e-05
+     12    144    1.000000    3.86e-06   1.000000     True        1.299e-04        1.298e-04     -3.12e-05
+     15    225    1.000000    2.32e-04   1.000000     True        1.340e-04        1.340e-04     -3.58e-05
+     20    400    1.000000    5.81e-03   1.000000     True        1.373e-04        1.373e-04     -4.02e-05
+     24    576    1.000000    4.07e-02   1.000000     True        1.216e-04        1.217e-04     -4.03e-05
+
+   Three findings, one of which corrects an earlier draft of this script:
+
+   (1) The memory ratio collapses from 1.9 (space-only, 4C) to ~1e-4, but it does NOT
+       keep falling: it PLATEAUS at an M-independent floor.  The floor is
+            ||B_2||_1 / ||B_1||_1  ->  exp(-2 pi^2 r)  = 1.388e-04   at r = 0.45.
+       Mechanism: at the COARSE NYQUIST mode the two nearest aliases sit at theta = +-pi/M,
+       exactly degenerate, so e_2/e_1 ~ |g(pi/M)|^{M^2} -> exp(-2 r pi^2), with the M's
+       cancelling.  Verified over r = 0.15..0.45 and M = 8..24 (see table below): agreement
+       to a few percent across three decades.
+       Interpretation: the residual memory is precisely the part of the highest coarse mode
+       that one coarse step has NOT yet mixed away.
+
+   (2) The MARKOV term B_1 is NONNEGATIVE for every M, under both coarsenings.  Under
+       diffusive scaling its mass is 1 to within the memory floor (for M >= 5), so a
+       positive, memoryless coarse scheme exists with relative error ~1e-4.  Under
+       space-only coarsening B_1 is also positive but its mass is M(1-2r), which exceeds 1
+       for M > 1/(1-2r) = 10; the memory then has to carry negative mass.
+
+   (3) NOT the claim an earlier draft made: the full memory scheme is still NOT positive
+       under diffusive coarsening (min entry ~ -3e-5).  The tension does not vanish; it
+       becomes numerically negligible, bounded by the same exp(-2 pi^2 r) floor.
+
+   memory floor vs exp(-2 pi^2 r):
+         r   exp(-2 pi^2 r)          M=8        M=12        M=15        M=20        M=24
+      0.45        1.388e-04    1.160e-04   1.299e-04   1.340e-04   1.373e-04   1.216e-04
+      0.35        9.990e-04    9.158e-04   9.683e-04   9.837e-04   9.958e-04   9.301e-04
+      0.25        7.192e-03    7.010e-03   7.136e-03   7.173e-03   7.202e-03   7.053e-03
+      0.15        5.177e-02    5.189e-02   5.186e-02   5.191e-02   5.201e-02   5.198e-02
+
+   => Memory is the price of coarse-graining space faster than the dynamics mixes.
+      Coarse-grain space and time together at the diffusive ratio and the price drops to
+      exp(-2 pi^2 r) -- small, M-independent, and set entirely by the per-step mixing r.
+
+   wrote figures/task4_memory.png

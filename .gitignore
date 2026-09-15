@@ -67,3 +67,7 @@ desktop.ini
 Thumbs.db
 ~$*
 *.tmp
+
+# jo-exploration
+**/__pycache__/
+*.pyc
