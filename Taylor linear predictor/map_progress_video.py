@@ -12,11 +12,11 @@ import glob
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-try:                                            # ffmpeg shipped with imageio, if installed
+def _ffmpeg_writer(fps):
+    """FFmpeg writer using the ffmpeg shipped with imageio-ffmpeg (pip install imageio-ffmpeg)."""
     import imageio_ffmpeg
     plt.rcParams["animation.ffmpeg_path"] = imageio_ffmpeg.get_ffmpeg_exe()
-except ImportError:
-    pass
+    return animation.FFMpegWriter(fps=fps)
 
 
 def make_progress_video(img_dir, fps=2, out_name="training_progress.mp4", dpi=100):
@@ -41,7 +41,7 @@ def make_progress_video(img_dir, fps=2, out_name="training_progress.mp4", dpi=10
 
     path = os.path.join(img_dir, out_name)
     anim = animation.FuncAnimation(fig, update, frames=len(frames), blit=True)
-    anim.save(path, writer=animation.FFMpegWriter(fps=fps), dpi=dpi)
+    anim.save(path, writer=_ffmpeg_writer(fps), dpi=dpi)
     plt.close(fig)
     print(f"{len(frames)} frames: {os.path.basename(frames[0])} ... {os.path.basename(frames[-1])}")
     print("saved:", path)

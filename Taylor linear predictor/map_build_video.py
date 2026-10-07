@@ -15,11 +15,11 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.colors import LogNorm
 
-try:
+def _ffmpeg_writer(fps):
+    """FFmpeg writer using the ffmpeg shipped with imageio-ffmpeg (pip install imageio-ffmpeg)."""
     import imageio_ffmpeg
     plt.rcParams["animation.ffmpeg_path"] = imageio_ffmpeg.get_ffmpeg_exe()
-except ImportError:
-    pass
+    return animation.FFMpegWriter(fps=fps)
 
 
 def make_build_video(m, path, is_known, title="", n_frames=120, fps=12, dpi=100):
@@ -59,7 +59,7 @@ def make_build_video(m, path, is_known, title="", n_frames=120, fps=12, dpi=100)
         return done_sc, pend_sc, new_lines, head
 
     anim = animation.FuncAnimation(fig, update, frames=len(cuts), blit=False)
-    anim.save(path, writer=animation.FFMpegWriter(fps=fps), dpi=dpi)
+    anim.save(path, writer=_ffmpeg_writer(fps), dpi=dpi)
     plt.close(fig)
     print(f"{len(cuts)} frames, {len(order)} points | saved: {path}")
     return path
