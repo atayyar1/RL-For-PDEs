@@ -1,0 +1,193 @@
+
+==============================================================================
+2A.  The flow preserves the simplex: non-negativity and unit mass at every L
+==============================================================================
+   per-step (cell units): mu1 = -0.04545455 (= -ra = -0.04545455)
+                          sigma^2 = 0.89793388 (= 2r - ra^2 = 0.89793388)
+                          kappa_3 = +7.708490e-02   kappa_4 = -1.515976e+00
+
+        L   n pts              sum w         min w      ||w||_1      max w
+        1       3  1.000000000000000     1.000e-01 1.0000000000    0.47273
+        2       5  1.000000000000000     8.545e-02 1.0000000000    0.41397
+        4       9  1.000000000000000     3.120e-02 1.0000000000    0.26912
+        8      17  1.000000000000000     1.111e-03 1.0000000000    0.16438
+       16      33  1.000000000000000     1.234e-06 1.0000000000    0.10425
+       32      65  0.999999999999999     1.523e-12 1.0000000000    0.07362
+       64     129  0.999999999999998     2.318e-24 1.0000000000    0.05243
+      128     257  0.999999999999996     5.374e-48 1.0000000000    0.03714
+      256     513  0.999999999999992     2.888e-95 1.0000000000    0.02628
+      512    1025  0.999999999999984    8.338e-190 1.0000000000    0.01860
+     1024    2049  0.999999999999967     0.000e+00 1.0000000000    0.01315
+     2048    4097  0.999999999999934     0.000e+00 1.0000000000    0.00930
+     4096    8193  0.999999999999869     0.000e+00 1.0000000000    0.00658
+
+   all weights >= 0 for every L tested : True
+   max |sum w - 1| over all L          : 1.31e-13
+   => the L-fold composite is a probability distribution: the flow is a random walk.
+
+==============================================================================
+2B.  Convergence to the heat kernel under diffusive rescaling
+==============================================================================
+   Rescale  z = (k - L mu1) / (sigma sqrt(L))  and plot  sigma sqrt(L) * w^{*L}_k.
+   Three error metrics (all in cell units):
+     LOCAL  = sup_k | sigma_L w_k - phi(z_k) |            (local CLT, sup of density)
+     TV     = (1/2) sum_k | w_k - Gaussian mass in cell k |
+     EDGE   = LOCAL after subtracting the 1st Edgeworth term -(k3/(6 sigma^3 sqrt L)) He_3(z) phi(z)
+
+        L  sigma_L(cells)        LOCAL   LOCAL*sqrtL           TV   TV*sqrtL         EDGE     EDGE*L
+        1          0.9476   3.0372e-01      0.303724   3.5876e-01    0.35876   3.0286e-01    0.30286
+        2          1.3401   1.9024e-01      0.269043   2.9696e-01    0.41996   1.9607e-01    0.39214
+        4          1.8952   1.4271e-01      0.285422   1.9905e-01    0.39810   1.4604e-01    0.58418
+        8          2.6802   6.6140e-02      0.187072   8.3682e-02    0.23669   6.7587e-02    0.54070
+       16          3.7904   1.5368e-02      0.061471   1.4630e-02    0.05852   1.5691e-02    0.25106
+       32          5.3604   3.4305e-03      0.019406   3.5860e-03    0.02029   3.1613e-03    0.10116
+       64          7.5807   1.7830e-03      0.014264   2.0076e-03    0.01606   1.4736e-03    0.09431
+      128         10.7208   1.0291e-03      0.011643   1.2149e-03    0.01374   7.3695e-04    0.09433
+      256         15.1615   6.3023e-04      0.010084   7.8597e-04    0.01258   3.6834e-04    0.09430
+      512         21.4416   4.0741e-04      0.009219   5.2975e-04    0.01199   1.8434e-04    0.09438
+     1024         30.3230   2.7401e-04      0.008768   3.6554e-04    0.01170   9.2177e-05    0.09439
+     2048         42.8832   1.8866e-04      0.008538   2.5516e-04    0.01155   4.6112e-05    0.09444
+     4096         60.6460   1.3163e-04      0.008424   1.7928e-04    0.01147   2.3056e-05    0.09444
+
+   fitted slopes on log-log, ASYMPTOTIC range L >= 256:
+     LOCAL ~ L^-0.5629,  TV ~ L^-0.5318,  EDGE ~ L^-0.9995
+   (fitting from L>=16 instead gives LOCAL ~ L^-0.779 -- a pre-asymptotic transient, not the true rate; the plateau of the LOCAL*sqrtL column is the reliable read.)
+   predicted:  LOCAL, TV ~ L^-1/2 (skewness-limited);  EDGE ~ L^-1 (next Edgeworth order)
+   predicted LOCAL*sqrt(L) plateau = |k3|/(6 sigma^3) * max|He_3 phi| = 0.008313
+
+==============================================================================
+2B2.  WHICH Edgeworth term leads?  Skewness, not kurtosis -- unless c = 0.
+==============================================================================
+   The leading correction to the Gaussian is the SKEWNESS term at O(L^-1/2) whenever the
+   single-step distribution is asymmetric, and only then the EXCESS KURTOSIS term at
+   O(L^-1).  Advection is exactly what makes the step asymmetric here: w_ftcs has
+   p_- = r + ra/2 = 0.4727 against p_+ = r - ra/2 = 0.4273, so kappa_3 != 0.
+   Control experiment: rerun with c = 0, where the step is symmetric and kappa_3 = 0 exactly.
+
+   (a) c = 1 (this thread's operating point)
+     kappa_3 = +7.708490e-02  (skewness +9.05947e-02)
+     kappa_4 = -1.515976e+00  (excess kurtosis -1.88020e+00)
+     predicted LOCAL*sqrt(L) plateau from kappa_3 : 8.313389e-03
+     predicted LOCAL*L       plateau from kappa_4 : 9.376132e-02
+           L        LOCAL   LOCAL*sqrtL     LOCAL*L
+          64   1.7830e-03      0.014264      0.1141
+         256   6.3023e-04      0.010084      0.1613
+        1024   2.7401e-04      0.008768      0.2806
+        4096   1.3163e-04      0.008424      0.5392
+       16384   6.5170e-05      0.008342      1.0677
+     -> LOCAL*sqrt(L) plateaus at 0.008342 vs predicted 0.008313: agree to 0.34%.  LOCAL*L DIVERGES.  Skewness leads.
+
+   (b) c = 0, pure diffusion: symmetric step, kappa_3 = 0 EXACTLY
+     kappa_3 = +0.000000e+00  (skewness +0.00000e+00)
+     kappa_4 = -1.530000e+00  (excess kurtosis -1.88889e+00)
+     predicted LOCAL*sqrt(L) plateau from kappa_3 : 0.000000e+00
+     predicted LOCAL*L       plateau from kappa_4 : 9.419471e-02
+           L        LOCAL   LOCAL*sqrtL     LOCAL*L
+          64   1.4694e-03      0.011755      0.0940
+         256   3.6782e-04      0.005885      0.0942
+        1024   9.1979e-05      0.002943      0.0942
+        4096   2.2996e-05      0.001472      0.0942
+       16384   5.7492e-06      0.000736      0.0942
+     -> LOCAL*L plateaus at 0.0942 vs predicted 0.094195: agree to 0.01%.  LOCAL*sqrt(L) -> 0.  Kurtosis leads.
+
+   So 'the leading correction is the excess kurtosis decaying like 1/L' is correct ONLY for
+   c = 0.  With advection the skewness term dominates at L^-1/2 and the kurtosis term is the
+   NEXT one -- which is exactly what the EDGE column of 2B measures: after subtracting the
+   skewness term the residual plateaus in EDGE*L at 0.0944, against the kappa_4 prediction
+   of 0.09376 (0.7%).
+
+==============================================================================
+2B3.  Cross-check: the exact propagator's moment hierarchy
+==============================================================================
+   The exact propagator's raw moments satisfy a closed triangular ODE hierarchy.  In OUR
+   displacement convention (kernel centred at -c tau, i.e. xi = source - target):
+        dM_q/dtau = alpha q(q-1) M_{q-2}  -  c q M_{q-1},     M_0 = 1.
+   (The sign of the drift term flips if xi is defined target-minus-source.)  Verify against
+   the closed-form Gaussian moments by finite differences in tau:
+
+     q     dM_q/dtau (FD)      hierarchy RHS     rel err
+     1  -9.9999999993e-01  -1.0000000000e+00    6.75e-11
+     2   3.2580348942e-01   3.2580348944e-01    7.63e-11
+     3  -8.7351982124e-02  -8.7351982130e-02    6.80e-11
+     4   3.0335800482e-02   3.0335800485e-02    8.60e-11
+     5  -9.1912388483e-03  -9.1912388489e-03    6.30e-11
+     6   3.4570467650e-03   3.4570467652e-03    6.46e-11
+     7  -1.1902349215e-03  -1.1902349216e-03    6.81e-11
+     8   4.8233843666e-04   4.8233843670e-04    8.20e-11
+   max rel err through q=8: 8.60e-11
+
+   Useful as an independent check, but note it does NOT give the Task-2 convergence rate.
+   The rate is set by the cumulants of the SINGLE-STEP STENCIL (kappa_3, kappa_4 of w_ftcs),
+   not by the exact propagator, whose cumulants beyond the second are zero by construction.
+   Composition advances tau in this hierarchy only for the EXACT kernel; the stencil's own
+   defects are what Theorem 1' accumulates.
+
+==============================================================================
+2C.  Formal vs effective support -- the control parameter of the flow
+==============================================================================
+   Formal half-width after L compositions: exactly L cells (the light cone).
+   Effective half-width: k * sigma_L with sigma_L = sqrt(s2 L) cells.
+   Ratio rho(L) = L / sigma_L = sqrt(L / s2)  -- grows like sqrt(L).
+
+        L  formal m=L   sigma_L  rho=L/sigma   mass |z|>3   mass |z|>5  Gauss |z|>5  m_eff(1e-12)   L/m_eff
+        1           1     0.948        1.055    0.000e+00    0.000e+00    5.733e-07           1.0      0.96
+        2           2     1.340        1.492    0.000e+00    0.000e+00    5.733e-07           2.1      0.96
+        4           4     1.895        2.111    0.000e+00    0.000e+00    5.733e-07           4.2      0.96
+        8           8     2.680        2.985    1.111e-03    0.000e+00    5.733e-07           8.4      0.96
+       16          16     3.790        4.221    1.629e-03    0.000e+00    5.733e-07          16.7      0.96
+       32          32     5.360        5.970    2.395e-03    6.187e-08    5.733e-07          33.5      0.96
+       64          64     7.581        8.442    2.775e-03    3.544e-07    5.733e-07          50.9      1.26
+      128         128    10.721       11.939    2.732e-03    4.235e-07    5.733e-07          74.2      1.73
+      256         256    15.161       16.885    2.648e-03    4.452e-07    5.733e-07         106.6      2.40
+      512         512    21.442       23.879    2.603e-03    5.551e-07    5.733e-07         151.7      3.37
+     1024        1024    30.323       33.770    2.677e-03    5.132e-07    5.733e-07         215.5      4.75
+     2048        2048    42.883       47.758    2.724e-03    5.550e-07    5.733e-07         305.9      6.69
+     4096        4096    60.646       67.539    2.688e-03    5.539e-07    5.733e-07         433.2      9.46
+
+   Ratio of the composite's tail mass to the Gaussian's, as a function of k:
+        L  rho=L/sig        k=2       k=4       k=6       k=8      k=12      k=20      k=40
+       64        8.4      0.889     0.668     0.167   0.00101         0         0         0
+      256       16.9       1.05     0.841     0.667     0.336   0.00122         0         0
+     1024       33.8      0.972      1.02       0.9     0.668     0.247  3.93e-05         0
+     4096       67.5      0.992         1     0.967     0.959     0.754     0.164         0
+
+   Correct reading (an earlier draft of this script claimed the tails were strongly
+   sub-Gaussian -- they are not).  The ratio is ~1 throughout the tail and collapses
+   only as k approaches rho(L) = L/sigma_L, where the light cone cuts the kernel off
+   dead.  So:
+     (i)  the formal/effective ratio rho(L) = sqrt(L/s2) grows like sqrt(L) -- the compression;
+     (ii) rho(L) is ALSO the range of validity, in units of sigma_L, of the Gaussian
+          fixed-point description.  The flow's control parameter and the domain over
+          which the fixed point describes the kernel are the same number.  Finite L is
+          a finite-size effect in exactly the RG sense: the cutoff sits at rho sigma.
+
+==============================================================================
+2D.  The flow is POSITIVITY-RESTORING: a strictly larger basin than {w >= 0}
+==============================================================================
+   Theorem 2 bounds ||w^{*L}||_1 <= ||w||_1^L.  That bound is attained only when
+   signs align at every level.  For a stencil with max_theta |g(theta)| <= 1 but
+   ||w||_1 > 1, the bound is wildly pessimistic: the negative lobes are EXPELLED
+   past the effective support and ||w^{*L}||_1 -> 1.
+
+   probe: 7-point Theta_0..Theta_6-exact stencil at r=0.05
+   ||w||_1 = 1.020503 > 1,  min w = -5.6434e-03,  max|g| = 1.0000000000
+
+        L    ||w^*L||_1   bound ||w||_1^L     neg mass  innermost neg |k|   sigma_L  |k|_neg/sigma
+        1   1.020502933             1.021    1.025e-02                2.0     0.316           6.31
+        2   1.017785377             1.041    8.893e-03                2.0     0.447           4.45
+        4   1.004364921             1.085    2.182e-03                3.0     0.632           4.71
+        8   1.000744629             1.176    3.723e-04                4.0     0.894           4.43
+       16   1.000000169             1.384    8.468e-08                8.9     1.265           7.05
+       32   1.000000000             1.915    9.723e-13               15.8     1.789           8.85
+       64   1.000000000             3.665    4.747e-25               30.3     2.530          11.99
+      128   1.000000000             13.43    5.567e-47               64.4     3.578          17.99
+      256   1.000000000             180.5    1.576e-90              127.7     5.060          25.24
+
+   Three regimes for self-composition (measured, all at fixed lattice):
+     (a) w >= 0                    : ||w^{*L}||_1 = 1 EXACTLY for every L.
+     (b) ||w||_1 > 1, max|g| <= 1  : ||w^{*L}||_1 -> 1; negativity expelled to |k| >> sigma_L.
+     (c) max|g| > 1                : geometric growth, at rate max|g|, NOT ||w||_1.
+   (c) FTCS pure advection ||w||_1=1.0455 max|g|=1.001033  ||w^*L||_1: L=16:1.7  L=256:5.5  L=1089:18.4
+   (c) w=(-.25,1.5,-.25)   ||w||_1=2.0000 max|g|=2.000000  ||w^*L||_1: L=16:6.55e+04  L=256:1.16e+77  L=1089:inf
+
+   wrote figures/task2_rg_flow.png

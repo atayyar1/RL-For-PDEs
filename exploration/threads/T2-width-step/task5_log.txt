@@ -1,0 +1,112 @@
+########################################################################################################
+#  THE (m,k) DECISION PROBLEM.  nu = 0.450, dx = 0.01010, dt = 4.591e-04
+########################################################################################################
+
+========================================================================================================
+lambda = 0.5   (reward = -log10 err_rate - 0.5 log10 cost_rate)
+========================================================================================================
+state (smoothness)      theta |   m*    k*    s*       R* |   err_rate*  cost_rate* |   R(1,1) R*-R(1,1)
+very smooth (mode 1)    0.032 |   30    19  7.25    9.870 |   1.146e-12   1.387e+04 |    1.833    8.037
+smooth (mode 4)         0.127 |   30    16  7.91    9.758 |   1.361e-12   1.647e+04 |   -0.574   10.332
+moderate (mode 16)      0.508 |   29    14  8.17    9.678 |   1.556e-12   1.820e+04 |   -2.959   12.637
+rough (th=0.5)          0.500 |   29    14  8.17    9.678 |   1.556e-12   1.820e+04 |   -2.933   12.611
+rough (th=1.0)          1.000 |   29    16  7.64    9.765 |   1.361e-12   1.593e+04 |   -4.067   13.832
+near-grid (th=2.0)      2.000 |   28    16  7.38    9.773 |   1.361e-12   1.538e+04 |   -5.000   14.772
+
+========================================================================================================
+lambda = 1.0   (reward = -log10 err_rate - 1.0 log10 cost_rate)
+========================================================================================================
+state (smoothness)      theta |   m*    k*    s*       R* |   err_rate*  cost_rate* |   R(1,1) R*-R(1,1)
+very smooth (mode 1)    0.032 |   30    19  7.25    7.799 |   1.146e-12   1.387e+04 |   -0.186    7.984
+smooth (mode 4)         0.127 |   30    16  7.91    7.649 |   1.361e-12   1.647e+04 |   -2.592   10.242
+moderate (mode 16)      0.508 |   29    14  8.17    7.548 |   1.556e-12   1.820e+04 |   -4.978   12.526
+rough (th=0.5)          0.500 |   29    14  8.17    7.548 |   1.556e-12   1.820e+04 |   -4.952   12.500
+rough (th=1.0)          1.000 |   29    16  7.64    7.664 |   1.361e-12   1.593e+04 |   -6.086   13.750
+near-grid (th=2.0)      2.000 |   28    16  7.38    7.679 |   1.361e-12   1.538e+04 |   -7.018   14.697
+
+========================================================================================================
+lambda = 2.0   (reward = -log10 err_rate - 2.0 log10 cost_rate)
+========================================================================================================
+state (smoothness)      theta |   m*    k*    s*       R* |   err_rate*  cost_rate* |   R(1,1) R*-R(1,1)
+very smooth (mode 1)    0.032 |   30    19  7.25    3.657 |   1.146e-12   1.387e+04 |   -4.223    7.879
+smooth (mode 4)         0.127 |   30    16  7.91    3.433 |   1.361e-12   1.647e+04 |   -6.629   10.062
+moderate (mode 16)      0.508 |   30    16  7.91    3.294 |   1.874e-12   1.647e+04 |   -9.015   12.309
+rough (th=0.5)          0.500 |   29    14  8.17    3.288 |   1.556e-12   1.820e+04 |   -8.989   12.277
+rough (th=1.0)          1.000 |   29    16  7.64    3.462 |   1.361e-12   1.593e+04 |  -10.123   13.585
+near-grid (th=2.0)      2.000 |   28    16  7.38    3.492 |   1.361e-12   1.538e+04 |  -11.055   14.547
+
+========================================================================================================
+TOLERANCE-CONSTRAINED OPTIMUM: cheapest (m,k) with err_rate <= eps
+(this is the decision an agent actually faces; the scalarised reward above
+ has its optimum ON THE BOUNDARY of the action space, which is degenerate)
+========================================================================================================
+
+  eps = 1e-03  (LTE per unit simulated time)
+  state                  |   m*     k*     s* |   cost_rate* |    cost(1,1)    speedup
+  very smooth (mode 1)   |    9     34   1.63 |   3.2029e+02 |   1.0890e+04     34.00x
+  smooth (mode 4)        |   29     47   4.46 |   5.4218e+03 |   1.0890e+04      2.01x  (m=k=1 MISSES eps)
+  moderate (mode 16)     |   26     63   3.45 |   3.6300e+03 |   1.0890e+04      3.00x  (m=k=1 MISSES eps)
+  rough (th=0.5)         |   26     74   3.19 |   3.0904e+03 |   1.0890e+04      3.52x  (m=k=1 MISSES eps)
+  rough (th=1.0)         |   28    117   2.73 |   2.1035e+03 |   1.0890e+04      5.18x  (m=k=1 MISSES eps)
+  near-grid (th=2.0)     |   20     47   3.08 |   3.7536e+03 |   1.0890e+04      2.90x  (m=k=1 MISSES eps)
+
+  eps = 1e-05  (LTE per unit simulated time)
+  state                  |   m*     k*     s* |   cost_rate* |    cost(1,1)    speedup
+  very smooth (mode 1)   |   29     47   4.46 |   5.4218e+03 |   1.0890e+04      2.01x  (m=k=1 MISSES eps)
+  smooth (mode 4)        |   28     29   5.48 |   8.4867e+03 |   1.0890e+04      1.28x  (m=k=1 MISSES eps)
+  moderate (mode 16)     |   30     40   5.00 |   6.5884e+03 |   1.0890e+04      1.65x  (m=k=1 MISSES eps)
+  rough (th=0.5)         |   30     40   5.00 |   6.5884e+03 |   1.0890e+04      1.65x  (m=k=1 MISSES eps)
+  rough (th=1.0)         |   28     34   5.06 |   7.2386e+03 |   1.0890e+04      1.50x  (m=k=1 MISSES eps)
+  near-grid (th=2.0)     |   30     40   5.00 |   6.5884e+03 |   1.0890e+04      1.65x  (m=k=1 MISSES eps)
+
+  eps = 1e-07  (LTE per unit simulated time)
+  state                  |   m*     k*     s* |   cost_rate* |    cost(1,1)    speedup
+  very smooth (mode 1)   |   30     34   5.42 |   7.7511e+03 |   1.0890e+04      1.40x  (m=k=1 MISSES eps)
+  smooth (mode 4)        |   30     25   6.32 |   1.0542e+04 |   1.0890e+04      1.03x  (m=k=1 MISSES eps)
+  moderate (mode 16)     |   30     25   6.32 |   1.0542e+04 |   1.0890e+04      1.03x  (m=k=1 MISSES eps)
+  rough (th=0.5)         |   30     25   6.32 |   1.0542e+04 |   1.0890e+04      1.03x  (m=k=1 MISSES eps)
+  rough (th=1.0)         |   28     25   5.90 |   9.8446e+03 |   1.0890e+04      1.11x  (m=k=1 MISSES eps)
+  near-grid (th=2.0)     |   30     29   5.87 |   9.0875e+03 |   1.0890e+04      1.20x  (m=k=1 MISSES eps)
+
+  eps = 1e-09  (LTE per unit simulated time)
+  state                  |   m*     k*     s* |   cost_rate* |    cost(1,1)    speedup
+  very smooth (mode 1)   |   30     25   6.32 |   1.0542e+04 |   1.0890e+04      1.03x  (m=k=1 MISSES eps)
+  smooth (mode 4)        |   29     19   7.01 |   1.3412e+04 |   1.0890e+04      0.81x  (m=k=1 MISSES eps)
+  moderate (mode 16)     |   30     19   7.25 |   1.3870e+04 |   1.0890e+04      0.79x  (m=k=1 MISSES eps)
+  rough (th=0.5)         |   30     19   7.25 |   1.3870e+04 |   1.0890e+04      0.79x  (m=k=1 MISSES eps)
+  rough (th=1.0)         |   29     22   6.52 |   1.1583e+04 |   1.0890e+04      0.94x  (m=k=1 MISSES eps)
+  near-grid (th=2.0)     |   28     22   6.29 |   1.1187e+04 |   1.0890e+04      0.97x  (m=k=1 MISSES eps)
+
+========================================================================================================
+FLATNESS OF THE OPTIMUM  (how much reward is lost by a wrong action?)
+========================================================================================================
+very smooth (mode 1)   R*=  7.799 | frac of feasible actions within 0.1/0.3/1/3 of R*:   0.1%   1.6%  11.8%  23.5% | dR for m+-1:  0.398  k+-1step:  0.149
+smooth (mode 4)        R*=  7.649 | frac of feasible actions within 0.1/0.3/1/3 of R*:   0.3%   1.3%  11.1%  19.0% | dR for m+-1:  0.467  k+-1step:  0.101
+moderate (mode 16)     R*=  7.548 | frac of feasible actions within 0.1/0.3/1/3 of R*:   0.4%   3.1%  12.7%  17.7% | dR for m+-1:  0.000  k+-1step:  0.103
+rough (th=0.5)         R*=  7.548 | frac of feasible actions within 0.1/0.3/1/3 of R*:   0.4%   3.1%  12.7%  17.7% | dR for m+-1:  0.000  k+-1step:  0.103
+
+  A LARGE 'frac within 0.1' means the reward plateau is wide and an RL
+  agent cannot distinguish good actions from the optimum.
+
+========================================================================================================
+OPTIMAL ACTION vs alpha (through nu = alpha dt/dx^2), lambda = 1
+========================================================================================================
+   alpha       nu | very smooth (mode 1) |  smooth (mode 4) | moderate (mode 16) |   rough (th=0.5)
+                  |     (m*, k*, s*) |     (m*, k*, s*) |     (m*, k*, s*) |     (m*, k*, s*)
+    0.01     0.04 |   (30, 186, 7.3) |   (30, 159, 7.9) |   (30, 159, 7.9) |   (30, 159, 7.9)
+    0.03     0.13 |   (30,  63, 7.3) |   (30,  54, 7.9) |   (29,  47, 8.1) |   (29,  47, 8.1)
+    0.10     0.45 |   (30,  19, 7.3) |   (30,  16, 7.9) |   (29,  14, 8.2) |   (29,  14, 8.2)
+    0.30     1.35 |   (29,   6, 7.2) |   (29,   5, 7.9) |   (30,   5, 8.2) |   (30,   5, 8.2)
+    1.00     4.50 |   (30,   2, 7.1) |   (23,   1, 7.7) |   (24,   1, 8.0) |   (24,   1, 8.0)
+
+========================================================================================================
+IS THE OPTIMUM INTERIOR?  (fraction of states whose optimal m sits ON the cap)
+========================================================================================================
+  15 / 18 optimal actions have m* >= m_cap-1  (cap = 30)
+  -> the (m,k) objective has NO interior optimum in m: reward increases
+     monotonically with width until a PHYSICAL cap (wall distance, or the
+     simulation horizon k*dt <= T_end) stops it.  The only genuinely
+     interior quantity is the safety factor s = m/sigma, and even that is
+     set by the tolerance:  s* ~ sqrt(2 ln(1/eps)).
+
+wrote figures/fig5_decision.png
