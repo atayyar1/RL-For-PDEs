@@ -1,0 +1,407 @@
+<title>Backward Map RL</title>
+<style>
+/* Layout: one reading column (~70ch) on a cool paper ground; figures and tables may widen to 980px. Status tags mark what worked, what didn't, what is open. */
+:root {
+  --bg: #f4f6f8; --surface: #ffffff; --ink: #17202a; --muted: #586574; --rule: #d6dde4;
+  --accent: #1f5a8c; --accent-soft: #e3edf6;
+  --ok: #2b7a4b; --ok-soft: #e2f2e8; --bad: #a83a2c; --bad-soft: #f7e4e1; --open: #8a5a00; --open-soft: #f6ecd8;
+  --plate: #ffffff;
+  --f-head: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11161c; --surface: #19212a; --ink: #e3e9ef; --muted: #9aa8b5; --rule: #2c3743;
+  --accent: #82b6e3; --accent-soft: #1d2d3d;
+  --ok: #6fc394; --ok-soft: #173326; --bad: #ec8f82; --bad-soft: #3a1f1b; --open: #e3b762; --open-soft: #362a12;
+  --plate: #ffffff; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11161c; --surface: #19212a; --ink: #e3e9ef; --muted: #9aa8b5; --rule: #2c3743;
+  --accent: #82b6e3; --accent-soft: #1d2d3d;
+  --ok: #6fc394; --ok-soft: #173326; --bad: #ec8f82; --bad-soft: #3a1f1b; --open: #e3b762; --open-soft: #362a12;
+  --plate: #ffffff; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.6; }
+.page { max-width: 980px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px; }
+.col { max-width: 70ch; }
+h1, h2, h3, .eyebrow, th, .tag, figcaption, .toc { font-family: var(--f-head); }
+h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 8px; text-wrap: balance; font-weight: 600; }
+h2 { font-size: 1.45rem; margin: 56px 0 12px; padding-top: 16px; border-top: 1px solid var(--rule); text-wrap: balance; font-weight: 600; }
+h3 { font-size: 1.1rem; margin: 30px 0 8px; font-weight: 600; text-wrap: balance; }
+h2 .num { color: var(--accent); margin-right: 10px; font-variant-numeric: tabular-nums; }
+.eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: .78rem; color: var(--muted); margin: 0 0 10px; }
+.meta { color: var(--muted); font-family: var(--f-head); font-size: .95rem; margin: 0; }
+p { margin: 0 0 14px; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--f-mono); font-size: .88em; }
+ul, ol { margin: 0 0 14px; padding-left: 1.3em; }
+li { margin-bottom: 6px; }
+strong { font-weight: 650; }
+
+.summary { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 22px 24px; margin: 28px 0; }
+.summary h2 { margin-top: 0; border: 0; padding: 0; font-size: 1.15rem; }
+.toc { font-size: .92rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 4px 24px; margin: 18px 0 0; padding: 0; list-style: none; }
+.toc a { text-decoration: none; color: var(--accent); }
+
+.tag { display: inline-block; font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 1px 7px; border-radius: 3px; vertical-align: 2px; margin-right: 6px; }
+.tag.ok { color: var(--ok); background: var(--ok-soft); }
+.tag.bad { color: var(--bad); background: var(--bad-soft); }
+.tag.open { color: var(--open); background: var(--open-soft); }
+
+.def { display: grid; grid-template-columns: minmax(130px, 200px) 1fr; gap: 6px 18px; margin: 0 0 16px; }
+.def dt { font-family: var(--f-head); font-weight: 600; font-size: .95rem; }
+.def dd { margin: 0; min-width: 0; }
+@media (max-width: 560px) { .def { grid-template-columns: 1fr; } .def dd { margin-bottom: 8px; } }
+
+.math { overflow-x: auto; margin: 10px 0 16px; }
+.tablewrap { overflow-x: auto; margin: 14px 0 20px; }
+table { border-collapse: collapse; font-size: .9rem; font-family: var(--f-head); font-variant-numeric: tabular-nums; min-width: 100%; }
+th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+td.n, th.n { text-align: right; padding-right: 16px; }
+tr.hl td { background: var(--accent-soft); }
+
+figure { margin: 18px 0 26px; }
+figure img { display: block; max-width: 100%; height: auto; background: var(--plate); border: 1px solid var(--rule); border-radius: 4px; }
+figure.small img { max-width: 520px; width: 100%; }
+figcaption { font-size: .86rem; color: var(--muted); margin-top: 8px; max-width: 80ch; }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.pair > figure { min-width: 0; margin: 0; }
+
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; margin: 16px 0; color: var(--ink); }
+.list-status li { list-style: none; margin-left: -1.3em; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<script>
+window.MathJax = { tex: { inlineMath: [["$", "$"], ["\\(", "\\)"]], displayMath: [["$$", "$$"]] }, svg: { fontCache: "global" } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js" async></script>
+
+<div class="page">
+<header class="col">
+  <p class="eyebrow">Thesis progress · RL for PDEs</p>
+  <h1>Backward maps, exact error splitting, and Burgers</h1>
+  <p class="meta">Ali Tayyar · for the meeting with Joseph Bakarji · 8 October 2026 · covers the work since the last meeting (about 24 September)</p>
+</header>
+
+<section class="summary col">
+  <h2>In short</h2>
+  <ol>
+    <li><strong>New formulation.</strong> The agent no longer moves walkers forward. It builds a <em>map backward</em> from the query point $z^*$: every point gets a stencil (5 neighbours below it), down to the initial condition and the walls. Values are then computed forward.</li>
+    <li><strong>The error at $z^*$ splits exactly into one piece per point</strong>: $e(z^*)=\sum_p\beta_p\delta_p$ (influence × local error). This is the discrete adjoint / dual-weighted-residual (DWR) identity. It lets every stencil choice get its own reward, instead of one reward at the end.</li>
+    <li><strong>Linear advection–diffusion:</strong> the method works (much better than classical 2nd-order schemes per computed point), but RL is not needed there: one fixed stencil found by brute force beats the agent.</li>
+    <li><strong>Burgers ($\alpha=0.1$):</strong> the error estimate had to be re-derived (the linear one misses the nonlinear terms). With the new estimate, choosing the stencil point by point beats every fixed stencil (0 of 18,694) and the 2nd-order schemes (3× LW's accuracy with half the points).</li>
+    <li><strong>RL on Burgers:</strong> after fixing the state and ranking the actions, the agent reaches the greedy rule (return −0.51) but does not go beyond it yet.</li>
+  </ol>
+  <ul class="toc">
+    <li><a href="#setup">1 · Setup and definitions</a></li>
+    <li><a href="#map">2 · The backward map</a></li>
+    <li><a href="#identity">3 · Influence and the exact error identity</a></li>
+    <li><a href="#score">4 · The score (error estimate)</a></li>
+    <li><a href="#rl">5 · The RL problem</a></li>
+    <li><a href="#before">6 · What came before and did not work</a></li>
+    <li><a href="#linear">7 · Results: linear advection–diffusion</a></li>
+    <li><a href="#burgers">8 · Burgers</a></li>
+    <li><a href="#burgers-rl">9 · RL on Burgers</a></li>
+    <li><a href="#next">10 · Open questions and next steps</a></li>
+  </ul>
+</section>
+
+<!-- ───────────────────────────── 1 ───────────────────────────── -->
+<section id="setup">
+<h2><span class="num">1</span>Setup and definitions</h2>
+<div class="col">
+<p>The goal is the value of the PDE solution at <strong>one</strong> space-time point $z^*$, as accurately as possible while computing <strong>as few other points as possible</strong>.</p>
+<dl class="def">
+  <dt>PDE</dt><dd>$u_t + a(u)\,u_x = \alpha u_{xx}$ on $[0,1]$, $u=0$ at both walls, $u(x,0)=\sin\pi x+\tfrac12\sin 2\pi x$, $\alpha=0.1$. Linear case: $a=c=1$. Burgers: $a(u)=u$.</dd>
+  <dt>Grid</dt><dd>$n_x=100$, $\Delta x=0.0101$, $\Delta t=4.59\times10^{-4}$ (diffusive CFL, $r=\alpha\Delta t/\Delta x^2=0.45$). A point is $(i_x, i_t)$.</dd>
+  <dt>Query $z^*$</dt><dd>$(50, 20)$: the middle of the domain, 20 time levels up, unless stated otherwise.</dd>
+  <dt>Known data</dt><dd>The initial condition ($i_t=0$) and the walls ($i_x=0,99$). Free, never computed.</dd>
+  <dt>Stencil</dt><dd>The 5 neighbours $q$ used to compute a point $p$. They are chosen from a <strong>window</strong> of 21 cells: up to 3 cells to each side and 1 to 3 levels below $p$.</dd>
+  <dt>Offsets</dt><dd>$\Delta x_q=x_q-x_p$, $\Delta t_q=t_q-t_p<0$, and $\xi_q=\Delta x_q-a\,\Delta t_q$: the neighbour's offset in a frame moving with the flow at speed $a$.</dd>
+</dl>
+
+<h3>The predictor (thesis §2.5, with one correction)</h3>
+<p>The value at $p$ is a weighted sum of its neighbours: $\hat u_p=\sum_q w_q\hat u_q$. Expanding each $u_q$ in a Taylor series about $p$ and replacing $u_t$ by the PDE leaves 3 conditions on the weights:</p>
+<div class="math">$$\sum_q w_q=1,\qquad \sum_q w_q\,\xi_q=0,\qquad \sum_q w_q\Big(\tfrac12\xi_q^2+\alpha\Delta t_q\Big)=0 .$$</div>
+<p>5 neighbours and 3 rows: we take the minimum-norm weights. A stencil is <strong>admissible</strong> if the rows have rank 3, cond $\le10^4$ and $\|w\|_1\le 2$. With 3 points one level down the predictor reproduces Lax–Wendroff exactly (checked to 5 digits).</p>
+<p class="note"><span class="tag bad">correction</span>The third row in the thesis PDF (eqs. 2.35–2.36, §3.3.2) is written as $\sum w(\tfrac12\Delta x^2+\alpha\Delta t)$. For advection–diffusion it must use $\xi$, not $\Delta x$. All results here use the corrected row.</p>
+</div>
+</section>
+
+<!-- ───────────────────────────── 2 ───────────────────────────── -->
+<section id="map">
+<h2><span class="num">2</span>The backward map</h2>
+<div class="col">
+<ol>
+  <li><strong>Build backward.</strong> Start at $z^*$ and give it a stencil. Every neighbour that is not known data becomes a new point that also needs a stencil. Repeat until every branch ends on the IC or a wall.</li>
+  <li><strong>Order.</strong> Points wait in a queue and are expanded <strong>latest $t$ first</strong>. Since neighbours are always below, every point that uses $p$ is expanded before $p$.</li>
+  <li><strong>Forward pass.</strong> Once the map is finished, compute the values bottom-up from the known data, level by level, up to $z^*$.</li>
+</ol>
+<p>The map is a directed graph with no loops (neighbours are strictly earlier), so the forward pass is a single sweep. Reusing a point that is already in the map costs nothing; a neighbour that is not yet in the map is a <strong>new point</strong>.</p>
+</div>
+<figure>
+  <img src="fig/lin_map_lw.png" alt="2 by 2 figure of the Lax-Wendroff map for the linear problem: map coloured by influence, zoom on the stencils near z*, accumulated error per point, and error share per point.">
+  <figcaption>The map figure used throughout (here: Lax–Wendroff, linear problem). Top left: the map, coloured by influence $|\beta|$. Top right: the stencils of the top levels. Bottom left: accumulated error $|\hat u-u|$ at every point. Bottom right: each point's share $|\beta_p\delta_p|$ of the error (the shares add up to the exact bound).</figcaption>
+</figure>
+</section>
+
+<!-- ───────────────────────────── 3 ───────────────────────────── -->
+<section id="identity">
+<h2><span class="num">3</span>Influence and the exact error identity</h2>
+<div class="col">
+<dl class="def">
+  <dt>Influence $\beta_p$</dt><dd>How much an error at $p$ changes the value at $z^*$. $\beta_{z^*}=1$. When $p$ is expanded with weights $w$, each neighbour receives $\beta_q \mathrel{+}= \beta_p w_q$. Because of the latest-$t$-first order, $\beta_p$ is complete when $p$ is expanded.</dd>
+  <dt>Local error $\delta_p$</dt><dd>$\delta_p=u_p-\sum_q w_q u_q$, with exact values: how wrong $p$'s stencil is even if its neighbours were exact.</dd>
+</dl>
+<p>Since $\hat u_p=\sum_q w_q\hat u_q$ is linear in the neighbours, the errors $e_p=u_p-\hat u_p$ satisfy $e_p=\delta_p+\sum_q w_q e_q$. Unrolling this from $z^*$ down to the known data (where $e=0$) gives</p>
+<div class="math">$$e(z^*)=\sum_{p\in\text{map}}\beta_p\,\delta_p ,\qquad |e(z^*)|\le\sum_p|\beta_p\,\delta_p| \;\;(\text{the exact bound}).$$</div>
+<ul>
+  <li><span class="tag ok">verified</span>The identity holds to all printed digits (linear and Burgers).</li>
+  <li>It is the discrete adjoint, or dual-weighted-residual (DWR) representation of Becker & Rannacher (2001), applied to a meshfree space-time map. It is the exact version of thesis Corollary 2.7 (error accumulation), which only gave an inequality.</li>
+  <li><strong>Why the bound matters:</strong> the terms $\beta_p\delta_p$ have different signs and can cancel, so the true error can be small by luck. The bound has no cancellation: it measures how good a map really is. We report both.</li>
+  <li><strong>Why it matters for RL:</strong> the total error is a sum of one term per point, so every stencil choice can be graded on its own term at the moment it is made.</li>
+</ul>
+</div>
+</section>
+
+<!-- ───────────────────────────── 4 ───────────────────────────── -->
+<section id="score">
+<h2><span class="num">4</span>The score: an error estimate without the exact solution</h2>
+<div class="col">
+<p>$\delta_p$ needs the exact solution, so it cannot be the reward. The <strong>score</strong> $s_p$ estimates $|\delta_p|$ from the stencil's geometry. The 3 rows cancel the Taylor terms up to order 2. For the linear PDE the leftover terms come in fixed combinations, the heat polynomials in $\xi$:</p>
+<div class="math">$$T_3=\xi^3+6\alpha\Delta t\,\xi,\qquad T_4=\xi^4+12\alpha\Delta t\,\xi^2+12(\alpha\Delta t)^2,\qquad s_p=\frac{|\sum_q w_qT_3|}{6L^3}+\frac{|\sum_q w_qT_4|}{24L^4},$$</div>
+<p>where the unknown derivatives $u_{xxx},u_{xxxx}$ are replaced by sizes $1/L^3,1/L^4$ with $L=1/(2\pi)$ (shortest mode of the IC). <span class="tag ok">worked</span>For the linear PDE it ranks stencils correctly: correlation 0.98–0.99 between log score and log true error, over-estimating by about 2×.</p>
+<p>For Burgers this score fails and is replaced (section 8).</p>
+</div>
+<div class="pair">
+  <figure class="small"><img src="fig/lin_score.png" alt="Scatter of geometry score against true local error for 300 random stencils, linear problem; points lie along the diagonal."><figcaption>Linear problem: score against true local error, 300 random admissible stencils at $p=(50,20)$.</figcaption></figure>
+  <figure class="small"><img src="fig/lin_window.png" alt="The 21-cell window below p, with the lowest-score stencil highlighted."><figcaption>The 21-cell window and the lowest-score stencil at an interior point (linear problem). 18,694 of the 20,349 possible 5-cell choices are admissible.</figcaption></figure>
+</div>
+</section>
+
+<!-- ───────────────────────────── 5 ───────────────────────────── -->
+<section id="rl">
+<h2><span class="num">5</span>The RL problem</h2>
+<div class="col">
+<dl class="def">
+  <dt>Episode</dt><dd>Build one map for $z^*$. The current point is the latest-$t$ pending point.</dd>
+  <dt>Action</dt><dd>One window cell. 5 picks complete a stencil, then the point is expanded and the next point comes up.</dd>
+  <dt>Mask</dt><dd>A cell may be picked only if some admissible stencil contains it together with the picks so far, so a bad stencil is impossible. Points with a single admissible stencil (next to the IC) are played automatically.</dd>
+  <dt>Reward</dt><dd>Given when a stencil is complete: $r_p=-\dfrac{|\beta_p|\,s_p}{B_{\rm LW}}-\lambda\,\dfrac{\text{new points}}{N_{\rm LW}}$.</dd>
+  <dt>Return</dt><dd>The sum of rewards: $G=-\dfrac{B}{B_{\rm LW}}-\lambda\dfrac{N-1}{N_{\rm LW}}$, with $B=\sum_p|\beta_p|s_p$ (estimated bound) and $N$ the number of points. $B_{\rm LW},N_{\rm LW}$ are the same two numbers for the Lax–Wendroff map of the same $z^*$, so <strong>LW scores $\approx-1-\lambda$</strong> and returns are comparable across queries.</dd>
+  <dt>$\lambda$</dt><dd>The price of one point. $\lambda=1$ in all runs here.</dd>
+  <dt>Cap</dt><dd>If the map passes $3N_{\rm LW}$ points the episode stops; every unexpanded point costs its worst stencil.</dd>
+  <dt>Training</dt><dd>MaskablePPO, $\gamma=1$, GAE $\lambda=1$ (each pick judged by the actual rest of the episode), 12 parallel environments, 5M steps (about 35 min on the lab machine).</dd>
+</dl>
+<p>No exact solution is used in the reward or the state, only for reporting error and bound.</p>
+</div>
+</section>
+
+<!-- ───────────────────────────── 6 ───────────────────────────── -->
+<section id="before">
+<h2><span class="num">6</span>What came before, and did not work</h2>
+<div class="col">
+<ul class="list-status">
+  <li><span class="tag bad">dropped</span><strong>Forward walkers</strong> (thesis ch. 5). They learned to reach $z^*$ but not accuracy; nothing learned at $t^*=150$ after 50M steps (constant reward in ~80% of episodes, geometric error growth).</li>
+  <li><span class="tag bad">dropped</span><strong>Terminal reward only</strong> on a backward graph: one number per map, same credit-assignment problem.</li>
+  <li><span class="tag bad">dropped</span><strong>Neighbours in all directions</strong> (same level or later): loops in the map make $(I-W)$ singular; 13% of states had error above $10^{-2}$. Hence neighbours strictly below.</li>
+  <li><span class="tag bad">result</span><strong>Small window (2 levels):</strong> the agent found a checkerboard pattern that turned out to be a fixed stencil (rank 3 of 240 fixed stencils; the best fixed stencil beat it).</li>
+  <li><span class="tag bad">failed</span><strong>Long horizons</strong> ($t^*=60$–$100$): PPO was worse than FD (episodes of 20–30k picks). The plain lowest-score rule, however, stays stable to $t^*=1000$ (bound $1.1\times10^{-5}$ against FD-3's $6.3\times10^{-4}$).</li>
+</ul>
+</div>
+</section>
+
+<!-- ───────────────────────────── 7 ───────────────────────────── -->
+<section id="linear">
+<h2><span class="num">7</span>Results: linear advection–diffusion ($c=1$)</h2>
+<div class="col">
+<p>All at $z^*=(50,20)$, $\lambda=1$. Single-query PPO: 5M steps, 28 min. <strong>Rules without learning:</strong> <em>lowest score</em> (every point takes its most accurate stencil), <em>greedy</em> (best one-step reward: accuracy and new points), <em>best fixed stencil</em> (brute force over all 18,694 interior stencils, the same one at every point).</p>
+</div>
+<div class="tablewrap"><table>
+  <tr><th>Method</th><th class="n">Points</th><th class="n">Error at $z^*$</th><th class="n">Exact bound</th><th class="n">Return</th></tr>
+  <tr class="hl"><td>Best fixed stencil</td><td class="n">168</td><td class="n">8.4e-7</td><td class="n">1.1e-6</td><td class="n">−0.50</td></tr>
+  <tr><td>PPO agent</td><td class="n">323</td><td class="n">8.2e-8</td><td class="n">4.2e-6</td><td class="n">−1.08</td></tr>
+  <tr><td>Greedy</td><td class="n">313</td><td class="n">1.3e-7</td><td class="n">4.6e-6</td><td class="n">–</td></tr>
+  <tr><td>Lowest score</td><td class="n">670</td><td class="n">1.5e-7</td><td class="n">1.6e-7</td><td class="n">−1.69</td></tr>
+  <tr><td>LW map / FD LW</td><td class="n">400</td><td class="n">3.0e-5</td><td class="n">3.0e-5</td><td class="n">−2.00</td></tr>
+  <tr><td>Random</td><td class="n">659</td><td class="n">7.8e-5</td><td class="n">6.5e-4</td><td class="n">≈ −17.8</td></tr>
+  <tr><td>FD-3</td><td class="n">400</td><td class="n">5.2e-5</td><td class="n">–</td><td class="n">–</td></tr>
+  <tr><td>Crank–Nicolson (4× $\Delta t$)</td><td class="n">490</td><td class="n">1.8e-5</td><td class="n">–</td><td class="n">–</td></tr>
+  <tr><td>Taylor-5 (our predictor, 5 rows, regular grid)</td><td class="n">780</td><td class="n">3.3e-8</td><td class="n">–</td><td class="n">–</td></tr>
+  <tr><td>FD-5 + RK4</td><td class="n">6,468</td><td class="n">3.8e-8</td><td class="n">–</td><td class="n">–</td></tr>
+</table></div>
+<div class="col">
+<ul>
+  <li><span class="tag ok">worked</span>Every map method beats the 2nd-order schemes per point by orders of magnitude: LW needs about 87,000 points (grid refined 4×) to reach $1.9\times10^{-6}$.</li>
+  <li><span class="tag bad">RL not needed</span>23 of 18,694 fixed stencils beat the agent, and the best one beats it on points and bound. It reaches 3 levels down (the agent mostly uses 1–2). The search takes about a minute on 12 cores.</li>
+  <li>The agent's error ($8\times10^{-8}$) is far below its bound ($4\times10^{-6}$): cancellation luck. Lowest score and the fixed stencil have error ≈ bound.</li>
+  <li><span class="tag bad">not converged</span><strong>Multi-query training</strong> (one agent for many $z^*$): two runs (15 queries, 20M steps; 5 queries, $t^*=10$–$50$, 36M steps). At $(50,20)$ they reach returns of −1.6 to −2.5, worse than the single-query agent. The generalisation table on unseen queries was not done.</li>
+</ul>
+<p><strong>Conclusion for the linear PDE:</strong> on a homogeneous, constant-coefficient problem the best choice is a uniform scheme, found faster by search than by RL. This matches your F6 finding (one wide positive stencil from the IC). RL has to be justified where the best stencil changes from point to point. That is why we moved to Burgers.</p>
+</div>
+<figure><img src="fig/lin_fixed_hist.png" alt="Left: histogram of the returns of all 18,694 fixed stencils with the agent, LW and lowest score marked. Right: points against estimated error for all fixed stencils."><figcaption>Linear: returns of all 18,694 fixed stencils (left) and points against estimated error (right). The agent is good, but a few fixed stencils are better.</figcaption></figure>
+<figure><img src="fig/lin_acc_points.png" alt="Log-log plot of error at z* against evaluated points: classical schemes as curves under grid refinement, map methods as single markers."><figcaption>Linear: accuracy against evaluated points. Classical schemes on grids refined 1–4×; map methods (markers) on the base grid; open circles are exact bounds.</figcaption></figure>
+
+<h3 class="col">How many Taylor rows? (linear)</h3>
+<div class="col">
+<p>The 3 rows leave 2 free degrees in the weights. We tested spending them on cancelling the $T_3,T_4$ leftover (<em>min-score</em> weights) instead of minimising the norm, and an exact 5-row system (4th order).</p>
+</div>
+<div class="tablewrap"><table>
+  <tr><th>Predictor</th><th class="n">Lowest score: points / bound</th><th class="n">Best fixed: points / bound</th></tr>
+  <tr><td>3 rows, min-norm (current)</td><td class="n">939 / 1.9e-6</td><td class="n">168 / 1.1e-6</td></tr>
+  <tr class="hl"><td>3 rows, min-score</td><td class="n">400 / 4.9e-8</td><td class="n">160 / 1.7e-7</td></tr>
+  <tr><td>5 rows, exact</td><td class="n">587 / 4.3e-8</td><td class="n">162 / 1.7e-7</td></tr>
+</table></div>
+<div class="col"><p><span class="tag ok">worked</span>Min-score weights gain about 10×, the same as 5 rows, while keeping the robustness of 3 rows on irregular stencils (square 5-row systems are ill-conditioned there). Not yet used for Burgers. (All with the longer score $T_3$–$T_6$.)</p></div>
+</section>
+
+<!-- ───────────────────────────── 8 ───────────────────────────── -->
+<section id="burgers">
+<h2><span class="num">8</span>Burgers: $u_t+u\,u_x=\alpha u_{xx}$, $\alpha=0.1$</h2>
+<div class="col">
+<p>Same IC, walls and grid. Exact solution by Hopf–Cole ($u=-2\alpha\phi_x/\phi$, $\phi$ a cosine series; checked: PDE residual about $10^{-7}$, IC to $3\times10^{-13}$). At $\alpha=0.1$ the solution stays smooth: the hump moves right and decays, no shock. We kept $\alpha=0.1$ because the horizons are short; with small $\alpha$ the solution would barely change before $t^*$.</p>
+</div>
+<figure class="small"><img src="fig/burg_u_curves.png" alt="Exact Burgers solution at it = 0, 20 and 100, with x* = 50 marked; u at x* is 0.98, 1.00 and 1.05."><figcaption>$u(x)$ at $i_t=0,20,100$. At $x^*$ it barely changes (0.98 → 1.05), but $x^*$ sits on the slope of the hump: the points the map uses to the left and right have $u$ between about 0.7 and 1.2.</figcaption></figure>
+
+<h3 class="col">8.1 Why Burgers is different for us</h3>
+<div class="col">
+<p>Locally, Burgers is advection–diffusion with speed $a=u(p)$: a <strong>different speed at every point</strong>. The best stencil depends strongly on that speed. Interior window, best stencil by score at each speed, and how much worse the stencil that is best at $a=1$ becomes:</p>
+</div>
+<div class="tablewrap"><table>
+  <tr><th>Local speed $a$</th><th class="n">0.0</th><th class="n">0.3</th><th class="n">0.6</th><th class="n">1.0</th><th class="n">1.3</th></tr>
+  <tr><td>Score of the $a=1$ stencil ÷ best score at this $a$</td><td class="n">2029×</td><td class="n">40×</td><td class="n">12×</td><td class="n">1×</td><td class="n">19×</td></tr>
+</table></div>
+<div class="col"><p>So one stencil cannot serve all points, which is what makes a point-by-point choice worthwhile.</p></div>
+
+<h3 class="col">8.2 The speed is needed before any value exists: a coarse guess</h3>
+<div class="col">
+<p>The map is built backward, but the weights, the score and $\beta$ all need $a=u(p)$ while building. We take it from a <strong>coarse guess</strong>: Lax–Wendroff on a 5× coarser grid (20 points × 42 time levels up to $T=0.5$), then at each coarse level a sine series through the 20 values gives $u,u_x,\dots,u_{xxxx}$ exactly for the fit; linear in time onto our grid.</p>
+<ul>
+  <li>Accuracy in the cone below $z^*$: within about 1% for all five derivatives at $(50,20)$; up to 12% for $u_{xxxx}$ at $(50,100)$.</li>
+  <li><strong>The guess only chooses stencils and weights.</strong> The values are computed from the neighbours' computed values, so a poor guess gives worse choices, never wrong numbers.</li>
+  <li><strong>Cost:</strong> only the coarse levels up to $t^*$ count for a query. At $(50,20)$ that is 1 level × 18 points = <strong>18 points</strong> (the full guess, 840 points, serves every query up to $T$).</li>
+  <li>This is the usual practice in goal-oriented adaptivity: linearise around an approximate (coarse) primal solution.</li>
+</ul>
+</div>
+<figure><img src="fig/burg_guess.png" alt="Two panels: u and u_xxxx at four times, exact solid and coarse guess dashed, nearly on top of each other."><figcaption>Coarse guess (dashed) against the exact solution (solid): $u$ (left) and $u_{xxxx}$ (right).</figcaption></figure>
+
+<h3 class="col">8.3 The linear score fails for Burgers</h3>
+<div class="col">
+<p><span class="tag bad">didn't work</span>Even with the exact speed at each point, the linear score correlates only 0.71 with the true local error. The <em>lowest-score</em> map built with it was <strong>5× worse than Lax–Wendroff</strong> (554 points, error $9.5\times10^{-5}$, bound $2.5\times10^{-4}$). The cause is not the speed estimate: with the exact speed, the lowest-score map was still no better than LW ($4.0\times10^{-5}$).</p>
+<p><strong>Reason:</strong> the predictor and the score freeze one speed $a=u(p)$ for the whole stencil. In Burgers the speed is the solution itself, so it changes across the stencil. Expanding Burgers properly (Cauchy–Kowalevski: every time derivative replaced through the PDE) gives three extra terms that a frozen speed misses:</p>
+</div>
+<div class="tablewrap"><table>
+  <tr><th>Taylor term</th><th>Coefficient with a frozen speed</th><th>Extra term in Burgers</th></tr>
+  <tr><td>$\Delta x\,\Delta t$</td><td>$\alpha u_{xxx}-u\,u_{xx}$</td><td>$-u_x^2$</td></tr>
+  <tr><td>$\tfrac12\Delta x^2\Delta t$</td><td>$\alpha u_{xxxx}-u\,u_{xxx}$</td><td>$-3u_xu_{xx}$</td></tr>
+  <tr><td>$\tfrac12\Delta t^2$</td><td>$\alpha^2u_{xxxx}-2\alpha u\,u_{xxx}+u^2u_{xx}$</td><td>$2u_x(u\,u_x-2\alpha u_{xx})$</td></tr>
+</table></div>
+<div class="col">
+<p>They grow with how far the stencil reaches in time, so the linear score favoured deep stencils that are in fact bad. Adding only the size of these terms, or cancelling $\sum w\,\Delta x\Delta t$ with a 4th row, did not help (correlation 0.75 / 0.78): the extra terms and the linear terms have signs that partly cancel.</p>
+</div>
+
+<h3 class="col">8.4 The new score</h3>
+<div class="col">
+<p><span class="tag ok">worked</span>The new score is the stencil's error on the local Taylor polynomial of the solution, with all Burgers terms and the actual derivatives (signs included) from the guess:</p>
+<div class="math">$$s_p=\Big|\sum_q w_q\,P_p(\Delta x_q,\Delta t_q)\Big|,\quad P_p=u_x\Delta x+u_t\Delta t+\tfrac12u_{xx}\Delta x^2+u_{xt}\Delta x\Delta t+\tfrac12u_{tt}\Delta t^2+\tfrac16u_{xxx}\Delta x^3+\tfrac12u_{xxt}\Delta x^2\Delta t+\tfrac1{24}u_{xxxx}\Delta x^4,$$</div>
+<p>kept up to weight 4 (a $\Delta t$ counts like two $\Delta x$, since $\alpha\Delta t\sim\Delta x^2$). With exact derivatives it matches the true local error to about 2% (correlation 1.00; weight 3 only: 0.85).</p>
+</div>
+<div class="pair">
+  <figure><img src="fig/burg_score_old.png" alt="Scatter of the linear score against the true local error for Burgers: wide spread, correlation 0.71."><figcaption>Old (linear) score for Burgers: correlation 0.71.</figcaption></figure>
+  <figure><img src="fig/burg_score_new.png" alt="Scatter of the new Taylor score against the true local error for Burgers: points on the diagonal."><figcaption>New score (exact derivatives): all points on the diagonal.</figcaption></figure>
+</div>
+
+<h3 class="col">8.5 The forward pass must keep the chosen weights</h3>
+<div class="col">
+<p>In the forward pass the neighbours' values are known, so we first recomputed the weights with $a=$ mean of the neighbours (as in notebook 4). <span class="tag bad">didn't work</span>This undoes the choice, because the score was computed for the chosen weights. The speed is only a parameter of the weights, and the full score accounts for whichever speed was used. Lowest-score map (exact derivatives):</p>
+</div>
+<div class="tablewrap"><table>
+  <tr><th>Weights in the forward pass</th><th class="n">Error at $z^*$</th><th class="n">Exact bound</th></tr>
+  <tr class="hl"><td>Same as chosen (kept)</td><td class="n">1.8e-6</td><td class="n">6.3e-6</td></tr>
+  <tr><td>Recomputed, $a$ = mean of neighbours</td><td class="n">1.1e-5</td><td class="n">4.1e-4</td></tr>
+  <tr><td>Recomputed, $a=u(p)$ exact</td><td class="n">6.7e-5</td><td class="n">1.3e-4</td></tr>
+</table></div>
+<div class="col">
+<p>With the guessed derivatives (the real method), the lowest-score map has 613 points, error $4.4\times10^{-6}$, bound $9.4\times10^{-6}$: about 4× better than FD LW ($1.85\times10^{-5}$). The best stencil indeed changes with the local speed:</p>
+</div>
+<figure><img src="fig/burg_stencils.png" alt="Three window pictures with the lowest-score stencil at points with guessed speed 1.26, 1.00 and 0.34; the three stencils differ."><figcaption>Lowest-score stencil at three points of the same level, with guessed speeds 1.26, 1.00, 0.34.</figcaption></figure>
+</section>
+
+<!-- ───────────────────────────── 9 ───────────────────────────── -->
+<section id="burgers-rl">
+<h2><span class="num">9</span>RL on Burgers</h2>
+<div class="col">
+<p>Same reward and actions as in section 5, with the new score. Three runs at $z^*=(50,20)$, $\lambda=1$:</p>
+</div>
+<div class="tablewrap"><table>
+  <tr><th>Run</th><th>Change</th><th class="n">Return</th><th class="n">Points</th><th class="n">Error</th><th class="n">Bound</th></tr>
+  <tr><td>1. State v1</td><td>linear-case state (91 numbers)</td><td class="n">−1.02</td><td class="n">242</td><td class="n">2.2e-5</td><td class="n">6.0e-5</td></tr>
+  <tr><td>2. State v2</td><td>+ one-step regret per cell, stake, local $u,u_x$ (116 numbers)</td><td class="n">≈ −0.88</td><td class="n">≈ 230</td><td class="n">–</td><td class="n">4.4e-5</td></tr>
+  <tr class="hl"><td>3. State v2 + ranked actions</td><td>action $k$ = the $k$-th best cell</td><td class="n">−0.51</td><td class="n">183</td><td class="n">5.9e-6</td><td class="n">1.3e-5</td></tr>
+  <tr><td>Greedy (rule)</td><td>best one-step reward</td><td class="n">−0.51</td><td class="n">181</td><td class="n">6.3e-6</td><td class="n">1.3e-5</td></tr>
+</table></div>
+<div class="col">
+<ul>
+  <li><span class="tag bad">didn't work</span><strong>Run 1</strong> beat LW and lowest score in return but stayed far behind greedy. The state showed only <em>relative</em> accuracy per cell, not the actual one-step reward (influence × score + cost of new points).</li>
+  <li><span class="tag bad">plateau</span><strong>Run 2</strong> added to the state, per window cell, the <strong>regret</strong>: best one-step cost reachable through that cell minus the best at $p$ (in points). Picking the zero-regret cell <em>is</em> greedy (checked: identical map). Also the <strong>stake</strong> $\log_{10}(|\beta_p|s_{\rm best}/B_{\rm LW}\cdot N_{\rm LW})$ and the local speed and slope. Faster learning, but it plateaued at −0.88: PPO from a random policy is slow to learn "pick the minimum of 21 numbers". Stopped at 2.7M steps.</li>
+  <li><span class="tag bad">tried</span><strong>Behaviour cloning</strong> (imitate greedy first): in a short test the network picked a greedy cell only 58% of the time. Not pursued.</li>
+  <li><span class="tag ok">worked</span><strong>Run 3</strong> presents the cells sorted best to worst; action 0 is greedy. The agent reached greedy's return by about 2M steps and ended at −0.51 (some snapshots at −0.47 to −0.49 with fewer points). It learned greedy, <strong>not yet beyond it</strong>.</li>
+</ul>
+</div>
+<figure><img src="fig/burg_curves.png" alt="Return against training steps for the three Burgers runs, with LW, lowest score and greedy as horizontal lines. The ranked run reaches greedy's level."><figcaption>Learning curves of the three runs (deterministic snapshot of the policy every 100k steps).</figcaption></figure>
+
+<h3 class="col">Comparison at $z^*=(50,20)$</h3>
+<div class="tablewrap"><table>
+  <tr><th>Method</th><th class="n">Return</th><th class="n">Points (map + guess)</th><th class="n">Error at $z^*$</th><th class="n">Exact bound</th></tr>
+  <tr class="hl"><td>PPO agent (run 3)</td><td class="n">−0.51</td><td class="n">183 + 18 = 201</td><td class="n">5.9e-6</td><td class="n">1.3e-5</td></tr>
+  <tr><td>Greedy</td><td class="n">−0.51</td><td class="n">181 + 18 = 199</td><td class="n">6.3e-6</td><td class="n">1.3e-5</td></tr>
+  <tr><td>Best fixed stencil</td><td class="n">−1.16</td><td class="n">156 + 18 = 174</td><td class="n">2.3e-5</td><td class="n">1.1e-4</td></tr>
+  <tr><td>Lowest score</td><td class="n">−1.54</td><td class="n">613 + 18 = 631</td><td class="n">4.4e-6</td><td class="n">9.4e-6</td></tr>
+  <tr><td>Random</td><td class="n">−5.83</td><td class="n">659 + 18 = 677</td><td class="n">3.3e-5</td><td class="n">5.8e-4</td></tr>
+  <tr><td>FD LW (speed $u$ per point)</td><td class="n">–</td><td class="n">400</td><td class="n">1.85e-5</td><td class="n">–</td></tr>
+  <tr><td>FD-3</td><td class="n">–</td><td class="n">400</td><td class="n">4.3e-5</td><td class="n">–</td></tr>
+  <tr><td>Crank–Nicolson (linearised, 4× $\Delta t$)</td><td class="n">–</td><td class="n">490</td><td class="n">7.0e-5</td><td class="n">–</td></tr>
+  <tr><td>FD-5 + RK4</td><td class="n">–</td><td class="n">6,468</td><td class="n">1.7e-8</td><td class="n">–</td></tr>
+</table></div>
+<div class="col">
+<ul>
+  <li><span class="tag ok">worked</span><strong>No fixed stencil beats the agent: 0 of 18,694</strong> (linear case: 23). The best fixed stencil was admissible at only 108 of the 156 points; at the other 48 it was not admissible at the local speed.</li>
+  <li><span class="tag ok">worked</span>Agent and greedy get <strong>3× FD LW's accuracy with half the points</strong>, and lie below all three 2nd-order curves (FD-3, LW, CN) under refinement.</li>
+  <li><span class="tag open">open</span>FD-5 + RK4 is far ahead at high accuracy. Our predictor is 2nd order (3 rows); higher-order weights (min-score, section 7) are needed to compete there.</li>
+</ul>
+</div>
+<figure><img src="fig/burg_acc_points.png" alt="Log-log plot of error at z* against evaluated points for Burgers: classical curves and map-method markers; agent and greedy sit left of and below the second-order curves."><figcaption>Burgers: accuracy against evaluated points (map methods include the 18 guess points).</figcaption></figure>
+<figure><img src="fig/burg_map_agent.png" alt="2 by 2 map figure of the final ranked agent on Burgers."><figcaption>The final agent's map (run 3), same layout as in section 2.</figcaption></figure>
+</section>
+
+<!-- ───────────────────────────── 10 ───────────────────────────── -->
+<section id="next">
+<h2><span class="num">10</span>Open questions and next steps</h2>
+<div class="col">
+<h3>Where we stand</h3>
+<ul>
+  <li><strong>Holds:</strong> the exact error identity, the backward map, and (for Burgers) the derived Taylor score with a coarse guess. Choosing stencils point by point with this score beats fixed stencils and 2nd-order schemes.</li>
+  <li><strong>Not shown yet:</strong> that RL does better than the greedy rule. At this query it learned greedy exactly.</li>
+</ul>
+<h3>Next (no training needed first)</h3>
+<ol>
+  <li><strong>Look-ahead test:</strong> at each point, try the few best stencils, finish the map greedily for each, keep the best. If it barely beats greedy, there is little to learn at this query; if it clearly does, the agent has room to improve.</li>
+  <li><strong>Larger $t^*$</strong> ($(50,50)$, $(50,100)$) with the rules first: the speed varies more, and choices have longer consequences. Training there costs hours (maps 6–18× larger).</li>
+  <li><strong>Min-score weights for Burgers:</strong> spend the 2 free weight degrees on the Burgers leftover; about 10× in the linear case.</li>
+  <li><strong>$\lambda$ sweep</strong> (greedy first, it is cheap): curves instead of single points on the accuracy plot.</li>
+  <li><strong>Multi-query</strong> on Burgers, where the guess is shared by all queries.</li>
+  <li>Thesis PDF updates: corrected third row, backward map and identity, both scores.</li>
+</ol>
+<h3>Questions for you</h3>
+<ol>
+  <li>The non-RL part (exact identity + derived score + goal-oriented stencil choice) works on its own. Is that worth writing up separately, and against which baselines (GFDM star selection, DWR refinement)?</li>
+  <li>Where should the case for RL rest: larger $t^*$, many queries with one agent, or a harder problem (smaller $\alpha$, steep fronts)?</li>
+  <li>Is a coarse solve as the guess acceptable for the method, or should it work without one?</li>
+  <li>Is matching 4th-order schemes (FD-5 + RK4) a goal, or is beating 2nd-order schemes per point enough?</li>
+</ol>
+</div>
+</section>
+</div>

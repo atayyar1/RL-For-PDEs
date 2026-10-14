@@ -325,8 +325,8 @@ def classical(scheme, k, z, u_fn=None):
     """(work, true error at z*) for FD-3, LW, Taylor-5, FD-5 + RK4 or CN; work = points in the cone x per-point cost."""
     u_fn = u_fn or u_true
     n, h = (nx - 1) * k + 1, dx / k
-    tau = dt / k**2 if scheme != "CN" else 4 * dt / k**2
-    ix, steps = z[0] * k, round(z[1] * dt / tau)
+    steps = z[1] * k**2 if scheme != "CN" else max(1, round(z[1] * k**2 / 4))   # CN: about 4x bigger steps
+    tau, ix = z[1] * dt / steps, z[0] * k                                        # steps land exactly on t*
     u = u_fn(np.arange(n) * h, 0.0)
     r, nu = alpha * tau / h**2, c * tau / h
     d2 = lambda v: np.r_[0, v[2:] - 2 * v[1:-1] + v[:-2], 0]

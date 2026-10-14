@@ -13,10 +13,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_learning_curves(snap_path, baselines=None, path=None):
-    """baselines: {name: {"return": .., "points": .., "bound": ..}} (any key may be left out)."""
+def plot_learning_curves(snap_path, baselines=None, path=None, skip=0):
+    """baselines: {name: {"return": .., "points": .., "bound": ..}} (any key may be left out).
+    skip: leave out the first `skip` snapshots (e.g. the untrained policy, which squashes the axes)."""
     with open(snap_path) as f:
-        hist = json.load(f)
+        hist = json.load(f)[skip:]
     step = np.array([h["step"] for h in hist])
     keys = [("return", "return (higher is better)", "linear"),
             ("points", "points in the map", "linear"),
