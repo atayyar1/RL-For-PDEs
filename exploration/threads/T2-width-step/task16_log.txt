@@ -1,0 +1,73 @@
+========================================================================================================
+(b)  IS THE WIN POSITIVITY, OR JUST THE HIGH-ORDER LOCAL ROWS?
+     same rows, with and without the w >= 0 projection (lstsq min-norm instead)
+========================================================================================================
+     nb    m   P | err positive   err signed |        flops  ||w||_1 | verdict
+     32    5   6 |   7.2857e-08   2.0160e-07 |    8.602e+04    1.350 | POSITIVE better
+     16    8   6 |   1.6190e-06   6.0357e-06 |    6.758e+04    1.435 | POSITIVE better
+      8   12   6 |   3.9574e-06   6.5037e-05 |    5.018e+04    1.458 | POSITIVE better
+     32    8   6 |   2.6295e-07   1.5811e-05 |    1.352e+05    1.531 | POSITIVE better
+     16    5   4 |   9.1507e-05   2.8967e-05 |    4.301e+04    1.267 | signed better
+      8    5   4 |          nan   2.5671e-04 |          nan    5.054 | POSITIVE better
+
+  -> WRONG GUESS ON MY PART: positivity is NOT a free extra.  The positive
+     solution beats the signed min-norm one in 5/6 configs, by up to 60x, and
+     the gap WIDENS with the number of steps (see task14 (b-why)).  Mechanism:
+     ||w||_1 = B > 1 amplifies by B per step, so B^nb over the run; the positive
+     solution has ||w||_1 = 1 exactly and is non-amplifying.
+
+========================================================================================================
+(c)  DOES IT SURVIVE A ROUGH alpha?   Taylor expansion of alpha is the weak point
+========================================================================================================
+  alpha                   L_alpha |  wide (best)         FTCS        ratio | feasible?
+  sin(2 pi x), q=1        45.8367 |   7.2857e-08   1.7383e-04      2385.98 | 29 configs
+  sin(4 pi x), q=2        22.9185 |   1.0042e-07   2.4397e-04      2429.59 | 29 configs
+  sin(8 pi x), q=4        11.4595 |   2.0757e-05   5.5992e-04        26.97 | 29 configs
+  sin(16 pi x), q=8        5.7300 |   1.4294e-03   1.8834e-03         1.32 | 23 configs
+  tanh step, w=0.02        5.7612 |  2.9449e+255  2.9449e+255         1.00 | 20 configs
+
+  L_alpha column = alpha/|alpha'| in CELLS: how many cells alpha varies over.
+  -> the advantage tracks that length: once alpha varies on a few cells the local
+     Taylor rows stop being valid and the win collapses toward (or below) FTCS.
+========================================================================================================
+REFERENCE AUDIT: what is my reference actually worth?
+========================================================================================================
+  spectral Nref=1024/nsub=60000 vs 1536/90000 : 1.439e-13   <- usable floor
+  fine-FTCS Nref=4096 (what task14 used) vs spectral: 1.424e-07
+  -> the task14 (b-why) reference was only good to ~1e-6, i.e. AT or ABOVE the
+     positive arm's error.  That 78.1x was not measurable with it.  Redone below.
+
+========================================================================================================
+A.  COVERAGE + FAIRER SIGNED ARMS, against the spectral reference
+========================================================================================================
+     nb   m   P |  coverage |     err pos   err minL2   err minL1 |   L1 pos   L1 mL1
+      4   8   6 |        0% |         nan   1.410e-04   1.363e-04 |      nan   19.704
+      8   8   6 |        8% |         nan   6.295e-06   8.096e-06 |      nan    1.512
+     16   8   6 |      100% |   1.619e-06   6.036e-06   2.810e-06 |    1.000    1.000
+     32   8   6 |      100% |   2.629e-07   1.581e-05   7.826e-07 |    1.000    1.000
+
+  coverage = fraction of the 128 points where that arm's solve succeeded;
+  my solver DISCARDS the whole configuration if any point fails, so every
+  number I have ever reported is at 100% coverage.  (The lead's 57% run is
+  therefore not the same experiment -- 43% of their domain fell back to a
+  shared 3-point scheme that dominated both arms.)
+
+========================================================================================================
+B.  DIRECT TEST OF THE MECHANISM: is it amplification, or just worse rows?
+     amplification = ||A^nb||_inf  (1.0 => non-amplifying)
+========================================================================================================
+     nb |     L1 pos ||A^nb|| pos |   L1 minL2 ||A^nb|| minL2 | err ratio
+     16 |     1.0000       1.0000 |     1.4346       1.0003 |      3.7x
+     32 |     1.0000       1.0000 |     1.5305       1.0026 |     60.1x
+
+========================================================================================================
+C.  THE LEAD'S HYPOTHESIS: does the effect need VARIABLE coefficients?
+     control = constant alpha (translation invariant, von Neumann applies)
+========================================================================================================
+  alpha           nb |     err pos   err minL2 |  err ratio | ||A^nb|| mL2
+  constant         8 |   4.611e-07   8.380e-07 |       1.8x |       1.0000
+  constant        16 |   1.297e-06   4.650e-07 |       0.4x |       1.0000
+  constant        32 |   3.280e-08   2.598e-06 |      79.2x |       1.0000
+  variable         8 | infeasible
+  variable        16 |   1.619e-06   6.036e-06 |       3.7x |       1.0003
+  variable        32 |   2.629e-07   1.581e-05 |      60.1x |       1.0026

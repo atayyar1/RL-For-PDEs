@@ -182,6 +182,14 @@ def stencil_is_good(dx_i, dt_i):
 
 
 # ── Weight solver ─────────────────────────────────────────────────────────────
+# NOTE (jo-exploration): corrected u_xx row. Substituting u_t = alpha u_xx - c u_x
+# RECURSIVELY also reduces u_xt and u_tt to x-derivatives, contributing
+# -c dx dt + 0.5 c^2 dt^2. The exact u_xx coefficient is therefore
+#     0.5*(dx - c dt)^2 + alpha*dt      [ = 0.5*xi^2 + alpha*dt, xi = dx - c dt ]
+# The previous row 0.5*dx^2 + alpha*dt drops both terms. Harmless when |c dt|<<|dx|,
+# but it cannot express a 2nd-order advection scheme: with the correction the
+# 3-point centred stencil is exactly Lax-Wendroff; without it, FTCS-central
+# (unconditionally unstable). Verified symbolically.
 def solve_weights(dx_i, dt_i, u_nb):
     """
     Min-norm lstsq on the 3×n PDE-informed system.
@@ -195,7 +203,7 @@ def solve_weights(dx_i, dt_i, u_nb):
     A = np.array([
         np.ones(len(dx_i)),
          (dx_i - c_local * dt_i)              / h,
-        (0.5 * dx_i**2 + alpha * dt_i) / h**2,
+        (0.5 * (dx_i - c_local * dt_i)**2 + alpha * dt_i) / h**2,
     ]) 
     b = np.array([1 , 0.0, 0.0])
 
@@ -204,6 +212,10 @@ def solve_weights(dx_i, dt_i, u_nb):
         return None,    cond
 
     w = np.linalg.lstsq(A, b, rcond=None)[0]
+
+    if abs(w.sum() - 1.0) > 1e-6:       # jo-exploration: rank-deficient A
+
+        return None, 'inconsistent'
 
 
     # Additional weight checks to prevent error explosion — these are somewhat ad-hoc and may be tuned or removed based on your needs.

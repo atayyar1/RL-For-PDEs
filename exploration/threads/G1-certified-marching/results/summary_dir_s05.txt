@@ -1,0 +1,197 @@
+1716 rows, arms: ['minnorm', 'projgauss', 'spectral', 'spectralg', 'molfe', 'molrk3', 'molfilt', 'maxent', 'lp', 'lprand', 'maxentw']
+periodic=[0] levels=[1] safety=[0.5] nx=[101]
+
+### by geometry (all alpha, all K)
+arm                  jitter:0.00           jitter:0.10           jitter:0.25           jitter:0.45           random:0.00
+minnorm      0/12  0bl  1.34e-02   0/36  0bl  1.39e-02   0/36  0bl  3.65e-02  13/36  1bl  3.59e-01  25/36 15bl  4.56e+00
+projgauss    0/12  0bl  1.06e-02   0/36  0bl  9.61e-03   0/36  0bl  2.99e-02  12/36  1bl  2.86e-01  24/36 14bl  4.35e+00
+spectral     0/12  0bl  5.34e-03   0/36  0bl  5.58e-03   0/36  0bl  1.95e-02  17/36  6bl  5.24e-01  25/36 15bl  4.57e+00
+spectralg    0/12  0bl  5.34e-03   0/36  0bl  5.58e-03   0/36  0bl  1.95e-02  17/36  6bl  4.79e-01  25/36 15bl  4.56e+00
+molfe        8/12  6bl  1.66e+01  24/36 18bl  1.49e+01  24/36 18bl  1.18e+01  36/36 18bl  2.05e+01  36/36 32bl       inf
+molrk3       8/12  6bl  2.16e+01  24/36 18bl  1.77e+01  24/36 18bl  1.25e+01  36/36 18bl  2.09e+01  36/36 32bl       inf
+molfilt      0/12  0bl  5.04e-01   0/36  0bl  4.61e-01   0/36  0bl  4.77e-01  36/36 36bl       inf  36/36 36bl       inf
+maxent       0/12  0bl  4.99e-03   0/36  0bl  2.38e-03   0/36  0bl  5.35e-03  12/36  1bl  1.75e-01  25/36 13bl  4.58e+00
+lp           0/12  0bl  1.87e-02   0/36  0bl  2.62e-02   0/36  0bl  4.79e-02  12/36  1bl  3.85e-01  25/36 13bl  4.35e+00
+lprand       0/12  0bl  2.50e-02   0/36  0bl  1.71e-02   0/36  0bl  2.69e-02  12/36  1bl  3.84e-01  25/36 13bl  4.58e+00
+maxentw      0/12  0bl  4.99e-03   0/36  0bl  2.38e-03   0/36  0bl  5.35e-03   3/36  1bl  1.31e-02  15/36  6bl  2.86e-01
+  cell = (#growth>100)/(#runs)  (#blow-ups)  median L_inf(T)
+
+### by alpha (all geometries, all K)
+arm                          0.1                  0.03                  0.01                 0.003
+minnorm      9/39  3bl  6.80e-03   9/39  4bl  5.77e-02   9/39  4bl  1.76e-01  11/39  5bl  3.17e-01
+projgauss    9/39  3bl  3.40e-03   9/39  3bl  3.34e-02   9/39  4bl  1.43e-01   9/39  5bl  2.56e-01
+spectral    11/39  5bl  8.96e-04  11/39  5bl  1.41e-02  10/39  4bl  5.53e-02  10/39  7bl  1.39e-01
+spectralg   11/39  5bl  8.96e-04  11/39  5bl  1.42e-02  10/39  4bl  5.53e-02  10/39  7bl  1.39e-01
+molfe       32/39 29bl       inf  32/39 29bl       inf  32/39 26bl  3.38e+01  32/39  8bl  2.22e+00
+molrk3      32/39 29bl       inf  32/39 29bl       inf  32/39 26bl  3.80e+01  32/39  8bl  2.33e+00
+molfilt     18/39 18bl  1.82e-01  18/39 18bl  9.95e-01  18/39 18bl  2.10e+00  18/39 18bl  3.26e+00
+maxent       9/39  3bl  2.24e-04   9/39  3bl  2.71e-03   9/39  3bl  2.35e-02  10/39  5bl  3.33e-01
+lp           9/39  3bl  8.80e-03   9/39  3bl  2.22e-01   9/39  3bl  3.18e-01  10/39  5bl  3.32e-01
+lprand       9/39  3bl  2.49e-03   9/39  3bl  4.12e-02   9/39  3bl  3.19e-01  10/39  5bl  3.27e-01
+maxentw      0/39  0bl  2.24e-04   2/39  0bl  2.71e-03   6/39  2bl  2.33e-02  10/39  5bl  3.33e-01
+  cell = (#growth>100)/(#runs)  (#blow-ups)  median L_inf(T)
+
+### by K (all geometries, all alpha)
+arm                            3                     5                     7
+minnorm     24/52 13bl  7.11e-02  12/52  3bl  1.53e-01   2/52  0bl  1.27e-01
+projgauss   24/52 13bl  7.11e-02  12/52  2bl  1.18e-01   0/52  0bl  9.47e-02
+spectral    24/52 13bl  7.11e-02  17/52  7bl  6.62e-02   1/52  1bl  3.52e-02
+spectralg   24/52 13bl  7.11e-02  17/52  7bl  6.62e-02   1/52  1bl  3.52e-02
+molfe       24/52 13bl  3.00e-01  52/52 42bl       inf  52/52 37bl  5.25e+05
+molrk3      24/52 13bl  2.84e-01  52/52 42bl       inf  52/52 37bl  5.39e+05
+molfilt     24/52 24bl  3.00e-01  24/52 24bl  3.15e+00  24/52 24bl  1.96e+00
+maxent      24/52 13bl  7.11e-02  12/52  1bl  1.44e-02   1/52  0bl  8.38e-03
+lp          24/52 13bl  7.11e-02  12/52  1bl  2.14e-01   1/52  0bl  2.32e-01
+lprand      24/52 13bl  7.11e-02  12/52  1bl  2.32e-01   1/52  0bl  2.97e-02
+maxentw     10/52  6bl  7.20e-03   7/52  1bl  8.22e-03   1/52  0bl  8.38e-03
+  cell = (#growth>100)/(#runs)  (#blow-ups)  median L_inf(T)
+
+### alpha=0.1 (Pe=0.10): by geometry
+arm                  jitter:0.00           jitter:0.10           jitter:0.25           jitter:0.45           random:0.00
+minnorm      0/3   0bl  8.63e-04   0/9   0bl  1.23e-03   0/9   0bl  2.34e-03   3/9   0bl  7.09e-02   6/9   3bl  5.37e+00
+projgauss    0/3   0bl  4.87e-04   0/9   0bl  8.21e-04   0/9   0bl  1.47e-03   3/9   0bl  3.33e-02   6/9   3bl  5.36e+00
+spectral     0/3   0bl  1.35e-04   0/9   0bl  1.82e-04   0/9   0bl  7.02e-04   5/9   2bl  3.55e+00   6/9   3bl  5.34e+00
+spectralg    0/3   0bl  1.35e-04   0/9   0bl  1.82e-04   0/9   0bl  7.02e-04   5/9   2bl  3.55e+00   6/9   3bl  5.34e+00
+molfe        2/3   2bl       inf   6/9   6bl       inf   6/9   6bl       inf   9/9   6bl       inf   9/9   9bl       inf
+molrk3       2/3   2bl       inf   6/9   6bl       inf   6/9   6bl       inf   9/9   6bl       inf   9/9   9bl       inf
+molfilt      0/3   0bl  1.62e-01   0/9   0bl  1.43e-01   0/9   0bl  1.33e-01   9/9   9bl       inf   9/9   9bl       inf
+maxent       0/3   0bl  3.32e-05   0/9   0bl  5.39e-05   0/9   0bl  2.16e-04   3/9   0bl  5.31e-04   6/9   3bl  5.34e+00
+lp           0/3   0bl  8.80e-03   0/9   0bl  4.73e-03   0/9   0bl  6.07e-03   3/9   0bl  1.09e-02   6/9   3bl  5.36e+00
+lprand       0/3   0bl  2.25e-03   0/9   0bl  1.07e-03   0/9   0bl  1.35e-03   3/9   0bl  2.65e-03   6/9   3bl  5.34e+00
+maxentw      0/3   0bl  3.32e-05   0/9   0bl  5.39e-05   0/9   0bl  2.16e-04   0/9   0bl  4.86e-04   0/9   0bl  1.45e-03
+  cell = (#growth>100)/(#runs)  (#blow-ups)  median L_inf(T)
+
+### alpha=0.03 (Pe=0.33): by geometry
+arm                  jitter:0.00           jitter:0.10           jitter:0.25           jitter:0.45           random:0.00
+minnorm      0/3   0bl  9.59e-03   0/9   0bl  1.34e-02   0/9   0bl  2.68e-02   3/9   0bl  1.30e-01   6/9   4bl  4.72e+00
+projgauss    0/3   0bl  5.67e-03   0/9   0bl  9.18e-03   0/9   0bl  2.07e-02   3/9   0bl  9.71e-02   6/9   3bl  4.41e+00
+spectral     0/3   0bl  1.33e-03   0/9   0bl  2.06e-03   0/9   0bl  7.14e-03   5/9   2bl  2.70e+00   6/9   3bl  4.46e+00
+spectralg    0/3   0bl  1.33e-03   0/9   0bl  2.06e-03   0/9   0bl  7.14e-03   5/9   2bl  2.70e+00   6/9   3bl  4.46e+00
+molfe        2/3   2bl       inf   6/9   6bl       inf   6/9   6bl       inf   9/9   6bl       inf   9/9   9bl       inf
+molrk3       2/3   2bl       inf   6/9   6bl       inf   6/9   6bl       inf   9/9   6bl       inf   9/9   9bl       inf
+molfilt      0/3   0bl  7.14e-01   0/9   0bl  6.52e-01   0/9   0bl  6.43e-01   9/9   9bl       inf   9/9   9bl       inf
+maxent       0/3   0bl  1.12e-03   0/9   0bl  8.06e-04   0/9   0bl  2.71e-03   3/9   0bl  1.18e-02   6/9   3bl  4.48e+00
+lp           0/3   0bl  5.48e-02   0/9   0bl  4.37e-02   0/9   0bl  4.87e-02   3/9   0bl  2.41e-01   6/9   3bl  4.47e+00
+lprand       0/3   0bl  4.74e-02   0/9   0bl  1.92e-02   0/9   0bl  1.97e-02   3/9   0bl  4.15e-02   6/9   3bl  4.47e+00
+maxentw      0/3   0bl  1.12e-03   0/9   0bl  8.06e-04   0/9   0bl  2.71e-03   0/9   0bl  5.60e-03   2/9   0bl  1.55e-02
+  cell = (#growth>100)/(#runs)  (#blow-ups)  median L_inf(T)
+
+### alpha=0.01 (Pe=1.00): by geometry
+arm                  jitter:0.00           jitter:0.10           jitter:0.25           jitter:0.45           random:0.00
+minnorm      0/3   0bl  5.91e-02   0/9   0bl  7.48e-02   0/9   0bl  1.12e-01   3/9   0bl  4.95e-01   6/9   4bl  4.28e+00
+projgauss    0/3   0bl  3.51e-02   0/9   0bl  4.99e-02   0/9   0bl  8.51e-02   3/9   0bl  3.34e-01   6/9   4bl  4.29e+00
+spectral     0/3   0bl  1.46e-02   0/9   0bl  2.14e-02   0/9   0bl  5.33e-02   4/9   1bl  2.15e-01   6/9   3bl  4.08e+00
+spectralg    0/3   0bl  1.46e-02   0/9   0bl  2.14e-02   0/9   0bl  5.33e-02   4/9   1bl  2.15e-01   6/9   3bl  4.25e+00
+molfe        2/3   2bl  3.07e+01   6/9   6bl  2.88e+01   6/9   6bl  2.86e+01   9/9   5bl  3.38e+01   9/9   7bl  4.90e+02
+molrk3       2/3   2bl  4.07e+01   6/9   6bl  3.53e+01   6/9   6bl  3.14e+01   9/9   5bl  3.46e+01   9/9   7bl  5.10e+02
+molfilt      0/3   0bl  1.74e+00   0/9   0bl  1.82e+00   0/9   0bl  1.61e+00   9/9   9bl       inf   9/9   9bl       inf
+maxent       0/3   0bl  8.93e-03   0/9   0bl  6.42e-03   0/9   0bl  2.35e-02   3/9   0bl  1.27e-01   6/9   3bl  4.25e+00
+lp           0/3   0bl  2.33e-01   0/9   0bl  2.58e-01   0/9   0bl  2.82e-01   3/9   0bl  4.85e-01   6/9   3bl  4.11e+00
+lprand       0/3   0bl  3.41e-01   0/9   0bl  2.64e-01   0/9   0bl  2.82e-01   3/9   0bl  4.45e-01   6/9   3bl  4.24e+00
+maxentw      0/3   0bl  8.93e-03   0/9   0bl  6.42e-03   0/9   0bl  2.35e-02   0/9   0bl  5.23e-02   6/9   2bl  4.06e+00
+  cell = (#growth>100)/(#runs)  (#blow-ups)  median L_inf(T)
+
+### alpha=0.003 (Pe=3.33): by geometry
+arm                  jitter:0.00           jitter:0.10           jitter:0.25           jitter:0.45           random:0.00
+minnorm      0/3   0bl  2.25e-01   0/9   0bl  2.56e-01   0/9   0bl  2.21e-01   4/9   1bl  6.16e-01   7/9   4bl  4.17e+00
+projgauss    0/3   0bl  9.82e-02   0/9   0bl  1.17e-01   0/9   0bl  1.46e-01   3/9   1bl  3.62e-01   6/9   4bl  4.17e+00
+spectral     0/3   0bl  2.81e-02   0/9   0bl  5.03e-02   0/9   0bl  1.19e-01   3/9   1bl  5.22e-01   7/9   6bl       inf
+spectralg    0/3   0bl  2.81e-02   0/9   0bl  5.03e-02   0/9   0bl  1.19e-01   3/9   1bl  4.42e-01   7/9   6bl  3.91e+04
+molfe        2/3   0bl  1.49e+00   6/9   0bl  1.46e+00   6/9   0bl  1.41e+00   9/9   1bl  3.29e+00   9/9   7bl  1.20e+02
+molrk3       2/3   0bl  1.46e+00   6/9   0bl  1.43e+00   6/9   0bl  1.39e+00   9/9   1bl  3.29e+00   9/9   7bl  1.31e+02
+molfilt      0/3   0bl  1.52e+00   0/9   0bl  1.49e+00   0/9   0bl  1.43e+00   9/9   9bl       inf   9/9   9bl       inf
+maxent       0/3   0bl  1.04e-02   0/9   0bl  3.43e-02   0/9   0bl  1.35e-01   3/9   1bl  4.83e-01   7/9   4bl  6.24e+00
+lp           0/3   0bl  1.97e-02   0/9   0bl  3.43e-02   0/9   0bl  1.37e-01   3/9   1bl  4.84e-01   7/9   4bl  7.29e+00
+lprand       0/3   0bl  3.46e-02   0/9   0bl  3.43e-02   0/9   0bl  1.30e-01   3/9   1bl  4.82e-01   7/9   4bl  6.24e+00
+maxentw      0/3   0bl  1.04e-02   0/9   0bl  3.43e-02   0/9   0bl  1.35e-01   3/9   1bl  4.83e-01   7/9   4bl  6.24e+00
+  cell = (#growth>100)/(#runs)  (#blow-ups)  median L_inf(T)
+
+### worst growth per arm, and where
+minnorm    growth_max=9.63e+265 at random:0.00 s1 K3 a0.03  |M^nt|=1.45e+181 errT=      inf  min_w=-0.380 max_l1=1.760  fb=0
+projgauss  growth_max=9.63e+265 at random:0.00 s1 K3 a0.03  |M^nt|=1.45e+181 errT=      inf  min_w=-0.380 max_l1=1.760  fb=0
+spectral   growth_max=inf at jitter:0.45 s0 K5 a0.1  |M^nt|=inf errT=      inf  min_w=-0.021 max_l1=1.050  fb=0
+spectralg  growth_max=inf at jitter:0.45 s0 K5 a0.1  |M^nt|=inf errT=      inf  min_w=-0.021 max_l1=1.050  fb=0
+molfe      growth_max=inf at jitter:0.10 s0 K5 a0.01  |M^nt|=7.76e+11 errT=      inf  min_w=-0.091 max_l1=1.310  fb=0
+molrk3     growth_max=inf at jitter:0.10 s0 K5 a0.01  |M^nt|=2.68e+12 errT=      inf  min_w=-0.085 max_l1=1.292  fb=0
+molfilt    growth_max=inf at jitter:0.45 s0 K3 a0.1  |M^nt|=nan errT=      inf  min_w=-4.731 max_l1=10.832  fb=0
+maxent     growth_max=9.63e+265 at random:0.00 s1 K3 a0.03  |M^nt|=1.45e+181 errT=      inf  min_w=-0.380 max_l1=1.760  fb=35
+lp         growth_max=9.63e+265 at random:0.00 s1 K3 a0.03  |M^nt|=1.45e+181 errT=      inf  min_w=-0.380 max_l1=1.760  fb=35
+lprand     growth_max=9.63e+265 at random:0.00 s1 K3 a0.03  |M^nt|=1.45e+181 errT=      inf  min_w=-0.380 max_l1=1.760  fb=35
+maxentw    growth_max=2.57e+236 at random:0.00 s0 K3 a0.003  |M^nt|=6.18e+21 errT=      inf  min_w=-0.961 max_l1=2.922  fb=58
+
+### growth distribution per arm: count growth<=1+1e-9 / <=10 / <=100 / >100 ; and O(1)-wrong-but-bounded (growth<=100, errT>0.1)
+minnorm    n= 156  <=1:   22  <=10:  117  <=100:  118  >100:   38   bounded-but-wrong:   46
+projgauss  n= 156  <=1:   22  <=10:  120  <=100:  120  >100:   36   bounded-but-wrong:   40
+spectral   n= 156  <=1:   22  <=10:  107  <=100:  114  >100:   42   bounded-but-wrong:   21
+spectralg  n= 156  <=1:   22  <=10:  107  <=100:  114  >100:   42   bounded-but-wrong:   21
+molfe      n= 156  <=1:   21  <=10:   28  <=100:   28  >100:  128   bounded-but-wrong:    6
+molrk3     n= 156  <=1:   21  <=10:   28  <=100:   28  >100:  128   bounded-but-wrong:    6
+molfilt    n= 156  <=1:   21  <=10:   84  <=100:   84  >100:   72   bounded-but-wrong:   62
+maxent     n= 156  <=1:   89  <=10:  119  <=100:  119  >100:   37   bounded-but-wrong:   23
+lp         n= 156  <=1:   89  <=10:  119  <=100:  119  >100:   37   bounded-but-wrong:   53
+lprand     n= 156  <=1:   89  <=10:  119  <=100:  119  >100:   37   bounded-but-wrong:   39
+maxentw    n= 156  <=1:  108  <=10:  138  <=100:  138  >100:   18   bounded-but-wrong:   24
+
+### fallback (positivity-infeasible after workaround) per arm: mean nodes / 99, max
+maxent     mean=17.87 max= 82  runs with fallback>0: 67/156
+lp         mean=17.87 max= 82  runs with fallback>0: 67/156
+lprand     mean=17.87 max= 82  runs with fallback>0: 67/156
+maxentw    mean=15.25 max= 82  runs with fallback>0: 48/156
+
+### certificate vs outcome (all runs): rows = max_l1 <= 1+1e-9 ?, cols = growth <= 1+1e-9 / <=100 / >100
+  certified=True : n= 526  growth<=1:  526  growth<=100:  526  growth>100:    0
+  certified=False: n=1190  growth<=1:    0  growth<=100:  575  growth>100:  615
+
+### accuracy where everything is stable: median errT ratio arm / maxent, per (alpha, K), stable runs only
+ alpha  K    minnorm  projgauss   spectral  spectralg      molfe     molrk3    molfilt     maxent         lp     lprand    maxentw
+   0.1  3      1.000      1.000      1.000      1.000      3.224      1.996      3.224      1.000      1.000      1.000      1.000
+   0.1  5     21.851     14.604      3.007      3.007          -          -   2360.061      1.000     28.230      6.246      1.000
+   0.1  7     64.945     26.678      5.143      5.143          -          -   2599.297      1.000     36.809      9.312      1.000
+  0.03  3      1.000      1.000      1.000      1.000      3.735      2.417      3.735      1.000      1.000      1.000      1.000
+  0.03  5     12.730      9.489      3.561      3.561          -          -    594.296      1.000     23.659     16.237      1.000
+  0.03  7     22.584     12.406      6.364      6.364          -          -    800.491      1.000     94.655      8.358      1.000
+  0.01  3      1.000      1.000      1.000      1.000      4.662      4.044      4.662      1.000      1.000      1.000      1.000
+  0.01  5      6.746      4.677      1.967      1.967          -          -    199.875      1.000     21.073     21.937      1.000
+  0.01  7      9.967      6.121      2.694      2.694          -          -    221.221      1.000     11.507      4.141      1.000
+ 0.003  3      1.000      1.000      1.000      1.000      7.351      6.951      7.351      1.000      1.000      1.000      1.000
+ 0.003  5      1.210      0.912      0.685      0.669          -          -     18.214      1.000      1.008      0.990      1.000
+ 0.003  7      1.273      0.860      0.510      0.507          -          -      8.867      1.000      0.998      1.000      1.000
+
+### pairing: for each config, consistency-only arm's outcome vs positivity feasibility of the SAME stencil (maxent n_fallback at same geom/seed/K/alpha)
+arm         feasible everywhere & stable   feasible & UNSTABLE  infeasible somewhere & stable  infeasible & unstable  feasible & bounded-wrong(err>0.1)
+minnorm                               89                     0                             29                     38                                 22
+projgauss                             89                     0                             31                     36                                 14
+spectral                              84                     5                             30                     37                                  6
+spectralg                             84                     5                             30                     37                                  6
+molfe                                 22                    67                              6                     61                                  1
+molrk3                                22                    67                              6                     61                                  1
+molfilt                               66                    23                             18                     49                                 45
+maxent                                89                     0                             30                     37                                  2
+lp                                    89                     0                             30                     37                                 30
+maxentw                               89                     0                             49                     18                                  2
+
+### the 'feasible & UNSTABLE' cases in detail (consistency-only arms)
+  spectral   jitter:0.45 s0 K5 a0.1 growth=inf errT=      inf min_w=-0.021 l1=1.050 nu=0.001 r=0.005
+  spectral   jitter:0.45 s1 K5 a0.1 growth=1.46e+168 errT=      inf min_w=-0.040 l1=1.080 nu=0.001 r=0.011
+  spectral   jitter:0.45 s0 K5 a0.03 growth=3.48e+96 errT=      inf min_w=-0.022 l1=1.048 nu=0.002 r=0.005
+  spectral   jitter:0.45 s1 K5 a0.03 growth=1.51e+44 errT=      inf min_w=-0.045 l1=1.090 nu=0.004 r=0.011
+  spectral   jitter:0.45 s0 K5 a0.01 growth=4.18e+15 errT=      inf min_w=-0.026 l1=1.075 nu=0.005 r=0.005
+  spectralg  jitter:0.45 s0 K5 a0.1 growth=inf errT=      inf min_w=-0.021 l1=1.050 nu=0.001 r=0.005
+  spectralg  jitter:0.45 s1 K5 a0.1 growth=1.46e+168 errT=      inf min_w=-0.040 l1=1.080 nu=0.001 r=0.011
+  spectralg  jitter:0.45 s0 K5 a0.03 growth=3.48e+96 errT=      inf min_w=-0.022 l1=1.048 nu=0.002 r=0.005
+  spectralg  jitter:0.45 s1 K5 a0.03 growth=1.51e+44 errT=      inf min_w=-0.045 l1=1.090 nu=0.004 r=0.011
+  spectralg  jitter:0.45 s0 K5 a0.01 growth=4.18e+15 errT=      inf min_w=-0.026 l1=1.075 nu=0.005 r=0.005
+
+### maxentw: residual fallback after widening (nodes), by geometry x alpha
+jitter:0.00     a0.1:   0.0/ 0  a0.03:   0.0/ 0  a0.01:   0.0/ 0  a0.003:   0.0/ 0
+jitter:0.10     a0.1:   0.0/ 0  a0.03:   0.0/ 0  a0.01:   0.0/ 0  a0.003:  44.0/47
+jitter:0.25     a0.1:   0.0/ 0  a0.03:   0.0/ 0  a0.01:   0.0/ 0  a0.003:  71.3/79
+jitter:0.45     a0.1:   0.0/ 0  a0.03:   0.0/ 0  a0.01:   0.0/ 0  a0.003:  80.3/82
+random:0.00     a0.1:   0.0/ 0  a0.03:   0.3/ 1  a0.01:   9.7/11  a0.003:  58.7/60
+
+### molfilt: tuned filter strength eps (1/16 = Nyquist zeroed on uniform grid; inf = not stabilisable) by geometry x alpha, K=5: median / max
+jitter:0.00     a0.1: 0.0089/0.0089  a0.03: 0.0089/0.0089  a0.01: 0.0089/0.0089  a0.003: 0.0040/0.0040
+jitter:0.10     a0.1: 0.0053/0.0068  a0.03: 0.0053/0.0068  a0.01: 0.0053/0.0053  a0.003: 0.0031/0.0031
+jitter:0.25     a0.1: 0.0024/0.0031  a0.03: 0.0024/0.0031  a0.01: 0.0018/0.0031  a0.003: 0.0018/0.0024
+jitter:0.45     a0.1: inf/inf  a0.03: inf/inf  a0.01: inf/inf  a0.003: inf/inf
+random:0.00     a0.1: inf/inf  a0.03: inf/inf  a0.01: inf/inf  a0.003: inf/inf

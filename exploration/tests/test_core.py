@@ -1,0 +1,267 @@
+"""Every verified finding, encoded as an assertion. Run: python tests/test_core.py
+
+Each test name cites the finding it locks down (see ../FINDINGS.md).
+"""
+import sys, os, time
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import numpy as np
+from core.pde import Problem
+from core import stencil as st
+
+
+def test_F8_corrected_row_gives_lax_wendroff():
+    """Pure advection + corrected row => exactly Lax-Wendroff (the old row gave FTCS-central)."""
+    p = Problem(alpha=1e-30, c=1.0)
+    dx, dt, nu = 0.01, 0.004, 0.4
+    A, b = st.rows_taylor(np.array([-dx, 0, dx]), np.array([-dt] * 3), p)
+    w = np.linalg.solve(A, b)
+    lw = np.array([nu * (1 + nu) / 2, 1 - nu**2, -nu * (1 - nu) / 2])
+    assert np.allclose(w, lw, atol=1e-12), f"{w} != {lw}"
+
+
+def test_F_ftcs_is_positive_with_unit_norm():
+    """The classical CFL condition IS the positivity condition."""
+    p = Problem(nx=100)
+    A, b = st.rows_taylor(np.array([-p.dx, 0, p.dx]), np.array([-p.dt] * 3), p)
+    w = np.linalg.solve(A, b)
+    assert w.min() >= -1e-14, f"FTCS at r={p.r:.3f} should be positive, got {w}"
+    assert abs(st.amplification(w) - 1.0) < 1e-12
+
+
+def test_F_positivity_implies_unit_l1():
+    """C2: positive-feasible => ||w||_1 = 1 exactly."""
+    p, rng = Problem(nx=100), np.random.default_rng(0)
+    n = 0
+    for _ in range(400):
+        ix, it = rng.integers(-4, 5, 5), -rng.integers(1, 6, 5)
+        A, b = st.rows_taylor(ix * p.dx, it * p.dt, p)
+        w = st.solve_positive(A, b)
+        if w is not None:
+            n += 1
+            assert abs(st.amplification(w) - 1.0) < 1e-9
+    assert n > 100, f"too few feasible stencils to be a real test ({n})"
+
+
+def test_F_fast_certificate_matches_lp():
+    """T1's atan2 convex-hull test is EXACTLY equivalent to the LP, and faster."""
+    p, rng = Problem(nx=100), np.random.default_rng(1)
+    cases = []
+    for _ in range(1500):
+        ix, it = rng.integers(-4, 5, 5), -rng.integers(1, 6, 5)
+        cases.append(st.rows_taylor(ix * p.dx, it * p.dt, p))
+    t0 = time.perf_counter(); lp = [st.solve_positive(A, b) is not None for A, b in cases]
+    t_lp = time.perf_counter() - t0
+    t0 = time.perf_counter(); fast = [st.positive_feasible(A, b) for A, b in cases]
+    t_fast = time.perf_counter() - t0
+    dis = sum(a != b_ for a, b_ in zip(lp, fast))
+    assert dis == 0, f"{dis} disagreements out of {len(cases)}"
+    assert t_fast < t_lp, f"fast test not faster: {t_fast:.4f}s vs {t_lp:.4f}s"
+    print(f"      certificate: {t_lp/t_fast:.0f}x faster than LP, 0/{len(cases)} disagreements")
+
+
+def test_F6_moment_hierarchy_matches_closed_form():
+    """Propagator moments from PDE coefficients alone == Gaussian closed form."""
+    from scipy.integrate import solve_ivp
+    p, P = Problem(), 8
+    tau = 400 * p.dt
+
+    def rhs(t, M):
+        d = np.zeros_like(M)
+        for q in range(1, P + 1):
+            d[q] = p.c * q * M[q - 1] + (p.alpha * q * (q - 1) * M[q - 2] if q >= 2 else 0.0)
+        return d
+    M0 = np.zeros(P + 1); M0[0] = 1.0
+    ode = solve_ivp(rhs, (0, tau), M0, rtol=1e-12, atol=1e-14).y[:, -1]
+    closed = st.propagator_moments(tau, P, p) * (-1.0) ** np.arange(P + 1)
+    rel = np.abs(ode - closed) / np.maximum(np.abs(closed), 1e-300)
+    assert rel.max() < 1e-8, f"max rel diff {rel.max():.2e}"
+
+
+def test_F6_taylor_rows_are_the_p2_moment_case():
+    """rows_taylor's constraints are implied by matching moments 0..2.
+
+    m must be wide enough to REACH the required second moment: sum w dx^2 =
+    (c tau)^2 + 2 alpha tau needs (m dx)^2 > that. At m=6, tau=40dt it is
+    infeasible by 2% -- the stencil physically cannot spread that far.
+    """
+    p = Problem()
+    tau, m = 40 * p.dt, 14
+    dxi = np.arange(-m, m + 1) * p.dx
+    dti = np.full(len(dxi), -tau)
+    A_t, b_t = st.rows_taylor(dxi, dti, p)
+    w = st.solve_positive(*st.rows_moment(dxi, dti, 2, p))
+    assert w is not None
+    assert np.abs(A_t @ w - b_t).max() < 1e-10, "moment p=2 solution violates Taylor rows"
+
+
+def test_F3_jensen_obstruction():
+    """No non-negative w can cancel the dt^2 moment: sum w dt^2 >= (sum w dt)^2."""
+    p, rng = Problem(nx=100), np.random.default_rng(2)
+    n = 0
+    for _ in range(600):
+        npts = rng.integers(5, 12)
+        dxi = rng.integers(-5, 6, npts) * p.dx
+        dti = -rng.integers(1, 8, npts) * p.dt
+        A, b = st.rows_taylor(dxi, dti, p)
+        w = st.solve_positive(A, b)
+        if w is None:
+            continue
+        n += 1
+        assert w @ dti**2 >= (w @ dti) ** 2 - 1e-18
+    assert n > 100
+
+
+def test_F9_corrected_row_fixes_the_rank_degeneracy():
+    """BONUS: the F8 fix also removes the vertical-stencil failure mode.
+
+    With the old row (1/2 dx^2 + alpha dt) every entry is AFFINE in dt, so a
+    stencil with all neighbours at one x gives rank 2, b is out of range, and
+    lstsq silently returns sum(w) = 0.48. The corrected row carries xi^2, which
+    is QUADRATIC in dt, so rank 3 is restored and the failure mode disappears.
+    """
+    p = Problem()
+    dxi, dti = np.full(5, 2 * p.dx), -np.arange(1, 6) * p.dt
+    h = max(np.max(np.abs(dxi)), np.sqrt(p.alpha * np.max(np.abs(dti))), 1e-12)
+    A_old = np.array([np.ones(5), (dxi - p.c * dti) / h,
+                      (0.5 * dxi**2 + p.alpha * dti) / h**2])
+    assert np.linalg.matrix_rank(A_old) == 2, "old row should be rank-deficient here"
+    A_new, b = st.rows_taylor(dxi, dti, p)
+    assert np.linalg.matrix_rank(A_new) == 3, "corrected row should restore full rank"
+    # and the guard still catches a genuinely inconsistent system
+    assert st.solve_minnorm(A_old, b) is None, "guard failed on the rank-2 system"
+    assert st.solve_minnorm(A_old, b, guard=False) is not None
+
+
+def test_F3_RETRACTED_positivity_does_not_cap_order():
+    """RETRACTION. Positivity does NOT limit a parabolic scheme to 2nd order.
+
+    The Jensen inequality (test_F3_jensen_obstruction) is true, but the order
+    barrier drawn from it is not: under a PDE constraint u_tt is not an
+    independent error term, since d/dx commutes with the generator and every
+    time derivative collapses into q = dx - c dt and a = alpha dt. The
+    1/2 dt^2 u_tt contribution is redistributed onto u_xx, u_xxx, u_xxxx where
+    the other moments cancel it.
+
+    Counterexample: FTCS at r = 1/6 has weights (1/6, 2/3, 1/6) >= 0 and is
+    FOURTH order. Credit: T1.
+    """
+    alpha, T_END = 1.0, 0.02
+
+    def run(nx, r):
+        dx = 1.0 / (nx - 1)
+        nsteps = max(int(round(T_END / (r * dx**2 / alpha))), 1)
+        dt = T_END / nsteps
+        rr = alpha * dt / dx**2
+        x = np.linspace(0, 1, nx)
+        u = np.sin(np.pi * x)
+        for _ in range(nsteps):
+            u = np.concatenate([[0.0], rr * u[:-2] + (1 - 2 * rr) * u[1:-1] + rr * u[2:], [0.0]])
+        return np.max(np.abs(u - np.sin(np.pi * x) * np.exp(-alpha * np.pi**2 * T_END))), rr
+
+    for r, lo, hi in [(0.10, 1.8, 2.2), (0.25, 1.8, 2.2), (1 / 6, 3.8, 4.2)]:
+        errs = [run(nx, r)[0] for nx in [41, 81, 161]]
+        order = np.log2(errs[0] / errs[1])
+        w = np.array([r, 1 - 2 * r, r])
+        assert w.min() >= -1e-15, f"r={r}: weights must be non-negative"
+        assert lo <= order <= hi, f"r={r:.4f}: observed order {order:.2f} not in [{lo},{hi}]"
+
+
+def test_F3_godunov_holds_for_hyperbolic():
+    """The barrier IS real in the hyperbolic case: positive => 1st order."""
+    def run(nx, nu, positive):
+        c = 1.0; dx = 1.0 / nx
+        nsteps = max(int(round(0.2 / (nu * dx / c))), 1)
+        dt = 0.2 / nsteps; n = c * dt / dx
+        x = np.arange(nx) * dx; u = np.sin(2 * np.pi * x)
+        w = (np.array([n, 1 - n, 0.0]) if positive
+             else np.array([n * (1 + n) / 2, 1 - n**2, -n * (1 - n) / 2]))
+        for _ in range(nsteps):
+            u = w[0] * np.roll(u, 1) + w[1] * u + w[2] * np.roll(u, -1)
+        return np.max(np.abs(u - np.sin(2 * np.pi * (x - c * 0.2)))), w
+
+    for positive, lo, hi in [(True, 0.85, 1.25), (False, 1.85, 2.15)]:
+        errs = [run(nx, 0.5, positive)[0] for nx in [80, 160, 320]]
+        order = np.log2(errs[0] / errs[1])
+        w = run(160, 0.5, positive)[1]
+        assert (w.min() >= -1e-15) == positive, "positivity flag mismatch"
+        assert lo <= order <= hi, f"positive={positive}: order {order:.2f} not in [{lo},{hi}]"
+
+
+def test_F21_initial_condition_is_exact():
+    """u_true(x, 0) must equal the analytic IC. The transformed sine series does not:
+    v0 = u0*exp(-beta x) has O(n^-3) convergence and the reconstruction is amplified
+    by exp(beta x), giving ~5e-7 error at c=1 -- which masqueraded as an 'advective
+    accuracy floor' in several measurements."""
+    for c in [0.0, 1.0, 2.0]:
+        pr = Problem(c=max(c, 1e-12))
+        x = pr.x
+        exact = np.sin(np.pi * x) + 0.5 * np.sin(2 * np.pi * x)
+        assert np.abs(pr.u_true(x, 0.0) - exact).max() < 1e-13, f"c={c}"
+
+
+def test_F30_maxent_beats_the_lp_vertex():
+    """The LP returns a <=3-nonzero VERTEX; max-entropy returns the interior point.
+
+    The vertex does not benefit from extra width -- it just moves its masses further
+    apart, and gets WORSE. Max-entropy converts width into accuracy exponentially.
+    So the positivity certificate must be paired with BOTH a safety factor s and the
+    right point in the feasible set.
+    """
+    p = Problem(nx=401)
+    xs = 0.5
+    j0 = int(round(xs / p.dx))
+    tau = 40 * p.dt
+    sig = np.sqrt(2 * p.alpha * tau)
+    prev_lp = None
+    for sfac in [2, 4, 6]:
+        m = int(round(sfac * sig / p.dx))
+        A, b = st.rows_taylor(np.arange(-m, m + 1) * p.dx, np.full(2 * m + 1, -tau), p)
+        u0 = p.u_true(p.x[j0 - m:j0 + m + 1], 0.0)
+        uref = p.u_true(xs, tau)
+        wl, wm = st.solve_positive(A, b), st.solve_maxent(A, b)
+        assert wl is not None and wm is not None, f"s={sfac}: no solution"
+        assert (wl > 1e-10).sum() <= 3, "LP should return a vertex"
+        assert (wm > 1e-10).sum() > m, "max-entropy should have full support"
+        assert wm.min() >= -1e-12 and abs(np.abs(wm).sum() - 1) < 1e-9
+        el, em = abs(wl @ u0 - uref), abs(wm @ u0 - uref)
+        assert em <= el, f"s={sfac}: max-entropy ({em:.2e}) should beat the vertex ({el:.2e})"
+        if prev_lp is not None:
+            assert el >= prev_lp, "the LP vertex should NOT improve with width"
+        prev_lp = el
+    assert em < 1e-10, f"max-entropy at s=6 should reach ~1e-11, got {em:.2e}"
+
+
+def test_F1_diffusive_frontier_formula():
+    """The SHARP frontier: k_max = (-r + sqrt(r^2 + nu^2 m^2))/nu^2 (T5).
+
+    The old (m dx)^2/(2 alpha dt) is only its nu -> 0 limit and overstates badly at
+    large m: 2.2x at m=32, 3.1x at m=50.
+    """
+    p = Problem()
+    for m in [2, 3, 4, 6, 8, 12, 16, 32, 50]:
+        pred = st.k_max(m, p)
+        ok = lambda k: st.positive_feasible(*st.rows_taylor(
+            np.arange(-m, m + 1) * p.dx, np.full(2 * m + 1, -k * p.dt), p))
+        lo, hi = 1, max(2, int(pred * 2) + 4)      # bisect, formula-agnostic
+        while lo + 1 < hi:
+            mid = (lo + hi) // 2
+            if ok(mid):
+                lo = mid
+            else:
+                hi = mid
+        kmax = lo
+        assert abs(kmax - pred) <= 1, f"m={m}: LP gives k_max={kmax}, formula says {pred}"
+
+
+if __name__ == "__main__":
+    fns = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_")]
+    fails = 0
+    for name, fn in fns:
+        try:
+            fn(); print(f"  PASS  {name}")
+        except AssertionError as e:
+            fails += 1; print(f"  FAIL  {name}\n        {e}")
+        except Exception as e:
+            fails += 1; print(f"  ERROR {name}\n        {type(e).__name__}: {e}")
+    print(f"\n{len(fns)-fails}/{len(fns)} passed")
+    sys.exit(1 if fails else 0)
