@@ -48,8 +48,17 @@ def stop_cost(rule, c):
 BASE = {"LW map": lw, "lowest score": lowest_score, "greedy": greedy_rule(LAM)}
 
 
+FAST = os.environ.get("FAST") == "1"                    # FAST=1: the main methods only, no fixed-stencil search
+TAG = PROBLEM + ("" if GUESS_SPEC == "lw" else "_guess-" + GUESS_SPEC.replace(":", "")) + ("" if PICARD == (0 if PROBLEM == "advection" else 1) else f"_picard{PICARD}")
+
+
 def methods():
     M = dict(BASE)
+    if FAST:
+        M["greedy+stop(myopic)"] = greedy_stop(LAM)
+        M["LW map+stop(c=1)"] = stop_cost(lw, 1.0)
+        M["greedy+stop(c=0.1)"] = stop_cost(greedy_rule(LAM), 0.1)
+        return M
     M["greedy+stop(myopic)"] = greedy_stop(LAM)
     for kind in ("abs", "2g"):
         M[f"lowest score[{kind}]"] = lowest_kind(kind)
@@ -102,14 +111,14 @@ if __name__ == "__main__":
         R = {str(z): out for z, out, _ in res}
         used = sum((u for _, _, u in res), Counter())
         cands = [c for c, _ in used.most_common(12)]
-        fix = dict(pool.map(run_fixed, [(z, cands) for z in Q]))
+        fix = None if FAST else dict(pool.map(run_fixed, [(z, cands) for z in Q]))
     # best fixed stencil: lowest exact bound over the unseen queries (an oracle choice, uses u_true)
-    best = min(cands, key=lambda c: gm([fix[z][str(c)]["bound"] / R[str(z)]["LW map"]["bound"] for z in Q_UNSEEN]))
-    for z in Q:
+    best = None if FAST else min(cands, key=lambda c: gm([fix[z][str(c)]["bound"] / R[str(z)]["LW map"]["bound"] for z in Q_UNSEEN]))
+    for z in (() if FAST else Q):
         R[str(z)]["best fixed"] = dict(fix[z][str(best)], band=float("nan"))
-    json.dump({"R": R, "best_fixed": best, "G_COARSE": G_COARSE, "G_COARSE4": G_COARSE4}, open(os.path.join(os.path.dirname(__file__), f"results_{PROBLEM}.json"), "w"), indent=1, default=float)
-    names = list(methods()) + ["best fixed"]
-    print(f"{PROBLEM}: guess cost {G_COARSE} + {G_COARSE4} + {G_COARSE8} (2nd, 3rd guess) grid points, shared by all queries; R_OBS = {R_OBS:.2f}\n")
+    json.dump({"R": R, "best_fixed": best, "G_COARSE": G_COARSE, "G_COARSE4": G_COARSE4}, open(os.path.join(os.path.dirname(__file__), f"results_{TAG}.json"), "w"), indent=1, default=float)
+    names = list(methods()) + ([] if FAST else ["best fixed"])
+    print(f"{TAG}: guess cost {G_COARSE} + {G_COARSE4} + {G_COARSE8} (2nd, 3rd guess) grid points, shared by all queries; R_OBS = {R_OBS:.2f}\n")
     print("unseen 9:\n" + table(R, Q_UNSEEN, names))
     print("\nnew 6:\n" + table(R, Q_NEW, names))
     print("\nmax identity gap:", max(r["identity_gap"] for z in R for r in R[z].values() if "identity_gap" in r))

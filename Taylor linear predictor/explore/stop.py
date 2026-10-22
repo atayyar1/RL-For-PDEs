@@ -49,6 +49,22 @@ def make_guess(K):
 GUESS4, G_COARSE4 = make_guess(2 * K_COARSE)
 GUESS8, G_COARSE8 = make_guess(4 * K_COARSE)
 guess_value = lambda q: GUESS[0, q[1], q[0]]
+
+# ── Optional better guesses for Burgers (burgers_guess.py): GUESS=fd5:K (FD-5 + RK4, K x coarser, also for the 2nd and
+#    3rd guess at 2K, 4K) or GUESS=hyb:K (values / speed from FD-5 K x coarser, x-derivatives from the LW guesses)
+GUESS_SPEC = os.environ.get("GUESS", "lw")
+if GUESS_SPEC != "lw":
+    from burgers_guess import coarse_fd5
+    _kind, _K = GUESS_SPEC.split(":"); _K = int(_K)
+    _F = [coarse_fd5(_K * s, nx, nt, T, alpha, u0, g_left, g_right, A_MAX, x_grid, dt) for s in (1, 2, 4)]
+    if _kind == "fd5":
+        GUESS, GUESS4, GUESS8 = (f[0] for f in _F)
+        G_COARSE, G_COARSE4, G_COARSE8 = (f[1] for f in _F)
+    else:                                                 # hybrid: row 0 (u) from FD-5, rows 1-4 from LW
+        for G, f in zip((GUESS, GUESS4, GUESS8), _F):
+            G[0] = f[0][0]
+        G_COARSE, G_COARSE4, G_COARSE8 = G_COARSE + _F[0][1], G_COARSE4 + _F[1][1], G_COARSE8 + _F[2][1]
+    CORE.GUESS = GUESS                                    # cell 8's guess_derivs and a_build read CORE.GUESS
 # observed convergence ratio of the guesses, from the guesses only: |g4 - g8| ~ R |g2 - g4|  (R = 4 for a clean 2nd order;
 # near a front LW is pre-asymptotic and R is smaller, so dividing by 3 would underestimate the error)
 _d24, _d48 = np.abs(GUESS[0] - GUESS4[0])[1:, 1:-1], np.abs(GUESS4[0] - GUESS8[0])[1:, 1:-1]
@@ -80,7 +96,7 @@ def build_map_s(z_star, choose):
     return m
 
 
-PICARD = 0 if PROBLEM == "advection" else 1             # as in the notebooks' evaluate (exact speed needs none)
+PICARD = int(os.environ.get("PICARD", 0 if PROBLEM == "advection" else 1))   # live-speed re-solves in the forward pass
 
 
 def evaluate_s(m, picard=PICARD):

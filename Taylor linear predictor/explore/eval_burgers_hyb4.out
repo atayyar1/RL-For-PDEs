@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/home/user/RL-For-PDEs/Taylor linear predictor/explore/evaluate.py", line 8, in <module>
+    from robust import *
+  File "/home/user/RL-For-PDEs/Taylor linear predictor/explore/robust.py", line 8, in <module>
+    from stop import *
+  File "/home/user/RL-For-PDEs/Taylor linear predictor/explore/stop.py", line 59, in <module>
+    _F = [coarse_fd5(_K * s, nx, nt, T, alpha, u0, g_left, g_right, A_MAX, x_grid, dt) for s in (1, 2, 4)]
+          ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/RL-For-PDEs/Taylor linear predictor/explore/burgers_guess.py", line 41, in coarse_fd5
+    Dc[k, j] = sp.derivative(k)(x_grid) if k else sp(x_grid)
+               ~~~~~~~~~~~~~^^^
+  File "/usr/local/lib/python3.13/dist-packages/scipy/interpolate/_bsplines.py", line 928, in derivative
+    tck = _fitpack_impl.splder((t, c, self.k), nu)
+  File "/usr/local/lib/python3.13/dist-packages/scipy/interpolate/_fitpack_impl.py", line 767, in splder
+    raise ValueError(f"Order of derivative (n = {n!r}) must be <= "
+                     f"order of spline (k = {tck[2]!r})")
+ValueError: Order of derivative (n = 4) must be <= order of spline (k = 3)
