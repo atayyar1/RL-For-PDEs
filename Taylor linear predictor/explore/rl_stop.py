@@ -26,10 +26,22 @@ def b_lw(z):
     return _blw[z]
 
 
+_ctg = {}
+def lw_cost_to_go(z):
+    """A (score per unit beta) and N (points) of every point of the LW map of z* (rollout.py), the shaping potential."""
+    if z not in _ctg:
+        from rollout import cost_to_go
+        _ctg[z] = cost_to_go(build_map_s(z, lw))
+    return _ctg[z]
+
+
 class StopEnv(MapEnv):
-    def __init__(self, queries, lam_range=(1.0, 1.0), cap=3.0, norm=None):
+    """shaping = True adds F = Phi(s') - Phi(s) to every reward (potential-based: the optimal policy is unchanged), with
+    Phi(s) = -sum_{q pending} ( |beta_q| A_q / EPS + lam N_q / N_LW ),  A, N = cost-to-go of q in the LW map of z*
+    (points outside the LW map: A = 0, N = 1). A stop then sees the subtree it saves at once, not hundreds of steps later."""
+    def __init__(self, queries, lam_range=(1.0, 1.0), cap=3.0, norm=None, shaping=False):
         super().__init__(queries, lam_range, cap)
-        self.norm = norm
+        self.norm, self.shaping = norm, shaping
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(N_OBS_S,), dtype=np.float32)
         self.action_space = spaces.Discrete(N_CELLS + 1)
 
@@ -37,7 +49,26 @@ class StopEnv(MapEnv):
         obs, info = super().reset(seed=seed)
         self.m["stopped"] = set()
         self.unit = b_lw(self.z) if self.norm == "lw" else 1.0
+        self.phi = self._phi()
         return self._obs(), info
+
+    def _phi(self):
+        if not self.shaping:
+            return 0.0
+        A, N = lw_cost_to_go(self.z)
+        tot = 0.0
+        for it, ix in self.m["pending"]:
+            q = (ix, -it)
+            tot += abs(self.m["beta"][q]) * A.get(q, 0.0) / EPS / self.unit + self.lam * N.get(q, 1.0) / self.N_ref
+        return -tot
+
+    def _shape(self, r, done):
+        """Add Phi(s') - Phi(s) (Phi = 0 at the end), only when a stencil or a stop was placed (picks change nothing)."""
+        if not self.shaping:
+            return r
+        new = 0.0 if done else self._phi()
+        r, self.phi = r + new - self.phi, new
+        return r
 
     def _accuracy(self, pts):
         return super()._accuracy(pts) / self.unit
@@ -51,7 +82,10 @@ class StopEnv(MapEnv):
 
     def step(self, k):
         if k != STOP:
+            placed = len(self.picks) + 1 >= len(allowed_sets(self.m, next_point(self.m))[0][0])
             obs, r, done, trunc, info = super().step(k)
+            if placed:
+                r = self._shape(r, done)
             return (np.zeros(N_OBS_S, np.float32) if done else obs), r, done, trunc, self._info(info, done)
         p = next_point(self.m)
         cost = abs(self.m["beta"][p]) * guess_err(p)
@@ -62,11 +96,11 @@ class StopEnv(MapEnv):
             r -= self._accuracy(close_level(self.m))
         r += self._play_forced()
         if self.m["pending"]:
-            return self._obs(), r, False, False, {}
+            return self._obs(), self._shape(r, False), False, False, {}
         r -= self._accuracy(close_level(self.m)) if self.m["level"] else 0.0
         info = {"finished": True, "points": len(self.m["stencil"]), "lam": self.lam,
                 "score_ratio": self.B / EPS, "points_ratio": len(self.m["stencil"]) / self.N_ref}
-        return np.zeros(N_OBS_S, np.float32), r, True, False, self._info(info, True)
+        return np.zeros(N_OBS_S, np.float32), self._shape(r, True), True, False, self._info(info, True)
 
     def _info(self, info, done):
         if done:
@@ -78,9 +112,12 @@ class StopEnv(MapEnv):
         return np.r_[pick_mask(self.m, p, self.picks), not self.picks and p != self.z]
 
 
+SHAPING = os.environ.get("SHAPING") == "1"
+
+
 def make_env(queries, seed, norm):
     def _init():
-        e = Monitor(ActionMasker(StopEnv(queries, norm=norm), lambda e: e.action_masks()))
+        e = Monitor(ActionMasker(StopEnv(queries, norm=norm, shaping=SHAPING), lambda e: e.action_masks()))
         e.reset(seed=seed)
         return e
     return _init
@@ -108,9 +145,11 @@ if __name__ == "__main__":
         norm = sys.argv[5] if len(sys.argv) > 5 else None
         queries = Q_TRAIN_MULTI if qarg == "multi" else [tuple(int(v) for v in qarg.split(","))]
         os.makedirs(run_dir, exist_ok=True)
-        json.dump(dict(steps=steps, queries=queries, norm=norm), open(os.path.join(run_dir, "config.json"), "w"))
+        json.dump(dict(steps=steps, queries=queries, norm=norm, shaping=SHAPING), open(os.path.join(run_dir, "config.json"), "w"))
         for z in queries:
             n_lw(z); b_lw(z)
+            if SHAPING:
+                lw_cost_to_go(z)
         vec = SubprocVecEnv([make_env(queries, 100 + i, norm) for i in range(4)])
         model = MaskablePPO("MlpPolicy", vec, seed=1, verbose=0, device="cpu", n_steps=1024, batch_size=1024,
                             gamma=1.0, gae_lambda=0.97, learning_rate=3e-4, ent_coef=0.0)
