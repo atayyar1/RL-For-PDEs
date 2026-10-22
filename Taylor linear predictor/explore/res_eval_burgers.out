@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/home/user/RL-For-PDEs/Taylor linear predictor/explore/res_eval.py", line 33, in <module>
-    json.dump(R, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"res_eval_{PROBLEM}.json"), "w"), indent=1, default=float)
-    ^^^^
-NameError: name 'json' is not defined. Did you forget to import 'json'?
