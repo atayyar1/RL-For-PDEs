@@ -235,6 +235,10 @@ SL k=3 x0.40 / x2.26, SL k=2 + stop(c=1) **x0.30 / x1.59**, SL k=3 + stop x0.22 
 On the new 6: SL k=2 + stop x0.26 / **x0.75**. Better than greedy on Burgers without any score, but not more accurate
 than LW on the unseen set.
 
+On **advection** semi-Lagrangian stencils are worse than LW (`python explore/semilag.py`: SL k=2 + stop x0.25 points /
+x1.43 error, 2/9 wins) while greedy + stop gives x0.24 / x0.06. The pattern across this report: **where the score is
+trustworthy (advection), score-driven choices win; where it is not (Burgers front), physics-only stencils win.**
+
 **B6. The forward pass is not converged (free gain).** The plain LW map got 2x more accurate with the FD-5 guess,
 although its stencil does not depend on the guess. Reason: one Picard step takes its speed from a value computed with
 the guessed-speed weights. More steps (`PICARD=3`): (25, 100) 4.75e-5 -> 2.32e-5, (38, 50) 4.2e-4 -> 2.6e-4,
