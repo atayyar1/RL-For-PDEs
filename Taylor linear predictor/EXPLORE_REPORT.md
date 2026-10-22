@@ -249,7 +249,21 @@ lam = 1. Learning curves (deterministic policy at (25, 45)) in `runs/<name>/curv
   form provably leaves the optimal policy unchanged (Ng et al. 1999); check: the shaped and unshaped returns of the same
   episode differ by exactly -Phi(s0) = 4.2430. The agent starts stopping at ~500k steps and reaches 517 points
   (x0.34 of LW) with half the unshaped run's error by 1M. **This is the first agent in the project that learns to save
-  points.** It is still single-query and its error is 2x greedy+stop's at its own query. SHAPED_EVAL
+  points.** It is still single-query and its error is 2x greedy+stop's at its own query. 
+
+**It generalises** (trained on (25, 45) only; `python explore/rl_stop.py eval stop_shaped_25-45`, `runs/stop_shaped_25-45/eval.json`):
+
+| advection | points | true error | exact bound | wins vs LW | in Green band |
+|---|---|---|---|---|---|
+| old agent (brief), unseen 9 | x1.21 | x1.06 | x1.94 | 5/9 | - |
+| **shaped agent + stop, unseen 9** | **x0.07** | **x0.98** | x1.62 | 5/9 | **0.97** |
+| shaped agent + stop, new 6 | x0.09 | x0.59 | x1.17 | 5/6 | 0.98 |
+| greedy + myopic stop, unseen 9 | x0.24 | x0.06 | x0.20 | 9/9 | 0.80 |
+| LW + rollout stop (lam = 1), unseen 9 | x0.07 | x1.08 | x1.69 | - | - |
+
+14x fewer points than the LW map at the LW map's accuracy, on queries it never saw, with 97% of its points inside the
+exact Green's function band: the footprint is physically right. It is at the "few points" end of the trade-off (like
+LW + rollout stops), not more accurate than greedy; lam (the price of a point) sets where on the curve it sits.
 * The behaviour-cloning warm start (`bc.py`) was written and its teacher episodes checked (valid under the mask) but
   not run: Ali reported earlier trouble with copying greedy, and the shaping result made it less urgent.
 
