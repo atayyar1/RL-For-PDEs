@@ -1,0 +1,26 @@
+
+inflow_front unseen 9:
+| method | points | stops | exact bound | true error | est/bound | est_res/bound | wins |
+|---|---|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 19.79 | 53.17 | 0/9 |
+| greedy | x0.52 | 0 | x25.45 | x1.87 | 0.00 | 2.16 | 3/9 |
+| greedy+stop(myopic) | x0.38 | 45 | x25.33 | x1.97 | 0.01 | 2.16 | 2/9 |
+| greedy res[lw2] | x0.67 | 0 | x92.16 | x110.78 | 1.52 | 0.92 | 0/9 |
+| greedy res[max lw2,lw4] | x0.90 | 0 | x266.70 | x123.03 | 1.37 | 1.01 | 0/9 |
+| greedy res[fd52] | x0.59 | 0 | x46.30 | x51.57 | 1.28 | 0.00 | 1/9 |
+| lowest res[fd52] | x1.11 | 0 | x48.28 | x49.90 | 1.35 | 0.00 | 1/9 |
+| greedy res[fd52]+stop(myopic) | x0.48 | 41 | x46.83 | x53.45 | 1.25 | 0.00 | 1/9 |
+| LW map+stop(c=1) | x0.53 | 98 | x1.01 | x0.99 | 19.64 | 52.73 | 1/9 |
+
+inflow_front new 6:
+| method | points | stops | exact bound | true error | est/bound | est_res/bound | wins |
+|---|---|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 11.23 | 38.00 | 0/6 |
+| greedy | x0.53 | 0 | x15.58 | x1.79 | 0.00 | 2.67 | 2/6 |
+| greedy+stop(myopic) | x0.37 | 62 | x15.18 | x1.74 | 0.00 | 2.72 | 2/6 |
+| greedy res[lw2] | x0.61 | 0 | x46.05 | x28.21 | 1.74 | 1.15 | 0/6 |
+| greedy res[max lw2,lw4] | x0.86 | 0 | x158.11 | x37.73 | 1.34 | 1.05 | 0/6 |
+| greedy res[fd52] | x0.58 | 0 | x29.10 | x6.12 | 1.82 | 0.01 | 3/6 |
+| lowest res[fd52] | x1.08 | 0 | x29.27 | x8.64 | 1.91 | 0.01 | 1/6 |
+| greedy res[fd52]+stop(myopic) | x0.43 | 63 | x28.92 | x9.48 | 1.85 | 0.01 | 2/6 |
+| LW map+stop(c=1) | x0.50 | 144 | x1.01 | x1.01 | 11.13 | 37.67 | 0/6 |

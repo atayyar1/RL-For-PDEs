@@ -1,0 +1,22 @@
+
+inflow_front unseen 9:
+| method | points | stops | exact bound | true error | wins |
+|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 0/9 |
+| SL k=1 | x1.12 | 0 | x2.98 | x2.48 | 2/9 |
+| SL k=2 | x0.66 | 0 | x1.76 | x1.58 | 2/9 |
+| SL k=3 | x0.40 | 0 | x2.58 | x2.26 | 1/9 |
+| SL k=3+stop(c=1) | x0.22 | 69 | x2.59 | x2.25 | 1/9 |
+| SL k=2+stop(c=1) | x0.30 | 98 | x1.78 | x1.59 | 2/9 |
+| greedy | x0.52 | 0 | x25.45 | x1.87 | 3/9 |
+
+inflow_front new 6:
+| method | points | stops | exact bound | true error | wins |
+|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 0/6 |
+| SL k=1 | x1.10 | 0 | x3.26 | x1.29 | 2/6 |
+| SL k=2 | x0.78 | 0 | x1.03 | x0.75 | 2/6 |
+| SL k=3 | x0.51 | 0 | x1.75 | x1.52 | 1/6 |
+| SL k=3+stop(c=1) | x0.21 | 114 | x1.76 | x1.53 | 1/6 |
+| SL k=2+stop(c=1) | x0.26 | 145 | x1.04 | x0.75 | 2/6 |
+| greedy | x0.53 | 0 | x15.58 | x1.79 | 2/6 |
