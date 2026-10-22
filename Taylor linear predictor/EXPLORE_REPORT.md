@@ -172,20 +172,53 @@ the coarse solve), s = |G(p) - sum w G(q)|. Uses every order, no high derivative
 | residual on the FD-5 2x guess | **0.73 / 1.01** | 0.93 / 1.00 |
 
 Better calibrated than the Taylor score on Burgers, worse on advection (where the Taylor polynomial is the right
-model). Map results: RESIDUAL_MAPS
+model). **But on maps it fails** (`res_eval.py`, Burgers unseen): greedy with the
+residual score has x52-x111 true error, because rules that *minimise* it find stencils where it cancels
+(est_res/bound 0.00 on their own maps). On advection greedy-residual is x0.29 error vs the Taylor greedy's x0.06.
+**Lesson: any estimate that a rule minimises over ~18,000 stencils per point gets exploited, however well it is
+calibrated on random stencils.** Calibration must be checked on the maps the rule builds, not on random stencils.
 
 **B4. Reuse stops (Ali's KD-tree idea)** (`reuse.py`): a point takes a stencil made only of points the map already has
 (lower levels, so still pending) or data, found by nearest-neighbour search (in the characteristic frame) in a box of
 |dix| <= 8, 1-6 levels down; best admissible 5-subset of the 8 nearest by score. No new point, no guess value, identity
 exact (gap 1e-16). Advection (25, 40): LW 1344 -> 1035 points with *lower* error (1.91e-3 -> 1.68e-3); greedy 649 -> 453
-at the same error. Full tables: REUSE_TABLES
+at the same error. Full tables (`reuse_*.out`):
+
+| problem, unseen 9 | method | points | true error | exact bound | wins vs LW |
+|---|---|---|---|---|---|
+| advection | LW + reuse(c=10) | x0.67 | **x0.63** | x1.04 | 8/9 |
+| advection | greedy + reuse | **x0.31** | x0.06 | x0.23 | 9/9 |
+| advection | greedy + myopic stop + reuse | **x0.20** | x0.09 | x0.27 | 9/9 |
+| Burgers | LW + reuse(c=1) | x0.61 | x1.23 (median better: 7/9 wins) | x2.37 | 7/9 |
+| Burgers (new 6) | LW + reuse(c=1) | x0.67 | **x0.65** | x1.60 | 5/6 |
+| Burgers | greedy + reuse | x0.38 | x2.03 | x25.6 | 2/9 |
+
+Reuse cuts points and often *lowers* the error (a wider stencil of existing points, no guess value). It inherits the
+score's trouble on Burgers when combined with greedy.
 
 **B5. Semi-Lagrangian deep stencils** (`semilag.py`, no score): jump k levels, take the 5 cells nearest the foot of the
 characteristic. Burgers, 2 queries: k = 3 halves the points; error x1.5 at (25, 100) and x11 at (12, 75) (where LW is
 unusually accurate, 6.6e-6); bound only 1.5-3x LW's. A robust, score-free way to cut points, at some accuracy cost.
-Full table: SEMILAG_TABLE
+Full table (`semilag_burgers.out`, unseen 9): SL k=2 x0.66 points / x1.58 error,
+SL k=3 x0.40 / x2.26, SL k=2 + stop(c=1) **x0.30 / x1.59**, SL k=3 + stop x0.22 / x2.25 (greedy: x0.52 / x1.87).
+On the new 6: SL k=2 + stop x0.26 / **x0.75**. Better than greedy on Burgers without any score, but not more accurate
+than LW on the unseen set.
 
-**B6. Speed-robust score** (worst score over a_g, a_g +- guess error): much worse on (25, 100) (bound 1e-4 -> 5).
+**B6. The forward pass is not converged (free gain).** The plain LW map got 2x more accurate with the FD-5 guess,
+although its stencil does not depend on the guess. Reason: one Picard step takes its speed from a value computed with
+the guessed-speed weights. More steps (`PICARD=3`): (25, 100) 4.75e-5 -> 2.32e-5, (38, 50) 4.2e-4 -> 2.6e-4,
+(25, 130) 6.4e-3 -> 2.7e-3; (12, 75) 6.6e-6 -> 3.6e-5 (the 1-step value was a lucky cancellation). Full tables: PICARD_TABLE
+
+**B7. One baseline for every guess / forward-pass setting** (`compare_guess.py`, against the notebook's LW map):
+the best Burgers configuration so far is **LW + stop(c=1) with the FD-5 2x guess: x0.38 points at x0.44 true error,
+7/9 wins (unseen); x0.32 / x0.52, 6/6 (new)**. With picard 0 everything is 3-80x worse: the live-speed re-solve is
+essential on Burgers. COMBO_TABLE
+
+**B8. More Taylor conditions** (`highorder.py`, `NROWS` = 4 or 5 rows from exp(xi d + alpha dt d^2), 5 cells one
+level down): W5 with 4 rows vs LW: (25, 100) 2.4e-5 vs 4.8e-5, (12, 75) 2.0e-5 vs 6.6e-6; advection about LW's.
+Modest: the frozen-speed rows neglect the u u_x (Burgers) / a' (advection) terms, which cap the order. HIGHORDER_TABLE
+
+**B9. Speed-robust score** (worst score over a_g, a_g +- guess error): much worse on (25, 100) (bound 1e-4 -> 5).
 Dropped.
 
 ## 4. Depth / level skipping (item 4)
