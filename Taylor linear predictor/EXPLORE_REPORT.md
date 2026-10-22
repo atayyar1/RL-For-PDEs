@@ -32,11 +32,17 @@ answers every query; the maps win for single queries (cheapest route to a given 
 | script | what it reproduces |
 |---|---|
 | `python explore/check_core.py` | the notebook checks (LW map identity, score correlation) |
-| `python explore/evaluate.py` / `PDE=burgers python explore/evaluate.py` | Tables 1-3 (`results_*.json`, `evaluate_*.out`) |
-| `python explore/pareto.py` / `PDE=burgers python explore/pareto.py` | Figures `pareto_advection.png`, `pareto_inflow_front.png` |
-| `python explore/fig_footprint.py` | Figure `footprint.png` |
-| `PDE=burgers python explore/burgers_robust.py` | the speed-robust score test (Section 5) |
-| `python explore/rl_stop.py train ...`, `python explore/bc.py ...` | the PPO runs (Section 6) |
+| `python explore/evaluate.py` / `PDE=burgers [GUESS=fd5:2] [PICARD=3] [FAST=1] python explore/evaluate.py` | Tables 1-2, B2 (`results_*.json`, `evaluate_*.out`, `eval_burgers_*.out`) |
+| `python explore/pareto.py` / `PDE=burgers python explore/pareto.py` | `pareto_advection.png`, `pareto_inflow_front.png` |
+| `python explore/fig_footprint.py`, `python explore/fig_agent.py` | `footprint.png`, `agent_footprint.png` |
+| `python explore/rollout.py` | rollout stops (Section 1) |
+| `PDE=burgers python explore/burgers_guess.py`, `explore/residual.py` | guess accuracy (B2), residual calibration (B3) |
+| `[PDE=burgers] python explore/res_eval.py`, `explore/reuse.py`, `explore/semilag.py`, `explore/hybrid.py` | B3 maps, B4, B5, hybrid |
+| `PDE=burgers [GUESS=fd5:2] [PICARD=3] python explore/combo.py`, `explore/sweep_burgers.py`, `python explore/compare_guess.py` | B6-B7, best Burgers recipe, stop-price sweep |
+| `PDE=burgers python explore/classical_burgers.py` | fairness check vs classical solvers |
+| `NROWS=4 PDE=burgers PICARD=3 python explore/highorder.py`, `PDE=burgers python explore/slope.py` | B8, B8b |
+| `PDE=burgers python explore/burgers_robust.py` | speed-robust score (B9) |
+| `[SHAPING=1] [PDE=burgers] python explore/rl_stop.py train <name> <steps> <z or multi> [lw]`, `... eval <name>` | the PPO runs (Section 5) |
 
 ## 0. Setup and checks
 
@@ -236,8 +242,8 @@ the guessed-speed weights. More steps (`PICARD=3`): (25, 100) 4.75e-5 -> 2.32e-5
 PICARD=3 has **x0.46 true error** vs the notebook's LW map (7/9 wins), x0.32 on the new queries (6/6), same points.
 
 **B7. One baseline for every guess / forward-pass setting** (`compare_guess.py`, against the notebook's LW map):
-the best Burgers configuration so far is **LW + stop(c=1) with the FD-5 2x guess: x0.38 points at x0.44 true error,
-7/9 wins (unseen); x0.32 / x0.52, 6/6 (new)**. With picard 0 everything is 3-80x worse: the live-speed re-solve is
+with one Picard step (the notebook's forward pass) the best configuration is LW + stop(c=1) with the FD-5 2x guess:
+x0.38 points at x0.44 true error, 7/9 wins (unseen); x0.32 / x0.52, 6/6 (new). With picard 0 everything is 3-80x worse: the live-speed re-solve is
 essential on Burgers.
 
 **Best Burgers recipe found (rules only)** (`combo.py`, `compare_guess.py`; all against the notebook's LW map):
