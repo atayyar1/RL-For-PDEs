@@ -133,7 +133,8 @@ def run_policy(model, z, norm=None):
     return env.m
 
 
-Q_TRAIN_MULTI = [(ix, it) for it in (30, 45, 50) for ix in (8, 20, 30, 42)]     # disjoint from the test queries
+Q_TRAIN_MULTI = ([(ix, it) for it in (30, 45, 50) for ix in (8, 20, 30, 42)] if PROBLEM == "advection"   # disjoint from
+                 else [(ix, it) for it in (60, 90, 120) for ix in (8, 20, 30, 42)])                        # the test queries
 RUNS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "runs")
 
 

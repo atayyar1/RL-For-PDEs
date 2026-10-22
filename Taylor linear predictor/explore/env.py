@@ -1,7 +1,11 @@
 """Cell 15 environment (MaskablePPO), on top of core."""
 import gymnasium as gym
 from gymnasium import spaces
-from core import *
+import os
+if os.environ.get("PDE", "advection") == "burgers":      # PDE=burgers -> the Burgers front problem (12.3)
+    from core_burgers import *
+else:
+    from core import *
 
 # ── Environment: one step = one pick; a reward each time a stencil is complete ──
 #   reward of a stencil at p:  -|beta_p| s_p / EPS  -  lam * (new points) / N_LW
