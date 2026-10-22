@@ -1,0 +1,26 @@
+
+advection unseen 9:
+| method | points | stops | exact bound | true error | est/bound | est_res/bound | wins |
+|---|---|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 1.03 | 1.54 | 0/9 |
+| greedy | x0.47 | 0 | x0.18 | x0.06 | 0.12 | 3.26 | 9/9 |
+| greedy+stop(myopic) | x0.24 | 31 | x0.20 | x0.06 | 0.14 | 2.94 | 9/9 |
+| greedy res[lw2] | x0.44 | 0 | x3.07 | x3.46 | 1.03 | 1.10 | 0/9 |
+| greedy res[max lw2,lw4] | x0.73 | 0 | x42.94 | x5.86 | 1.07 | 1.00 | 1/9 |
+| greedy res[fd52] | x0.48 | 0 | x0.40 | x0.29 | 1.44 | 0.15 | 6/9 |
+| lowest res[fd52] | x1.17 | 0 | x0.32 | x0.25 | 1.68 | 0.08 | 6/9 |
+| greedy res[fd52]+stop(myopic) | x0.24 | 37 | x0.46 | x0.38 | 1.29 | 0.14 | 6/9 |
+| LW map+stop(c=1) | x0.44 | 54 | x1.02 | x1.00 | 0.99 | 1.48 | 5/9 |
+
+advection new 6:
+| method | points | stops | exact bound | true error | est/bound | est_res/bound | wins |
+|---|---|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 1.02 | 1.72 | 0/6 |
+| greedy | x0.47 | 0 | x0.14 | x0.04 | 0.17 | 3.80 | 6/6 |
+| greedy+stop(myopic) | x0.18 | 27 | x0.22 | x0.08 | 0.15 | 2.85 | 6/6 |
+| greedy res[lw2] | x0.38 | 0 | x1.90 | x0.94 | 1.01 | 1.48 | 1/6 |
+| greedy res[max lw2,lw4] | x0.72 | 0 | x17.29 | x3.26 | 1.03 | 1.10 | 1/6 |
+| greedy res[fd52] | x0.43 | 0 | x0.40 | x0.30 | 1.32 | 0.21 | 4/6 |
+| lowest res[fd52] | x1.18 | 0 | x0.27 | x0.23 | 1.74 | 0.12 | 4/6 |
+| greedy res[fd52]+stop(myopic) | x0.20 | 27 | x0.57 | x0.36 | 1.07 | 0.18 | 4/6 |
+| LW map+stop(c=1) | x0.33 | 44 | x1.05 | x1.02 | 0.96 | 1.62 | 4/6 |
