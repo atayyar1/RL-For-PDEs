@@ -1,5 +1,6 @@
 """Rules with the residual score vs the baselines, on the unseen + new queries.
     PDE=burgers python explore/res_eval.py   (also: python explore/res_eval.py for advection)"""
+import json
 from multiprocessing import Pool
 from residual import *
 from evaluate import Q_UNSEEN, Q_NEW, gm, greedy_stop, stop_cost
