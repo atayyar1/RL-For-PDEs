@@ -231,6 +231,29 @@ costs 9600 + 3168 grid points (vs 1937 for the LW guesses), shared by all querie
 3000-4000 points, so it pays off from about 5 queries on. With the LW guess (no extra cost) the recipe is x0.53 / x0.45.
 Reuse does not help on Burgers once Picard is converged (its choice uses the Taylor score, which is wrong there).
 
+**Fairness check against classical solvers** (`classical_burgers.py`, 9 unseen queries):
+
+| method | cost (grid points) | median error at z* | error / notebook LW map |
+|---|---|---|---|
+| classical LW, full grid | 6800 (answers all queries) | 7.9e-3 | x55 |
+| notebook LW map | ~2900 per query | 1.5e-4 | x1 |
+| classical FD-5 + RK4, 2x coarser | 9600 (all queries) | 1.0e-4 | x0.62 |
+| **LW + stop(c=1) + PICARD=3, LW guess** | ~1500 per query + 1937 shared guess | - | **x0.45** |
+| LW + stop(c=1) + PICARD=3, FD-5 guess | ~1100 per query + 12768 shared guess | - | x0.40 |
+| classical FD-5 + RK4, full grid | 39000 (all queries) | 4.9e-6 | x0.04 |
+
+For a single query, the map with stops and converged Picard beats every classical option at lower cost (the 3-point
+Taylor stencil with the live speed is 55x more accurate than the classical LW scheme on the same grid). But a 4th-order
+classical solve on the full grid is still 10x more accurate and answers every query: **the map's accuracy ceiling is
+its 2nd-order stencils**, which is why higher-order stencils that keep the variable-speed terms are the top next step.
+Also: the stop sweep (`sweep_burgers.py`) shows that stopping almost everything (c = 100, x0.02 points) with the FD-5
+guess gives x0.98 error, i.e. the FD-5 2x guess alone is about as accurate as the notebook's LW map; the map's value
+there is halving the guess's error with ~x0.15-0.4 of the LW points.
+
+**Stop-price sweep** (`sweep_burgers.py`, FD-5 guess, PICARD=3, figure `sweep_inflow_front_guess-fd52_picard3.png`):
+LW + stop(c): c = 1 x0.38 points / x0.40 error, c = 10 x0.25 / x0.50; **semi-Lagrangian k=2 + stop(c = 3): x0.19 / x0.37,
+c = 10: x0.15 / x0.41** (the best trade-off on Burgers, no score involved); SL k=3 stays at x1.1-1.4 error.
+
 **B8. More Taylor conditions** (`highorder.py`, `NROWS` = 4 or 5 rows from exp(xi d + alpha dt d^2), 5 cells one
 level down): W5 with 4 rows vs LW: (25, 100) 2.4e-5 vs 4.8e-5, (12, 75) 2.0e-5 vs 6.6e-6; advection about LW's.
 Modest: the frozen-speed rows neglect the u u_x (Burgers) / a' (advection) terms, which cap the order. Full table (`highorder_burgers_rows4_p3.out`, PICARD=3, ratios to the PICARD=3 LW map):

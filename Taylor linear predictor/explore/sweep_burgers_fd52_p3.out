@@ -1,0 +1,3 @@
+LW + stop(c) c=0.1: x0.46 pts, x0.48 err | c=0.3: x0.42 pts, x0.53 err | c=1: x0.38 pts, x0.40 err | c=3: x0.33 pts, x0.48 err | c=10: x0.25 pts, x0.50 err | c=30: x0.12 pts, x0.93 err | c=100: x0.02 pts, x0.98 err
+SL k=2 + stop(c) c=0.1: x0.26 pts, x0.70 err | c=0.3: x0.24 pts, x0.70 err | c=1: x0.22 pts, x0.67 err | c=3: x0.19 pts, x0.37 err | c=10: x0.15 pts, x0.41 err | c=30: x0.10 pts, x0.58 err | c=100: x0.02 pts, x0.81 err
+SL k=3 + stop(c) c=0.1: x0.19 pts, x1.13 err | c=0.3: x0.18 pts, x1.14 err | c=1: x0.16 pts, x1.20 err | c=3: x0.14 pts, x1.31 err | c=10: x0.11 pts, x1.21 err | c=30: x0.07 pts, x1.40 err | c=100: x0.02 pts, x1.13 err
