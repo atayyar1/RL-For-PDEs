@@ -223,10 +223,13 @@ essential on Burgers.
 | LW map, PICARD=3 | x1.00 | x0.46 | x0.52 | 7/9 | x1.00 / x0.32 / 6/6 |
 | LW + stop(c=1), PICARD=3 | x0.53 | x0.45 | x0.53 | 7/9 | x0.50 / x0.31 / 6/6 |
 | **LW + stop(c=1), FD-5 2x guess, PICARD=3** | **x0.38** | **x0.40** | x0.55 | 7/9 | **x0.32 / x0.36 / 6/6** |
+| **semi-Lagrangian k=2 + stop(c=3), FD-5 guess, PICARD=3** | **x0.19** | **x0.37** | x0.79 | 6/9 | **x0.16 / x0.25 / 5/6** |
 | LW + reuse(c=1) + stop(c=10), FD-5, PICARD=3 | x0.25 | x0.74 | x1.39 | 6/9 | x0.17 / x0.49 / 4/6 |
 | greedy (any guess, PICARD=3) | x0.52 | x3.7-4.3 | x25 | 1-2/9 | |
 
-**2.6x fewer points and 2.5x smaller error than the notebook's method, no training.** Cost note: the FD-5 2x guess
+**LW + stop: 2.6x fewer points and 2.5x smaller error than the notebook's method; semi-Lagrangian k=2 + stop: 5-6x
+fewer points and 2.7-4x smaller error. No score, no training.** A front-aware hybrid (LW where the guess has
+|u_x| dx > th, SL elsewhere; `hybrid.py`) adds nothing: SL k=2 works across the front too (th = 0.1: x0.20 / x0.36). Cost note: the FD-5 2x guess
 costs 9600 + 3168 grid points (vs 1937 for the LW guesses), shared by all queries; the LW map of one query is
 3000-4000 points, so it pays off from about 5 queries on. With the LW guess (no extra cost) the recipe is x0.53 / x0.45.
 Reuse does not help on Burgers once Picard is converged (its choice uses the Taylor score, which is wrong there).

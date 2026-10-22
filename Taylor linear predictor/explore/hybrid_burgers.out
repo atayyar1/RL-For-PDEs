@@ -1,0 +1,27 @@
+inflow_front_guess-fd52_picard3: against the notebook's LW map
+
+unseen 9:
+| method | points | stops | exact bound | true error | wins |
+|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x0.52 | x0.46 | 7/9 |
+| SL k=2+stop(c=3) | x0.19 | 116 | x0.79 | x0.37 | 6/9 |
+| LW+stop(c=1) | x0.38 | 112 | x0.55 | x0.40 | 7/9 |
+| hybrid k=2 th=0.01+stop(c=3) | x0.33 | 119 | x0.57 | x0.46 | 6/9 |
+| hybrid k=2 th=0.03+stop(c=3) | x0.28 | 121 | x0.66 | x0.41 | 6/9 |
+| hybrid k=2 th=0.1+stop(c=3) | x0.20 | 117 | x0.80 | x0.36 | 6/9 |
+| hybrid k=3 th=0.01+stop(c=3) | x0.33 | 119 | x0.59 | x0.50 | 6/9 |
+| hybrid k=3 th=0.03+stop(c=3) | x0.26 | 103 | x0.72 | x0.73 | 6/9 |
+| hybrid k=3 th=0.1+stop(c=3) | x0.14 | 85 | x1.23 | x1.27 | 4/9 |
+
+new 6:
+| method | points | stops | exact bound | true error | wins |
+|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x0.60 | x0.32 | 6/6 |
+| SL k=2+stop(c=3) | x0.16 | 148 | x0.61 | x0.25 | 5/6 |
+| LW+stop(c=1) | x0.32 | 141 | x0.63 | x0.36 | 6/6 |
+| hybrid k=2 th=0.01+stop(c=3) | x0.27 | 152 | x0.69 | x0.31 | 6/6 |
+| hybrid k=2 th=0.03+stop(c=3) | x0.22 | 156 | x0.65 | x0.31 | 5/6 |
+| hybrid k=2 th=0.1+stop(c=3) | x0.18 | 158 | x0.65 | x0.26 | 5/6 |
+| hybrid k=3 th=0.01+stop(c=3) | x0.27 | 152 | x0.69 | x0.46 | 6/6 |
+| hybrid k=3 th=0.03+stop(c=3) | x0.20 | 134 | x0.67 | x0.51 | 5/6 |
+| hybrid k=3 th=0.1+stop(c=3) | x0.15 | 124 | x0.97 | x0.77 | 4/6 |
