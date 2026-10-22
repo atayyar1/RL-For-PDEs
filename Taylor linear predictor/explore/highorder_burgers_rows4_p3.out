@@ -1,0 +1,19 @@
+inflow_front, NROWS = 4: ratios to the notebook's LW map (3 points, 3 rows)
+
+unseen 9:
+| method | points | stops | exact bound | true error | median true error | wins |
+|---|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 3.6e-05 | 0/9 |
+| W5 | x1.13 | 0 | x0.87 | x0.94 | 4.7e-05 | 3/9 |
+| W5+stop(c=1) | x0.53 | 209 | x0.90 | x0.94 | 4.7e-05 | 3/9 |
+| greedy | x0.55 | 0 | x49.60 | x10.04 | 5.9e-04 | 0/9 |
+| greedy+stop(myopic) | x0.36 | 48 | x50.56 | x9.80 | 3.9e-04 | 0/9 |
+
+new 6:
+| method | points | stops | exact bound | true error | median true error | wins |
+|---|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 2.5e-04 | 0/6 |
+| W5 | x1.10 | 0 | x0.76 | x0.86 | 6.5e-05 | 3/6 |
+| W5+stop(c=1) | x0.45 | 277 | x0.82 | x0.92 | 6.5e-05 | 3/6 |
+| greedy | x0.55 | 0 | x16.92 | x4.66 | 9.2e-04 | 1/6 |
+| greedy+stop(myopic) | x0.30 | 62 | x16.49 | x5.30 | 8.8e-04 | 0/6 |

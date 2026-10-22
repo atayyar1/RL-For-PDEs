@@ -207,16 +207,34 @@ than LW on the unseen set.
 **B6. The forward pass is not converged (free gain).** The plain LW map got 2x more accurate with the FD-5 guess,
 although its stencil does not depend on the guess. Reason: one Picard step takes its speed from a value computed with
 the guessed-speed weights. More steps (`PICARD=3`): (25, 100) 4.75e-5 -> 2.32e-5, (38, 50) 4.2e-4 -> 2.6e-4,
-(25, 130) 6.4e-3 -> 2.7e-3; (12, 75) 6.6e-6 -> 3.6e-5 (the 1-step value was a lucky cancellation). Full tables: PICARD_TABLE
+(25, 130) 6.4e-3 -> 2.7e-3; (12, 75) 6.6e-6 -> 3.6e-5 (the 1-step value was a lucky cancellation). Full evaluation (`eval_burgers_lw_p3.out`, `compare_guess.py`): the LW map with
+PICARD=3 has **x0.46 true error** vs the notebook's LW map (7/9 wins), x0.32 on the new queries (6/6), same points.
 
 **B7. One baseline for every guess / forward-pass setting** (`compare_guess.py`, against the notebook's LW map):
 the best Burgers configuration so far is **LW + stop(c=1) with the FD-5 2x guess: x0.38 points at x0.44 true error,
 7/9 wins (unseen); x0.32 / x0.52, 6/6 (new)**. With picard 0 everything is 3-80x worse: the live-speed re-solve is
-essential on Burgers. COMBO_TABLE
+essential on Burgers.
+
+**Best Burgers recipe found (rules only)** (`combo.py`, `compare_guess.py`; all against the notebook's LW map):
+
+| recipe | points | true error | exact bound | wins (unseen 9) | new 6: points / error / wins |
+|---|---|---|---|---|---|
+| notebook LW map (LW guess, picard 1) | x1.00 | x1.00 | x1.00 | - | x1.00 / x1.00 / - |
+| LW map, PICARD=3 | x1.00 | x0.46 | x0.52 | 7/9 | x1.00 / x0.32 / 6/6 |
+| LW + stop(c=1), PICARD=3 | x0.53 | x0.45 | x0.53 | 7/9 | x0.50 / x0.31 / 6/6 |
+| **LW + stop(c=1), FD-5 2x guess, PICARD=3** | **x0.38** | **x0.40** | x0.55 | 7/9 | **x0.32 / x0.36 / 6/6** |
+| LW + reuse(c=1) + stop(c=10), FD-5, PICARD=3 | x0.25 | x0.74 | x1.39 | 6/9 | x0.17 / x0.49 / 4/6 |
+| greedy (any guess, PICARD=3) | x0.52 | x3.7-4.3 | x25 | 1-2/9 | |
+
+**2.6x fewer points and 2.5x smaller error than the notebook's method, no training.** Cost note: the FD-5 2x guess
+costs 9600 + 3168 grid points (vs 1937 for the LW guesses), shared by all queries; the LW map of one query is
+3000-4000 points, so it pays off from about 5 queries on. With the LW guess (no extra cost) the recipe is x0.53 / x0.45.
+Reuse does not help on Burgers once Picard is converged (its choice uses the Taylor score, which is wrong there).
 
 **B8. More Taylor conditions** (`highorder.py`, `NROWS` = 4 or 5 rows from exp(xi d + alpha dt d^2), 5 cells one
 level down): W5 with 4 rows vs LW: (25, 100) 2.4e-5 vs 4.8e-5, (12, 75) 2.0e-5 vs 6.6e-6; advection about LW's.
-Modest: the frozen-speed rows neglect the u u_x (Burgers) / a' (advection) terms, which cap the order. HIGHORDER_TABLE
+Modest: the frozen-speed rows neglect the u u_x (Burgers) / a' (advection) terms, which cap the order. Full table (`highorder_burgers_rows4_p3.out`, PICARD=3, ratios to the PICARD=3 LW map):
+W5 x1.13 points / x0.94 error (3/9 wins), W5 + stop x0.53 / x0.94. Not worth the formulation change as is.
 
 **B9. Speed-robust score** (worst score over a_g, a_g +- guess error): much worse on (25, 100) (bound 1e-4 -> 5).
 Dropped.
