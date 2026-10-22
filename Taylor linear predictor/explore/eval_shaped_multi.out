@@ -1,0 +1,3 @@
+(8, 30) {'points': '41', 'stops': '37', 'error': '0.000654', 'bound': '0.00407', 'identity_gap': '4.02e-17', 'est': '0.00609', 'band': '1'}
+(12, 25) {'points': '58', 'stops': '44', 'error': '0.000575', 'bound': '0.00206', 'identity_gap': '2.79e-16', 'est': '0.00307', 'band': '1'}
+(25, 25) {'points': '4', 'stops': '12', 'error': '0.00307', 'bound': '0.0032', 'identity_gap': '2.13e-17', 'est': '0.0027', 'band': '1'}
