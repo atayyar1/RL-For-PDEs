@@ -133,6 +133,61 @@ The plain score overestimates LW's local errors 20x (est/bound 19.8) and underes
 error. On (25, 100) it was much worse (bound 1e-4 -> 5, error 3.5e-5 -> 2.8e-3), probably because the stencils that
 survive the max are odd ones that amplify along the map. Not pursued; one query only.
 
+## B. Burgers front (Ali's priority): what was tried after the first pass
+
+All on `PROBLEM = "inflow_front"` (12.3), 9 unseen queries, ratios to the LW map, unless said otherwise.
+
+**B1. Diagnosis: on Burgers the Taylor score is wrong in both directions** (inline check at (25, 100)):
+
+| map | local error with map weights (guessed speed) | with live weights (forward pass) | score says |
+|---|---|---|---|
+| LW | 1.6e-4 | **1.2e-6** | 6e-5 (50x too high) |
+| greedy | 2.6e-4 | 9.8e-5 | **1.1e-6** (100x too low) |
+
+* The live-speed re-solve (picard 1) is what makes LW accurate: map error 1e-2 with picard 0, 4.8e-5 with picard 1.
+* The score's high derivatives come from a spline through a coarse guess: median relative error of u_xxx 85%,
+  u_xxxx 370% (`burgers_guess.py`). Greedy picks stencils that cancel these wrong derivatives, so its real local errors
+  are 100x what it believes. **Fixing the policy (RL) cannot fix this; the estimate must change.**
+
+**B2. Better guesses** (`burgers_guess.py`, `GUESS=fd5:K` / `hyb:K` switch in `stop.py`). FD-5 + RK4 on a coarse grid,
+IC and wall data only. Values are much better (median u error 0.2% at 4x coarser vs 1.9% for the LW guess), high
+derivatives are not (spline through 13-25 nodes).
+
+| guess (cost) | LW + stop(c=1) points / error | greedy points / error | greedy + myopic stop |
+|---|---|---|---|
+| LW 2x (1475 + 462) | x0.53 / x0.99 | x0.52 / x1.87 | x0.38 / x1.97 |
+| FD-5 2x (9600 + 3168) | **x0.38 / x0.84** | x0.53 / x5.96 | x0.29 / x5.36 |
+| hybrid: FD-5 4x values + LW derivatives (3971 + 1326) | x0.48 / x1.12 | x0.54 / x4.83 | x0.35 / x4.25 |
+
+A better guess helps the **stops** (better stop values: 62% fewer points than LW with 16% less error) but not the
+score-driven rules, which get worse: the more accurate values change the speeds, but the derivative garbage remains.
+
+**B3. Residual score** (`residual.py`): apply the stencil to the guess *function* (quintic-in-x, cubic-in-t spline of
+the coarse solve), s = |G(p) - sum w G(q)|. Uses every order, no high derivatives. Calibration on 400 random stencils:
+
+| estimate | Burgers corr / median est/true | advection corr / median est/true |
+|---|---|---|
+| Taylor score (cell 6) | 0.45 / 0.54 | **0.98 / 1.03** |
+| residual on the LW 2x guess (same cost) | 0.58 / 1.14 | 0.69 / 1.03 |
+| residual on the FD-5 2x guess | **0.73 / 1.01** | 0.93 / 1.00 |
+
+Better calibrated than the Taylor score on Burgers, worse on advection (where the Taylor polynomial is the right
+model). Map results: RESIDUAL_MAPS
+
+**B4. Reuse stops (Ali's KD-tree idea)** (`reuse.py`): a point takes a stencil made only of points the map already has
+(lower levels, so still pending) or data, found by nearest-neighbour search (in the characteristic frame) in a box of
+|dix| <= 8, 1-6 levels down; best admissible 5-subset of the 8 nearest by score. No new point, no guess value, identity
+exact (gap 1e-16). Advection (25, 40): LW 1344 -> 1035 points with *lower* error (1.91e-3 -> 1.68e-3); greedy 649 -> 453
+at the same error. Full tables: REUSE_TABLES
+
+**B5. Semi-Lagrangian deep stencils** (`semilag.py`, no score): jump k levels, take the 5 cells nearest the foot of the
+characteristic. Burgers, 2 queries: k = 3 halves the points; error x1.5 at (25, 100) and x11 at (12, 75) (where LW is
+unusually accurate, 6.6e-6); bound only 1.5-3x LW's. A robust, score-free way to cut points, at some accuracy cost.
+Full table: SEMILAG_TABLE
+
+**B6. Speed-robust score** (worst score over a_g, a_g +- guess error): much worse on (25, 100) (bound 1e-4 -> 5).
+Dropped.
+
 ## 4. Depth / level skipping (item 4)
 
 Not run as a separate experiment. Indirect evidence: greedy's saving (x0.47) comes from deep stencils, and the stop
