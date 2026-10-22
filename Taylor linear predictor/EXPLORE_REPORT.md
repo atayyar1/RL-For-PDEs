@@ -229,7 +229,30 @@ band's edge.
 
 ## 5. RL (items 1-2, 5)
 
-RESULTS_RL
+**Environment** (`explore/rl_stop.py`): cell 15's MaskablePPO environment plus one action, STOP (allowed on the first
+pick of a point, never at z*). Reward of a stop: -|beta_p| g_err(p) / EPS; state + log10 of that stop cost. Same PPO
+settings as the notebook (n_steps 1024, batch 1024, gae 0.97, lr 3e-4, ent 0), 4 envs, advection, query (25, 45),
+lam = 1. Learning curves (deterministic policy at (25, 45)) in `runs/<name>/curve.json` and `runs_*.out`.
+
+| run (1M steps each) | points | stops | true error at (25, 45) |
+|---|---|---|---|
+| PPO + stop | 1663 | **0** | 1.46e-3 |
+| **PPO + stop + potential-based shaping** | **517** | 141 | **7.1e-4** |
+| greedy + myopic stop (rule, for reference) | 535 | 49 | 3.5e-4 |
+
+* **Without shaping the agent never stops** (0 stops at every checkpoint), exactly like the old agent never learned to
+  save points. Credit assignment: a stop's cost is paid at once, its gain (a subtree that is never built) arrives as
+  "fewer new points" spread over hundreds of later steps.
+* **Potential-based shaping fixes it.** F = Phi(s') - Phi(s) with
+  Phi(s) = -sum over pending points q of ( |beta_q| A_q / EPS + lam N_q / N_LW ), where A_q, N_q are q's cost-to-go
+  (score per unit influence, subtree points) in the LW map of z* (`rollout.cost_to_go`, estimates only). Shaping of this
+  form provably leaves the optimal policy unchanged (Ng et al. 1999); check: the shaped and unshaped returns of the same
+  episode differ by exactly -Phi(s0) = 4.2430. The agent starts stopping at ~500k steps and reaches 517 points
+  (x0.34 of LW) with half the unshaped run's error by 1M. **This is the first agent in the project that learns to save
+  points.** It is still single-query and its error is 2x greedy+stop's at its own query. SHAPED_EVAL
+* The behaviour-cloning warm start (`bc.py`) was written and its teacher episodes checked (valid under the mask) but
+  not run: Ali reported earlier trouble with copying greedy, and the shaping result made it less urgent.
+
 
 ## 6. Ranked next steps
 
