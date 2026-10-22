@@ -4,6 +4,31 @@ Branch `claude/nifty-lovelace-2ucxln` (the session's designated branch, used ins
 Everything is in `explore/`. All numbers below come from the scripts named next to them. The exact solution is only
 used for reporting (true error, exact bound), never for a choice.
 
+## Summary (read this first)
+
+**Worked**
+1. **Stops** (a point takes the coarse-guess value when |beta| x estimated guess error is small; identity stays exact):
+   about half the points of any rule at the same error, on advection and Burgers; maps move into the exact Green's
+   function band (40% -> 80% of points). Section 1.
+2. **Burgers, rules only, against the notebook's LW map:** converging the forward pass (3 Picard steps instead of 1)
+   halves the error for free; adding stops with an FD-5 coarse guess gives **x0.38 points / x0.40 error**; with
+   semi-Lagrangian deep stencils (k = 2) **x0.19 points / x0.37 error (unseen), x0.16 / x0.25 (new queries)**.
+   No score, no training. Sections B6-B7.
+3. **RL that saves points:** PPO with a stop action learns nothing without help (0 stops), but with
+   **potential-based reward shaping** (cost-to-go of the LW map; provably policy-preserving) it learns to stop, and,
+   trained on ONE advection query, it gives **x0.07 points at x0.98 error on the 9 unseen queries** (old agent: x1.21 /
+   x1.06), 97% of its points inside the Green band. Section 5.
+4. Advection score exploitation: max over two guesses fixes calibration (est/bound 0.01-0.12 -> ~1.1) and improves
+   greedy. Reuse stops (Ali's KD-tree idea) cut greedy's points x0.47 -> x0.31 at the same error.
+
+**Didn't work** (and why): any estimate a rule *minimises* over ~18k stencils gets exploited (abs score, residual
+score on maps, speed-robust score); the Taylor score is wrong on Burgers in both directions (garbage high derivatives
+from the coarse guess), so greedy, rollout stops and RL all fail there; shaped PPO on Burgers (0 stops); better
+guesses do not fix the score; higher-order Taylor rows give little while the variable-speed terms are missing.
+
+**Honest caveat:** a 4th-order classical solve on the full grid is still ~10x more accurate than any map here and
+answers every query; the maps win for single queries (cheapest route to a given accuracy at one point).
+
 | script | what it reproduces |
 |---|---|
 | `python explore/check_core.py` | the notebook checks (LW map identity, score correlation) |
@@ -333,4 +358,20 @@ almost at once (a handful of points, error 5.8e-3, worse than LW). The agent has
 
 ## 6. Ranked next steps
 
-NEXT_STEPS
+1. **Build the Burgers recipe into a notebook** (the clear win): 12.3 + `PICARD = 3` in `evaluate` + stops
+   (`stop.py`: `build_map_s`, `evaluate_s`, `report_s`, `stop_cost`) + semi-Lagrangian k = 2 (`semilag.sl_rule`) +
+   optionally the FD-5 guess (`burgers_guess.coarse_fd5`). Small code, large gain, and the identity check carries over.
+2. **Shaped RL on advection, then on a score-free action set for Burgers.** Shaping is what made RL work. Next:
+   (a) multi-query shaped training (running at the end of this session, see `runs_stop_shaped_multi.out`); (b) a lam
+   sweep to move the agent along the trade-off towards greedy's accuracy; (c) on Burgers, actions {LW, SL k=1..3,
+   stop} instead of 18k stencils, so a wrong score has nothing to exploit.
+3. **A trustworthy local-error estimate for Burgers** (what blocks greedy/RL there): the Taylor score needs u_xxx,
+   u_xxxx, which a coarse guess cannot give near the front. Candidates: derivatives from the map's own computed values
+   (two-pass), or calibrate per stencil family on the guess (few families, no search to exploit).
+4. **Higher-order stencils with the variable-speed terms** (the accuracy ceiling vs classical FD-5): derive rows 3-4
+   for Burgers including the u u_x terms (B8b shows the factors must be derived per PDE), use them with multi-level
+   stencils.
+5. **Reuse stops on advection**: a cheap, exact win for greedy (x0.31 points); worth adding to the advection notebook.
+6. Not recommended: more score variants searched over the full stencil set (exploited every time); unshaped PPO for
+   point saving.
+
