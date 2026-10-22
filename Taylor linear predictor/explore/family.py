@@ -8,7 +8,16 @@ from evaluate import *
 FAMS = [lw, sl_rule(1), sl_rule(2), sl_rule(3)]
 
 
-def family_greedy(lam, stop=False, use_score=True):
+_TAB = {}
+def res_table():
+    """Residual-score table (residual.py) on the FD-5 2x guess, built once."""
+    if "t" not in _TAB:
+        from residual import guess_function
+        _TAB["t"] = guess_function(2, "fd5")
+    return _TAB["t"]
+
+
+def family_greedy(lam, stop=False, use_score=True, est="taylor"):
     def choose(m, p):
         b = abs(m["beta"][p])
         best, best_cost = None, np.inf
@@ -18,7 +27,12 @@ def family_greedy(lam, stop=False, use_score=True):
             if w is None:
                 continue
             new = sum(1 for q in set(nbs) if not is_known(q) and q not in m["beta"])
-            cost = (b * point_score(p, nbs, w) / EPS if use_score else 0.0) + lam * new / n_lw(m["z_star"])
+            if est == "residual":
+                from residual import residual
+                s_ = residual(res_table(), p, nbs, w)
+            else:
+                s_ = point_score(p, nbs, w)
+            cost = (b * s_ / EPS if use_score else 0.0) + lam * new / n_lw(m["z_star"])
             if cost < best_cost:
                 best, best_cost = nbs, cost
         if stop and p != m["z_star"] and b * guess_err(p) / EPS < best_cost:
@@ -31,7 +45,11 @@ def rules():
     return {"LW map": lw, "SL k=2+stop(c=3)": stop_cost(sl_rule(2), 3.0),
             "family greedy": family_greedy(1.0), "family greedy+myopic stop": family_greedy(1.0, stop=True),
             "family greedy+stop(c=3)": stop_cost(family_greedy(1.0), 3.0),
-            "family greedy lam=0.1+stop(c=3)": stop_cost(family_greedy(0.1), 3.0)}
+            "family greedy lam=0.1+stop(c=3)": stop_cost(family_greedy(0.1), 3.0)} if os.environ.get("FAMEST") != "residual" else {
+            "LW map": lw, "SL k=2+stop(c=3)": stop_cost(sl_rule(2), 3.0),
+            "family greedy[res]": family_greedy(1.0, est="residual"),
+            "family greedy[res]+stop(c=3)": stop_cost(family_greedy(1.0, est="residual"), 3.0),
+            "family greedy[res]+myopic stop": family_greedy(1.0, stop=True, est="residual")}
 
 
 def run(z):
@@ -42,7 +60,7 @@ if __name__ == "__main__":
     with Pool(int(os.environ.get("NPROC", 2))) as pool:
         R = dict(pool.map(run, Q_UNSEEN + Q_NEW))
     B = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "results_inflow_front.json")))["R"]
-    json.dump(R, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"family_{TAG}.json"), "w"), default=float)
+    json.dump(R, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"family_{TAG}{'_res' if os.environ.get('FAMEST') == 'residual' else ''}.json"), "w"), default=float)
     print(f"{TAG}: against the notebook's LW map")
     for q, lab in [(Q_UNSEEN, "unseen 9"), (Q_NEW, "new 6")]:
         print(f"\n{lab}:\n| method | points | stops | exact bound | true error | wins |\n|---|---|---|---|---|---|")
