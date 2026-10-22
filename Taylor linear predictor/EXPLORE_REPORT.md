@@ -352,12 +352,21 @@ the band but do not *cover* it. At (12, 40) the map leans left with the band (ph
 (25, 55) it is a straight column around z*, narrower than the band, closed by a wall of stops; at (37, 25) it stops
 almost at once (a handful of points, error 5.8e-3, worse than LW). The agent has learned "stop away from z*", not yet
 "follow the characteristic spreading".
+* **Multi-query shaped training over-stops** (`stop_shaped_multi`: 12 training queries disjoint from the test sets,
+  accuracy normalised per query by the LW map's score sum): x0.03 points but x2.11 error on the unseen 9 (x0.03 /
+  x0.67 on the new 6), 100% of points in the band. Normalising by B_LW made errors cheap relative to points (for most
+  queries B_LW >> EPS), so the agent stops almost everywhere. A units / lam problem, not a learning failure: the
+  run without normalisation is the next one (`stop_shaped_multi_eps`).
 * **Shaped PPO on the Burgers front fails** (`PDE=burgers SHAPING=1 python explore/rl_stop.py train burgers_shaped_25-75
   1e6 25,75 lw`, accuracy normalised by the LW map's score sum): 0 stops over 1M steps, maps the size of LW's (3379
   points), error at its own query 1-3e-3 vs the LW map's ~1e-5. Consistent with B1: the reward is built on the Taylor
   score, which is wrong on Burgers, and the agent games it as greedy does. Shaping cannot repair a wrong reward.
   RL on Burgers needs a trustworthy local-error estimate first (or a restricted, score-free action set:
   {LW, semi-Lagrangian k, stop}, see next steps).
+* **Greedy over a few physical stencil families on Burgers** (`family.py`: {LW, SL k=1,2,3} + stop, Taylor score as
+  the cost): worse than plain SL k=2 + stop (x0.99 points / x1.12 error without stop; x0.04 / x1.09 with the myopic
+  stop). The score misleads even among 4 options, so a Burgers agent over this action set would need a different
+  accuracy signal.
 * The behaviour-cloning warm start (`bc.py`) was written and its teacher episodes checked (valid under the mask) but
   not run: Ali reported earlier trouble with copying greedy, and the shaping result made it less urgent.
 

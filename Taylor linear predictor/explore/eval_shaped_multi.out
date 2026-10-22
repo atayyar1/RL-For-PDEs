@@ -1,3 +1,16 @@
 (8, 30) {'points': '41', 'stops': '37', 'error': '0.000654', 'bound': '0.00407', 'identity_gap': '4.02e-17', 'est': '0.00609', 'band': '1'}
 (12, 25) {'points': '58', 'stops': '44', 'error': '0.000575', 'bound': '0.00206', 'identity_gap': '2.79e-16', 'est': '0.00307', 'band': '1'}
 (25, 25) {'points': '4', 'stops': '12', 'error': '0.00307', 'bound': '0.0032', 'identity_gap': '2.13e-17', 'est': '0.0027', 'band': '1'}
+(37, 25) {'points': '1', 'stops': '5', 'error': '0.00508', 'bound': '0.00508', 'identity_gap': '3.3e-17', 'est': '0.00151', 'band': '1'}
+(12, 40) {'points': '87', 'stops': '59', 'error': '0.00413', 'bound': '0.00637', 'identity_gap': '9.97e-17', 'est': '0.00837', 'band': '1'}
+(25, 40) {'points': '52', 'stops': '43', 'error': '0.00658', 'bound': '0.00853', 'identity_gap': '3.04e-17', 'est': '0.00889', 'band': '1'}
+(37, 40) {'points': '119', 'stops': '57', 'error': '0.00846', 'bound': '0.00953', 'identity_gap': '8.33e-17', 'est': '0.00946', 'band': '0.975'}
+(12, 55) {'points': '55', 'stops': '55', 'error': '0.0086', 'bound': '0.015', 'identity_gap': '1.51e-16', 'est': '0.0143', 'band': '1'}
+(25, 55) {'points': '94', 'stops': '61', 'error': '0.0137', 'bound': '0.0178', 'identity_gap': '7.29e-17', 'est': '0.021', 'band': '1'}
+(37, 55) {'points': '206', 'stops': '64', 'error': '0.00472', 'bound': '0.0148', 'identity_gap': '2.6e-18', 'est': '0.0173', 'band': '1'}
+(25, 45) {'points': '51', 'stops': '44', 'error': '0.00867', 'bound': '0.0114', 'identity_gap': '2.1e-16', 'est': '0.0126', 'band': '1'}
+(6, 50) {'points': '25', 'stops': '31', 'error': '0.000516', 'bound': '0.0111', 'identity_gap': '5.42e-18', 'est': '0.0135', 'band': '1'}
+(44, 30) {'points': '24', 'stops': '17', 'error': '2.38e-05', 'bound': '0.00264', 'identity_gap': '1.26e-16', 'est': '0.0028', 'band': '1'}
+(25, 15) {'points': '2', 'stops': '7', 'error': '0.00136', 'bound': '0.00137', 'identity_gap': '2.69e-17', 'est': '0.000962', 'band': '1'}
+(18, 52) {'points': '227', 'stops': '105', 'error': '0.0358', 'bound': '0.0511', 'identity_gap': '1.04e-16', 'est': '0.0525', 'band': '0.934'}
+(33, 20) {'points': '11', 'stops': '17', 'error': '0.00101', 'bound': '0.00134', 'identity_gap': '3.47e-18', 'est': '0.00164', 'band': '1'}
