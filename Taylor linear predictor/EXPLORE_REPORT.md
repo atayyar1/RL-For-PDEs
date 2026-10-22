@@ -259,6 +259,13 @@ level down): W5 with 4 rows vs LW: (25, 100) 2.4e-5 vs 4.8e-5, (12, 75) 2.0e-5 v
 Modest: the frozen-speed rows neglect the u u_x (Burgers) / a' (advection) terms, which cap the order. Full table (`highorder_burgers_rows4_p3.out`, PICARD=3, ratios to the PICARD=3 LW map):
 W5 x1.13 points / x0.94 error (3/9 wins), W5 + stop x0.53 / x0.94. Not worth the formulation change as is.
 
+**B8b. The variable-speed term in the u_x row** (`slope.py`). Cell 4 of the advection notebook corrects the u_x row
+for a speed that varies across the stencil; 12.3's Burgers weights do not. For Burgers the right row is
+xi - s DT (DX - a DT) with s = u_x (u_tt = 2 u u_x^2 + ...; the advection form has DX - a DT / 2 because there
+u_tt = a a' u_x once). Copying the advection factor made the LW map 50x worse; with the Burgers factor it is an
+**exact no-op for one-level stencils** (DT is the same for all neighbours, the row is xi (1 - s DT)), so LW maps do not
+change; it only matters for multi-level stencils. Lesson: these rows must be derived per PDE.
+
 **B9. Speed-robust score** (worst score over a_g, a_g +- guess error): much worse on (25, 100) (bound 1e-4 -> 5).
 Dropped.
 
