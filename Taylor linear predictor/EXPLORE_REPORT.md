@@ -264,6 +264,12 @@ lam = 1. Learning curves (deterministic policy at (25, 45)) in `runs/<name>/curv
 14x fewer points than the LW map at the LW map's accuracy, on queries it never saw, with 97% of its points inside the
 exact Green's function band: the footprint is physically right. It is at the "few points" end of the trade-off (like
 LW + rollout stops), not more accurate than greedy; lam (the price of a point) sets where on the curve it sits.
+
+Figure `explore/agent_footprint.png` (`python explore/fig_agent.py`) qualifies "97% in band": the points are *inside*
+the band but do not *cover* it. At (12, 40) the map leans left with the band (physically right); at (25, 45) and
+(25, 55) it is a straight column around z*, narrower than the band, closed by a wall of stops; at (37, 25) it stops
+almost at once (a handful of points, error 5.8e-3, worse than LW). The agent has learned "stop away from z*", not yet
+"follow the characteristic spreading".
 * The behaviour-cloning warm start (`bc.py`) was written and its teacher episodes checked (valid under the mask) but
   not run: Ali reported earlier trouble with copying greedy, and the shaping result made it less urgent.
 
