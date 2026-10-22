@@ -1,0 +1,4 @@
+  102,400 steps (12 min): 1127 points, 0 stops, error 5.57e-03, bound 1.19e-02
+  204,800 steps (23 min): 1040 points, 0 stops, error 5.50e-03, bound 8.40e-02
+  307,200 steps (33 min): 1026 points, 0 stops, error 6.13e-04, bound 3.73e-02
+  409,600 steps (43 min): 944 points, 34 stops, error 3.06e-03, bound 2.25e-02
