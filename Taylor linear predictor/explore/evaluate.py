@@ -1,14 +1,19 @@
 """Every rule-based method (with and without stops) on the 9 unseen queries + new ones. Writes results.json.
-    python explore/evaluate.py            (about 10 min on 4 cores)
+    python explore/evaluate.py              (advection, ~3 min on 4 cores)
+    PDE=burgers python explore/evaluate.py  (Burgers front)
 Ratios are geometric means over queries of (method / LW map of the same query)."""
 import json, sys
 from collections import Counter
 from multiprocessing import Pool
-from stop import *
+from robust import *
 
 LAM = 1.0
-Q_UNSEEN = [(ix, it) for it in (25, 40, 55) for ix in (12, 25, 37)]
-Q_NEW    = [(25, 45), (6, 50), (44, 30), (25, 15), (18, 52), (33, 20)]     # (25, 45) = the agent's training query
+if PROBLEM == "advection":
+    Q_UNSEEN = [(ix, it) for it in (25, 40, 55) for ix in (12, 25, 37)]
+    Q_NEW    = [(25, 45), (6, 50), (44, 30), (25, 15), (18, 52), (33, 20)]     # (25, 45) = the agent's training query
+else:                                                                        # Burgers front: queries of 12.3.x (it <= 136)
+    Q_UNSEEN = [(ix, it) for it in (50, 75, 100) for ix in (12, 25, 38)]
+    Q_NEW    = [(25, 130), (12, 130), (38, 130), (6, 90), (44, 60), (30, 115)]
 
 
 def stencil_cells(p, nbs):
@@ -46,6 +51,10 @@ BASE = {"LW map": lw, "lowest score": lowest_score, "greedy": greedy_rule(LAM)}
 def methods():
     M = dict(BASE)
     M["greedy+stop(myopic)"] = greedy_stop(LAM)
+    for kind in ("abs", "2g"):
+        M[f"lowest score[{kind}]"] = lowest_kind(kind)
+        M[f"greedy[{kind}]"] = greedy_kind(LAM, kind)
+        M[f"greedy[{kind}]+stop(myopic)"] = greedy_kind(LAM, kind, stop=True)
     for c in (0.1, 1.0):
         for b in ("LW map", "lowest score", "greedy"):
             M[f"{b}+stop(c={c:g})"] = stop_cost(BASE[b], c)
@@ -58,7 +67,7 @@ def run_query(z):
         t0 = time.time()
         m = build_map_s(z, rule)
         r = report_s(m)
-        r.update(band=in_band_fraction(m), sec=time.time() - t0)
+        r.update(band=in_band_fraction(m), sec=time.time() - t0, est_abs=est_kind(m, "abs"), est_2g=est_kind(m, "2g"))
         out[name] = r
         if name in ("greedy", "lowest score"):
             used.update(c for p, (nbs, w) in m["stencil"].items() if (c := stencil_cells(p, nbs)) is not None)
@@ -74,14 +83,15 @@ gm = lambda v: float(np.exp(np.mean(np.log(v))))
 
 
 def table(R, qs, names):
-    rows = ["| method | points | stops | exact bound | true error | est/bound | in Green band | wins (err < LW) |", "|---|---|---|---|---|---|---|---|"]
+    rows = ["| method | points | stops | exact bound | true error | est/bound | est_abs/bound | est_2g/bound | in Green band | wins (err < LW) |", "|---|---|---|---|---|---|---|---|---|---|"]
     for n in names:
         rel = lambda k: gm([R[str(z)][n][k] / R[str(z)]["LW map"][k] for z in qs])
         wins = sum(R[str(z)][n]["error"] < R[str(z)]["LW map"]["error"] for z in qs)
         stops = np.mean([R[str(z)][n]["stops"] for z in qs])
         cal = gm([R[str(z)][n]["est"] / R[str(z)][n]["bound"] for z in qs])
+        cal2 = [gm([R[str(z)][n].get(k, np.nan) / R[str(z)][n]["bound"] for z in qs]) for k in ("est_abs", "est_2g")]
         band = np.mean([R[str(z)][n]["band"] for z in qs]) if "band" in R[str(qs[0])][n] else float("nan")
-        rows.append(f"| {n} | x{rel('points'):.2f} | {stops:.0f} | x{rel('bound'):.2f} | x{rel('error'):.2f} | {cal:.2f} | {band:.2f} | {wins}/{len(qs)} |")
+        rows.append(f"| {n} | x{rel('points'):.2f} | {stops:.0f} | x{rel('bound'):.2f} | x{rel('error'):.2f} | {cal:.2f} | {cal2[0]:.2f} | {cal2[1]:.2f} | {band:.2f} | {wins}/{len(qs)} |")
     return "\n".join(rows)
 
 
@@ -97,9 +107,9 @@ if __name__ == "__main__":
     best = min(cands, key=lambda c: gm([fix[z][str(c)]["bound"] / R[str(z)]["LW map"]["bound"] for z in Q_UNSEEN]))
     for z in Q:
         R[str(z)]["best fixed"] = dict(fix[z][str(best)], band=float("nan"))
-    json.dump({"R": R, "best_fixed": best, "G_COARSE": G_COARSE, "G_COARSE4": G_COARSE4}, open(os.path.join(os.path.dirname(__file__), "results.json"), "w"), indent=1, default=float)
+    json.dump({"R": R, "best_fixed": best, "G_COARSE": G_COARSE, "G_COARSE4": G_COARSE4}, open(os.path.join(os.path.dirname(__file__), f"results_{PROBLEM}.json"), "w"), indent=1, default=float)
     names = list(methods()) + ["best fixed"]
-    print(f"guess cost: {G_COARSE} + {G_COARSE4} (second guess) grid points, shared by all queries\n")
+    print(f"{PROBLEM}: guess cost {G_COARSE} + {G_COARSE4} + {G_COARSE8} (2nd, 3rd guess) grid points, shared by all queries; R_OBS = {R_OBS:.2f}\n")
     print("unseen 9:\n" + table(R, Q_UNSEEN, names))
     print("\nnew 6:\n" + table(R, Q_NEW, names))
     print("\nmax identity gap:", max(r["identity_gap"] for z in R for r in R[z].values() if "identity_gap" in r))

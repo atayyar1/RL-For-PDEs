@@ -4,13 +4,15 @@ A stopped point p is a leaf like the IC, but its value is the guess g_p, so its 
     e(z*) = sum_{expanded p} beta_p delta_p + sum_{stopped p} beta_p (u_p - g_p).
 With SAME_LEVEL = 0 every user of p sits on a higher level, so beta_p is final when p is popped: the rule can use it.
 Estimate of the guess error (no u_true): two LW guesses, 2x and 4x coarser; LW is 2nd order, so
-    u - g2 ~ (g2 - g4) / 3   (Richardson).
+    u - g2 ~ (g2 - g4) / (R - 1)   (Richardson), with the ratio R observed from a third guess 8x coarser.
 """
 import os
 if os.environ.get("PDE", "advection") == "burgers":      # PDE=burgers python ...  -> the Burgers front problem (12.3)
     from core_burgers import *
+    import core_burgers as CORE
 else:
     from core import *
+    import core as CORE                                    # for the private caches (not exported by *)
 from scipy.interpolate import make_interp_spline
 
 
@@ -45,8 +47,13 @@ def make_guess(K):
 
 
 GUESS4, G_COARSE4 = make_guess(2 * K_COARSE)
+GUESS8, G_COARSE8 = make_guess(4 * K_COARSE)
 guess_value = lambda q: GUESS[0, q[1], q[0]]
-guess_err   = lambda q: abs(GUESS[0, q[1], q[0]] - GUESS4[0, q[1], q[0]]) / 3      # estimate of |u - guess| at q
+# observed convergence ratio of the guesses, from the guesses only: |g4 - g8| ~ R |g2 - g4|  (R = 4 for a clean 2nd order;
+# near a front LW is pre-asymptotic and R is smaller, so dividing by 3 would underestimate the error)
+_d24, _d48 = np.abs(GUESS[0] - GUESS4[0])[1:, 1:-1], np.abs(GUESS4[0] - GUESS8[0])[1:, 1:-1]
+R_OBS = float(np.median(_d48) / np.median(_d24))
+guess_err = lambda q: abs(GUESS[0, q[1], q[0]] - GUESS4[0, q[1], q[0]]) / (R_OBS - 1)    # estimate of |u - guess| at q
 
 
 # ── Map with stops: choose(m, p) returns the neighbours, or None to stop p ──
