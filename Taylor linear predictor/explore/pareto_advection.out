@@ -1,0 +1,6 @@
+LW + stop(c) 0.03: pts x0.61 err x1.000 bnd x1.000 | 0.1: pts x0.57 err x1.001 bnd x1.003 | 0.3: pts x0.51 err x0.998 bnd x1.007 | 1: pts x0.44 err x0.997 bnd x1.025 | 3: pts x0.36 err x0.992 bnd x1.063 | 10: pts x0.26 err x0.931 bnd x1.198
+greedy(lam) 0.1: pts x0.53 err x0.063 bnd x0.164 | 0.3: pts x0.48 err x0.047 bnd x0.177 | 1: pts x0.47 err x0.060 bnd x0.185 | 3: pts x0.43 err x0.052 bnd x0.236 | 10: pts x0.44 err x0.054 bnd x0.279
+greedy(lam) + myopic stop 0.1: pts x0.36 err x0.048 bnd x0.169 | 0.3: pts x0.29 err x0.062 bnd x0.189 | 1: pts x0.24 err x0.063 bnd x0.199 | 3: pts x0.18 err x0.102 bnd x0.285 | 10: pts x0.12 err x0.175 bnd x0.500
+greedy(lam) + rollout stop 0.1: pts x0.37 err x0.081 bnd x0.246 | 0.3: pts x0.33 err x0.155 bnd x0.348 | 1: pts x0.27 err x0.253 bnd x0.579 | 3: pts x0.09 err x0.580 bnd x1.270 | 10: pts x0.02 err x1.485 bnd x1.538
+LW + rollout stop(lam) 0.1: pts x0.17 err x1.065 bnd x1.484 | 0.3: pts x0.13 err x1.035 bnd x1.540 | 1: pts x0.07 err x1.083 bnd x1.686 | 3: pts x0.04 err x1.597 bnd x1.817 | 10: pts x0.01 err x2.232 bnd x1.998
+lowest score + stop(c) 0.1: pts x0.58 err x0.080 bnd x0.179 | 1: pts x0.43 err x0.092 bnd x0.227 | 10: pts x0.22 err x0.167 bnd x0.511

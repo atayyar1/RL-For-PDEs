@@ -1,0 +1,10 @@
+  102,400 steps (10 min): 1728 points, 0 stops, error 1.40e-02, bound 1.59e-02
+  204,800 steps (14 min): 1417 points, 0 stops, error 1.63e-02, bound 1.85e-02
+  307,200 steps (18 min): 1656 points, 0 stops, error 4.71e-03, bound 7.06e-03
+  409,600 steps (22 min): 1727 points, 0 stops, error 3.27e-03, bound 5.63e-03
+  512,000 steps (26 min): 1620 points, 135 stops, error 2.98e-03, bound 5.74e-03
+  614,400 steps (30 min): 892 points, 213 stops, error 1.88e-03, bound 3.29e-03
+  716,800 steps (33 min): 737 points, 183 stops, error 1.41e-03, bound 3.05e-03
+  819,200 steps (37 min): 657 points, 182 stops, error 2.35e-04, bound 2.13e-03
+  921,600 steps (40 min): 535 points, 151 stops, error 5.82e-04, bound 1.88e-03
+1,024,000 steps (43 min): 517 points, 141 stops, error 7.05e-04, bound 1.96e-03

@@ -1,0 +1,16 @@
+(25, 45) {'points': '517', 'stops': '141', 'error': '0.000705', 'bound': '0.00196', 'identity_gap': '8.2e-17', 'est': '0.00263', 'band': '0.981'}
+(12, 25) {'points': '162', 'stops': '73', 'error': '0.00167', 'bound': '0.00359', 'identity_gap': '5.4e-17', 'est': '0.00428', 'band': '0.994'}
+(25, 25) {'points': '190', 'stops': '71', 'error': '0.000265', 'bound': '0.000439', 'identity_gap': '2.54e-16', 'est': '0.000478', 'band': '0.995'}
+(37, 25) {'points': '1', 'stops': '5', 'error': '0.00578', 'bound': '0.00587', 'identity_gap': '1.73e-18', 'est': '0.00141', 'band': '1'}
+(12, 40) {'points': '241', 'stops': '117', 'error': '0.00319', 'bound': '0.0123', 'identity_gap': '1.26e-17', 'est': '0.0119', 'band': '0.851'}
+(25, 40) {'points': '440', 'stops': '126', 'error': '0.000549', 'bound': '0.0012', 'identity_gap': '1.92e-16', 'est': '0.00174', 'band': '0.982'}
+(37, 40) {'points': '2', 'stops': '9', 'error': '0.0103', 'bound': '0.0108', 'identity_gap': '2.08e-17', 'est': '0.0204', 'band': '1'}
+(12, 55) {'points': '91', 'stops': '85', 'error': '0.0185', 'bound': '0.0226', 'identity_gap': '2.05e-16', 'est': '0.0225', 'band': '0.978'}
+(25, 55) {'points': '661', 'stops': '169', 'error': '0.000498', 'bound': '0.00527', 'identity_gap': '4.4e-16', 'est': '0.00583', 'band': '0.986'}
+(37, 55) {'points': '259', 'stops': '35', 'error': '0.00277', 'bound': '0.00873', 'identity_gap': '7.5e-17', 'est': '0.01', 'band': '0.969'}
+(25, 45) {'points': '517', 'stops': '141', 'error': '0.000705', 'bound': '0.00196', 'identity_gap': '8.2e-17', 'est': '0.00263', 'band': '0.981'}
+(6, 50) {'points': '65', 'stops': '57', 'error': '0.00671', 'bound': '0.0101', 'identity_gap': '7.55e-17', 'est': '0.011', 'band': '0.877'}
+(44, 30) {'points': '1', 'stops': '5', 'error': '0.000341', 'bound': '0.00151', 'identity_gap': '5.6e-17', 'est': '0.00461', 'band': '1'}
+(25, 15) {'points': '66', 'stops': '43', 'error': '0.000195', 'bound': '0.000333', 'identity_gap': '4.34e-18', 'est': '0.000294', 'band': '1'}
+(18, 52) {'points': '519', 'stops': '167', 'error': '0.0181', 'bound': '0.0237', 'identity_gap': '7.98e-17', 'est': '0.0281', 'band': '0.996'}
+(33, 20) {'points': '94', 'stops': '51', 'error': '0.000442', 'bound': '0.00136', 'identity_gap': '9.11e-17', 'est': '0.00116', 'band': '1'}

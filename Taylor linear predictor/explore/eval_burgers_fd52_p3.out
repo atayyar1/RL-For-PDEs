@@ -1,0 +1,23 @@
+inflow_front_guess-fd52_picard3: guess cost 9600 + 2496 + 672 (2nd, 3rd guess) grid points, shared by all queries; R_OBS = 11.68
+
+unseen 9:
+| method | points | stops | exact bound | true error | est/bound | est_abs/bound | est_2g/bound | in Green band | wins (err < LW) |
+|---|---|---|---|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 39.08 | 11350.61 | 48.29 | nan | 0/9 |
+| lowest score | x1.07 | 0 | x47.67 | x5.99 | 0.00 | 268.40 | 0.87 | nan | 1/9 |
+| greedy | x0.53 | 0 | x47.38 | x9.21 | 0.00 | 264.85 | 0.85 | nan | 1/9 |
+| greedy+stop(myopic) | x0.29 | 81 | x47.03 | x6.32 | 0.00 | 261.77 | 0.86 | nan | 1/9 |
+| LW map+stop(c=1) | x0.38 | 112 | x1.06 | x0.87 | 34.98 | 10086.03 | 43.34 | nan | 5/9 |
+| greedy+stop(c=0.1) | x0.35 | 73 | x47.09 | x9.67 | 0.00 | 265.75 | 0.86 | nan | 1/9 |
+
+new 6:
+| method | points | stops | exact bound | true error | est/bound | est_abs/bound | est_2g/bound | in Green band | wins (err < LW) |
+|---|---|---|---|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 21.71 | 3050.69 | 32.21 | nan | 0/6 |
+| lowest score | x1.07 | 0 | x27.38 | x4.56 | 0.00 | 145.97 | 1.22 | nan | 2/6 |
+| greedy | x0.53 | 0 | x29.98 | x4.30 | 0.00 | 131.29 | 1.09 | nan | 1/6 |
+| greedy+stop(myopic) | x0.27 | 102 | x26.74 | x5.88 | 0.00 | 136.08 | 1.18 | nan | 1/6 |
+| LW map+stop(c=1) | x0.32 | 141 | x1.04 | x1.14 | 19.94 | 2773.05 | 29.71 | nan | 3/6 |
+| greedy+stop(c=0.1) | x0.33 | 99 | x27.76 | x4.40 | 0.00 | 141.70 | 1.20 | nan | 2/6 |
+
+max identity gap: 9.072603779358701e-16
