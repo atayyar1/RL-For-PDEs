@@ -1,0 +1,293 @@
+
+==============================================================================
+5A.  Sanity: the exact law is recovered at full support and p = M-1
+==============================================================================
+      M      s    p       R_free        R_pos   min free wt
+      2     30    0    9.879e-01    9.879e-01    -1.336e-16
+      2     30    1    2.269e-15    3.676e-16    -9.931e-16
+      2     30    2    2.300e-15    3.241e-16    -9.386e-03
+      3     20    1    3.960e-01    4.005e-01    -2.352e-02
+      3     20    2    1.709e-15    6.086e-02    -5.960e-02
+      3     20    3    2.070e-15    6.733e-03    -1.303e-02
+      4     15    2    2.087e-01    2.248e-01    -5.960e-02
+      4     15    3    3.481e-15    1.099e-01    -1.576e-01
+      4     15    4    2.147e-15    5.201e-02    -9.223e-02
+      6     10    4    5.284e-02    1.366e-01    -2.930e-01
+      6     10    5    4.878e-15    9.872e-02    -4.648e-01
+      6     10    6    4.238e-15    7.414e-02    -3.522e-01
+   -> R_free hits round-off exactly at p = M-1 (Thm 3), and R_pos does NOT for M>=3:
+      the exact coarse law is not representable with nonnegative weights.
+
+==============================================================================
+5B.  THE TRADE CURVE: does memory buy back positivity at fixed locality?
+==============================================================================
+   For each coarsening M, sweep locality s (compact half-width, in COARSE cells) against
+   memory depth p (extra lags beyond Markov).  R_free = best achievable; R_pos = best
+   achievable with all weights >= 0.  Both are worst-case-free least squares over all
+   Nc modes x M aliases, so they are initial-condition independent.
+
+   M = 3  (Nc = 40, exact law needs p = 2 and full support)
+   R_free / R_pos                      p=0                p=1                p=2                p=3                p=4                p=5
+   s=   0 (  1 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.91e-01/3.01e-01  1.47e-01/2.05e-01  7.30e-02/1.56e-01  3.57e-02/1.25e-01  
+   s=   1 (  3 wts)   9.88e-01/9.88e-01  3.96e-01/4.01e-01  1.57e-15/6.09e-02  1.23e-15/6.73e-03  9.12e-16/7.30e-04  1.11e-15/5.83e-05  
+   s=   2 (  5 wts)   9.88e-01/9.88e-01  3.96e-01/4.01e-01  4.32e-15/6.09e-02  1.63e-15/6.73e-03  8.85e-16/7.30e-04  1.12e-15/5.88e-16  
+   s=   3 (  7 wts)   9.88e-01/9.88e-01  3.96e-01/4.01e-01  1.49e-15/6.09e-02  2.18e-15/6.73e-03  1.16e-15/7.30e-04  9.24e-16/5.77e-16  
+   s=   4 (  9 wts)   9.88e-01/9.88e-01  3.96e-01/4.01e-01  1.41e-15/6.09e-02  1.49e-15/6.73e-03  1.26e-15/7.30e-04  2.69e-15/5.75e-16  
+   s=   6 ( 13 wts)   9.88e-01/9.88e-01  3.96e-01/4.01e-01  1.14e-15/6.09e-02  2.73e-15/6.73e-03  1.26e-15/7.30e-04  1.22e-15/5.70e-16  
+   s=full ( 41 wts)   9.88e-01/9.88e-01  3.96e-01/4.01e-01  1.71e-15/6.09e-02  2.07e-15/6.73e-03  2.41e-15/7.30e-04  4.24e-15/6.07e-16  
+
+   M = 4  (Nc = 30, exact law needs p = 3 and full support)
+   R_free / R_pos                      p=0                p=1                p=2                p=3                p=4                p=5                p=6
+   s=   0 (  1 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.91e-01/3.01e-01  1.47e-01/2.05e-01  7.30e-02/1.56e-01  3.57e-02/1.25e-01  1.73e-02/1.05e-01  
+   s=   1 (  3 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.09e-01/2.25e-01  1.59e-15/1.10e-01  1.12e-15/5.20e-02  5.92e-16/2.49e-02  8.52e-16/1.14e-02  
+   s=   2 (  5 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.09e-01/2.25e-01  1.44e-15/1.10e-01  1.16e-15/5.20e-02  1.93e-15/2.49e-02  2.55e-15/1.13e-02  
+   s=   3 (  7 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.09e-01/2.25e-01  1.47e-15/1.10e-01  1.29e-15/5.20e-02  1.37e-15/2.49e-02  1.66e-15/1.13e-02  
+   s=   4 (  9 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.09e-01/2.25e-01  1.68e-15/1.10e-01  1.58e-15/5.20e-02  1.45e-15/2.49e-02  1.69e-15/1.13e-02  
+   s=   6 ( 13 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.09e-01/2.25e-01  1.79e-15/1.10e-01  1.82e-15/5.20e-02  1.36e-15/2.49e-02  1.57e-15/1.13e-02  
+   s=full ( 31 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.09e-01/2.25e-01  3.48e-15/1.10e-01  2.15e-15/5.20e-02  2.25e-15/2.49e-02  1.74e-15/1.13e-02  
+
+   M = 6  (Nc = 20, exact law needs p = 5 and full support)
+   R_free / R_pos                      p=0                p=1                p=2                p=3                p=4                p=5                p=6                p=7                p=8
+   s=   0 (  1 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.91e-01/3.01e-01  1.47e-01/2.05e-01  7.30e-02/1.56e-01  3.57e-02/1.25e-01  1.73e-02/1.05e-01  8.37e-03/9.06e-02  4.03e-03/7.97e-02  
+   s=   1 (  3 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.91e-01/3.01e-01  1.08e-01/1.98e-01  5.28e-02/1.37e-01  2.85e-15/9.87e-02  1.37e-15/7.41e-02  1.73e-15/5.67e-02  1.58e-15/4.33e-02  
+   s=   2 (  5 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.91e-01/3.01e-01  1.08e-01/1.98e-01  5.28e-02/1.37e-01  1.90e-15/9.87e-02  1.67e-15/7.41e-02  1.32e-15/5.67e-02  1.86e-15/4.33e-02  
+   s=   3 (  7 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.91e-01/3.01e-01  1.08e-01/1.98e-01  5.28e-02/1.37e-01  1.65e-15/9.87e-02  2.10e-15/7.41e-02  1.84e-15/5.67e-02  1.82e-15/4.33e-02  
+   s=   4 (  9 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.91e-01/3.01e-01  1.08e-01/1.98e-01  5.28e-02/1.37e-01  3.19e-15/9.87e-02  2.21e-15/7.41e-02  2.39e-15/5.67e-02  1.38e-15/4.33e-02  
+   s=   6 ( 13 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.91e-01/3.01e-01  1.08e-01/1.98e-01  5.28e-02/1.37e-01  2.77e-15/9.87e-02  3.67e-15/7.41e-02  2.30e-15/5.67e-02  3.29e-15/4.33e-02  
+   s=full ( 21 wts)   9.88e-01/9.88e-01  5.54e-01/5.54e-01  2.91e-01/3.01e-01  1.08e-01/1.98e-01  5.28e-02/1.37e-01  4.88e-15/9.87e-02  4.24e-15/7.41e-02  2.08e-15/5.67e-02  1.62e-15/4.33e-02  
+
+   Read the rows: within a row (locality fixed) does R_pos fall as p grows?
+
+==============================================================================
+5C.  The price of positivity, isolated
+==============================================================================
+   price(s,p) = R_pos / R_free  -- how much accuracy positivity costs at that
+   (locality, memory).  price = 1 means positivity is free.
+
+   M = 3:   price = R_pos / R_free
+          s          p=0         p=1         p=2         p=3         p=4         p=5
+          0            1           1        1.04        1.39        2.13        3.51
+          1            1        1.01         inf         inf         inf         inf
+          2            1        1.01         inf         inf         inf         inf
+          3            1        1.01         inf         inf         inf         inf
+          4            1        1.01         inf         inf         inf         inf
+          6            1        1.01         inf         inf         inf         inf
+       full            1        1.01         inf         inf         inf         inf
+
+   M = 4:   price = R_pos / R_free
+          s          p=0         p=1         p=2         p=3         p=4         p=5         p=6
+          0            1           1        1.04        1.39        2.13        3.51        6.06
+          1            1           1        1.08         inf         inf         inf         inf
+          2            1           1        1.08         inf         inf         inf         inf
+          3            1           1        1.08         inf         inf         inf         inf
+          4            1           1        1.08         inf         inf         inf         inf
+          6            1           1        1.08         inf         inf         inf         inf
+       full            1           1        1.08         inf         inf         inf         inf
+
+   M = 6:   price = R_pos / R_free
+          s          p=0         p=1         p=2         p=3         p=4         p=5         p=6         p=7         p=8
+          0            1           1        1.04        1.39        2.13        3.51        6.06        10.8        19.8
+          1            1           1        1.04        1.83        2.59         inf         inf         inf         inf
+          2            1           1        1.04        1.83        2.59         inf         inf         inf         inf
+          3            1           1        1.04        1.83        2.59         inf         inf         inf         inf
+          4            1           1        1.04        1.83        2.59         inf         inf         inf         inf
+          6            1           1        1.04        1.83        2.59         inf         inf         inf         inf
+       full            1           1        1.04        1.83        2.59         inf         inf         inf         inf
+
+==============================================================================
+5D.  Best nonnegative scheme at each accuracy target
+==============================================================================
+   Turn the table around: for a target worst-case residual, what is the CHEAPEST
+   (s, p) that a NONNEGATIVE compact coarse law can reach it with?  Cost = (p+1)(2s+1)
+   weights, i.e. work per coarse point per coarse step.
+
+   M = 3:
+     target R_pos    best (s,p)   weights       R_pos  R_free there
+            1e-01       s=1,p=2         9    6.09e-02      1.57e-15
+            1e-02       s=1,p=3        12    6.73e-03      1.23e-15
+            1e-03       s=1,p=4        15    7.30e-04      9.12e-16
+            1e-04       s=1,p=5        18    5.83e-05      1.11e-15
+
+   M = 4:
+     target R_pos    best (s,p)   weights       R_pos  R_free there
+            1e-01       s=1,p=4        15    5.20e-02      1.12e-15
+            1e-02   unreachable
+            1e-03   unreachable
+            1e-04   unreachable
+
+   M = 6:
+     target R_pos    best (s,p)   weights       R_pos  R_free there
+            1e-01       s=0,p=7         8    9.06e-02      8.37e-03
+            1e-02   unreachable
+            1e-03   unreachable
+            1e-04   unreachable
+
+==============================================================================
+5E.  Does memory buy back positivity at MINIMAL locality?  Deep sweep, s = 1.
+==============================================================================
+   Fix locality at the smallest useful value -- 3 coarse weights per lag -- and push the
+   memory depth p well past M-1.  R_pos is the best achievable with ALL weights >= 0.
+
+   M = 2   (the unconstrained law is exact at p = 1)
+      p             0         1         2         3         4         5         6         7         8         9        10        11
+  R_pos      9.88e-01  3.67e-16  3.41e-16  4.74e-16  3.90e-16  5.03e-16  5.09e-16  4.38e-16  4.71e-16  4.74e-16  4.97e-16  4.75e-16
+      p            12        13        14        15        16        17        18        19        20        21        22
+  R_pos      6.66e-16  4.94e-16  5.42e-16  5.37e-16  4.66e-16  3.16e-16  6.40e-16  6.65e-16  4.54e-16  4.32e-16  5.27e-16
+   at p=20: min weight = 0.00e+00, sum = 1.0000000000  -> convex combination: True
+
+   M = 3   (the unconstrained law is exact at p = 2)
+      p             0         1         2         3         4         5         6         7         8         9        10        11
+  R_pos      9.88e-01  4.01e-01  6.09e-02  6.73e-03  7.30e-04  5.83e-05  5.59e-06  5.81e-07  6.01e-08  5.47e-09  5.04e-10  5.15e-11
+      p            12        13        14        15        16        17        18        19        20        21        22
+  R_pos      5.26e-12  4.62e-13  4.39e-14  4.50e-15  1.45e-15  2.75e-15  1.28e-15  1.78e-15  1.17e-15  1.42e-15  1.10e-15
+   -> R_pos ~ 0.0966^p ;  extra lags per decade of accuracy = 0.99
+   at p=20: min weight = 0.00e+00, sum = 1.0000000000  -> convex combination: True
+
+   M = 4   (the unconstrained law is exact at p = 3)
+      p             0         1         2         3         4         5         6         7         8         9        10        11
+  R_pos      9.88e-01  5.54e-01  2.25e-01  1.10e-01  5.20e-02  2.49e-02  1.14e-02  4.79e-03  1.99e-03  8.36e-04  3.74e-04  1.70e-04
+      p            12        13        14        15        16        17        18        19        20        21        22
+  R_pos      7.66e-05  3.45e-05  1.54e-05  6.63e-06  2.92e-06  1.28e-06  5.69e-07  2.56e-07  1.15e-07  5.10e-08  2.21e-08
+   -> R_pos ~ 0.4414^p ;  extra lags per decade of accuracy = 2.82
+   at p=20: min weight = 0.00e+00, sum = 1.0000000085  -> convex combination: True
+
+   M = 6   (the unconstrained law is exact at p = 5)
+      p             0         1         2         3         4         5         6         7         8         9        10        11
+  R_pos      9.88e-01  5.54e-01  3.01e-01  1.98e-01  1.37e-01  9.87e-02  7.41e-02  5.67e-02  4.33e-02  3.29e-02  2.50e-02  1.88e-02
+      p            12        13        14        15        16        17        18        19        20        21        22
+  R_pos      1.39e-02  1.03e-02  7.54e-03  5.48e-03  3.99e-03  2.91e-03  2.14e-03  1.57e-03  1.14e-03  8.34e-04  6.05e-04
+   -> R_pos ~ 0.7370^p ;  extra lags per decade of accuracy = 7.54
+   at p=20: min weight = 0.00e+00, sum = 0.9999460913  -> convex combination: False
+
+   ANSWER: YES.  At fixed minimal locality, extra memory buys back positivity GEOMETRICALLY.
+
+   Every solution has all weights >= 0 by construction, and total mass S <= 1 (mass is the
+   q=0, l=0 row of the system, so it is met only to within the residual: S = 1 to 1e-8 for
+   M = 2,3,4 at p = 20, and S = 0.99995 for M = 6 where R_pos is still 1.1e-3).  Since the
+   weights are non-negative with S <= 1, each scheme satisfies
+        max |U^{n+1}| <= S * max_j max |U^{n+1-j}| <= max_j max |U^{n+1-j}|,
+   a discrete maximum principle: unconditionally stable in l_inf, with no transient.
+   The trade curve is real and it is quantitative:
+
+      M   decay per lag   extra lags per decade
+      3          0.0966                    0.99
+      4          0.4414                    2.82
+      6          0.7370                    7.54
+   The rate degrades sharply with the coarsening factor: memory buys back positivity, but
+   the exchange rate gets worse the harder you coarse-grain.
+
+==============================================================================
+5F.  Pawula: what it does and does not forbid
+==============================================================================
+   PAWULA'S THEOREM (Phys. Rev. 162, 186, 1967).  For a Markov process with Kramers-Moyal
+   expansion  d_t P = sum_n (-d_x)^n [ D^(n) P ],  positivity of P forces the generalised
+   Cauchy-Schwarz inequality  [D^(m+n)]^2 <= D^(2m) D^(2n).  Hence if ANY even coefficient
+   D^(2j), j >= 2, vanishes then D^(n) = 0 for all n >= 3.  The expansion therefore either
+   stops at n = 2 (Fokker-Planck) or has INFINITELY many non-zero terms: a truncation at any
+   finite order N with 3 <= N < infinity is inconsistent with a non-negative density.
+
+   Translating this as 'a local positive propagator is necessarily second-order' is WRONG,
+   and the distinction matters.  Pawula constrains the stencil's OWN cumulant sequence -- it
+   may not TERMINATE beyond order 2.  Accuracy only requires MATCHING finitely many moments
+   of the target kernel, which is a different thing entirely.  Demonstration:
+
+   The 5-point stencil exact on Theta_0..Theta_4 at r=0.45: min w = 0.05768 (POSITIVE), ||w||_1 = 1.000000
+   Its own cumulants:
+     kappa_ 1 = -4.591368e-04   <- matched to the exact kernel
+     kappa_ 2 = +9.182736e-05   <- matched to the exact kernel
+     kappa_ 3 = +2.911676e-22   <- matched to the exact kernel
+     kappa_ 4 = +3.308722e-24   <- matched to the exact kernel
+     kappa_ 5 = +1.270575e-11   <- NON-ZERO -- as Pawula requires
+     kappa_ 6 = -2.527798e-12   <- NON-ZERO -- as Pawula requires
+     kappa_ 7 = -1.318592e-14   <- NON-ZERO -- as Pawula requires
+     kappa_ 8 = +2.621943e-15   <- NON-ZERO -- as Pawula requires
+     kappa_ 9 = +1.065908e-17   <- NON-ZERO -- as Pawula requires
+     kappa_10 = -2.139156e-18   <- NON-ZERO -- as Pawula requires
+   Cauchy-Schwarz [M_(m+n)]^2 <= M_2m M_2n over 1<=m,n<=4: 0 violations (0 expected).
+
+   So there IS an order cap on positive local stencils -- but it is set by r, the per-step
+   mixing, not by a universal 'second order'.  Largest m for which the (2m+1)-point
+   Theta_0..Theta_2m-exact stencil stays non-negative:
+
+         r  sigma=sqrt(2r) cells   max m positive   spatial order
+      0.45                 0.949                5              10
+      0.40                 0.894                5              10
+      0.35                 0.837                4               8
+      0.30                 0.775                3               6
+      0.25                 0.707                3               6
+      0.20                 0.632                3               6
+      0.15                 0.548                1               2
+      0.10                 0.447                1               2
+      0.05                 0.316                1               2
+
+   The cap tracks the kernel width: when sigma << 1 cell the exact kernel is nearly a delta
+   and its high moments cannot be reproduced by a non-negative measure on a wide lattice
+   support.  At r = 0.45 a POSITIVE LOCAL stencil reaches TENTH order.  Note this is the same
+   condition that appeared in Task 4D (coarsening by M=2 stays positive iff r >= 1-1/sqrt2):
+   positivity needs enough mixing per step, in both settings.
+
+   The classical result that DOES cap order for positive schemes is GODUNOV'S THEOREM --
+   a linear, constant-coefficient, monotonicity-preserving scheme for the ADVECTION equation
+   is at most first-order accurate.  That is a hyperbolic statement.  Here, with r held fixed
+   and real diffusion present, the problem is parabolic and Godunov's bound does not bite,
+   which is exactly why high-order positive stencils exist at large r.
+
+   wrote figures/task5_trilemma.png
+
+==============================================================================
+5G.  Independent validation of the exact nonnegative compact coarse laws
+==============================================================================
+   The two exact nonnegative laws found in 5B/5E are the strongest claims in this thread,
+   so validate them OUTSIDE the Fourier system they were fitted in: evolve the fine scheme
+   from random data, restrict to the coarse grid, and (a) test the one-step recurrence,
+   (b) roll the coarse law forward 400 steps with NO re-injection of fine data.
+
+   === M=2, s=1, p=1  (6 weights) ===
+   rows = lag 0..1, cols = coarse offsets [-1, 0, 1]:
+     B_1 = +0.000000  +0.200000  +0.000000
+     B_2 = +0.223471  +0.393967  +0.182562
+   min = 2.572e-17   mass = 1.00000000000000   all >= 0: True
+   max relative one-step error, 5 trajectories x 75 steps : 4.741e-16
+   400-step self-rollout, no re-injection: max abs err 3.234e-15, final 3.234e-15
+
+   === M=3, s=2, p=5  (30 weights) ===
+   rows = lag 0..5, cols = coarse offsets [-2, -1, 0, 1, 2]:
+     B_1 = +0.000000  +0.000000  +0.000000  +0.000000  +0.000000
+     B_2 = +0.000000  +0.000000  +0.000000  +0.000000  +0.000000
+     B_3 = +0.000000  +0.000000  +0.036429  +0.000000  +0.000000
+     B_4 = +0.000000  +0.063385  +0.448640  +0.046802  +0.000000
+     B_5 = +0.000000  +0.131195  +0.119589  +0.096873  +0.000000
+     B_6 = +0.011160  +0.022919  +0.000000  +0.016923  +0.006085
+   min = 0.000e+00   mass = 1.00000000000000   all >= 0: True
+   max relative one-step error, 5 trajectories x 75 steps : 6.709e-16
+   400-step self-rollout, no re-injection: max abs err 4.441e-16, final 2.914e-16
+
+   Both are exact to round-off and stable over a long unforced rollout.
+
+   Two things worth noting about the M=3 solution:
+     - B_1 = B_2 = 0 EXACTLY.  The non-negative representation uses no dependence at all on
+       the two most recent coarse levels; it is a PURE-DELAY scheme, starting at lag 2.  So
+       "buying back positivity with memory" does not mean adding a small correction to a
+       Markov law -- it means moving the whole law backwards in time.
+     - The M=2 solution B_1 = 0.2 I, B_2 = (0.2235, 0.3940, 0.1826) reproduces, to all digits
+       shown, the law derived independently in Task 4D from Cayley-Hamilton on the alias
+       block.  Two unrelated routes -- elementary symmetric functions of the aliased
+       amplification factors, and NNLS on the Fourier system -- agree exactly.
+
+==============================================================================
+5H.  Does an exact nonnegative compact law exist for M >= 4?
+==============================================================================
+   For M = 2 and 3 the price of positivity is exactly zero (5G).  For M = 4 it appears not
+   to be: widening the support barely helps and the residual only falls geometrically.
+
+   M = 4:  R_pos
+       s         p=5        p=8       p=11       p=14       p=17
+       2    2.49e-02   1.26e-03   2.49e-05   5.22e-07   1.01e-08
+       3    2.49e-02   1.26e-03   2.26e-05   2.27e-07   2.26e-09
+       4    2.49e-02   1.26e-03   2.26e-05   2.22e-07   1.51e-09
+
+   Going from 3 to 5 weights per lag took M=3 from 6e-5 to machine zero at p=5.  Nothing
+   comparable happens at M=4: s=2 -> s=4 moves p=17 only from 1.0e-8 to 1.5e-9.  So M=4
+   looks qualitatively different -- geometric convergence rather than exact representability.
+   This is a FAILURE TO FIND within the budget searched (s <= 4, p <= 17), NOT a proof of
+   non-existence.

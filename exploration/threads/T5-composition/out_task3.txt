@@ -1,0 +1,311 @@
+
+==============================================================================
+3A.  The exact feasibility boundary (drift included)
+==============================================================================
+   Let w >= 0 be supported on |xi| <= m dx and satisfy the three consistency conditions
+   Theta_0, Theta_1, Theta_2 for a step tau = k dt.  Those conditions FIX the raw moments:
+        M_0 = 1,   M_1 = c tau = -c k dt,   M_2 = 2 alpha k dt + (c k dt)^2,
+   i.e. M_2 is the raw second moment of the exact propagator, VARIANCE PLUS MEAN SQUARED.
+   (An earlier draft of this script used M_2 = 2 alpha tau, dropping the drift term.  That
+   is the diffusion-limited branch only, and it is wrong by 2x already at m = 32.)
+
+   NECESSARY:   M_2 = sum_i w_i xi_i^2 <= m^2 dx^2 sum_i w_i = m^2 dx^2,  so in cell units
+        ra^2 k^2 + 2 r k - m^2 <= 0   <=>   k <= k_max(m) = ( -r + sqrt(r^2 + ra^2 m^2) ) / ra^2.
+
+   SUFFICIENT: the conditions ask for a probability measure on [-m, m] with mean mu = -ra k
+   and variance v = 2 r k.  The largest variance available at mean mu on [-m,m] is
+   (m+mu)(m-mu) = m^2 - mu^2, so such a measure exists iff v <= m^2 - mu^2, i.e. iff
+   M_2 = v + mu^2 <= m^2 -- the SAME inequality.  So the bound is sharp (up to lattice
+   integrality), and the extremal measure puts its mass at the two endpoints.
+
+   Two limits:
+        ra m << r :  k -> m^2/(2r)     DIFFUSION-limited  (the familiar formula)
+        ra m >> r :  k -> m/ra         ADVECTION-limited  (a CFL bound)
+   TWO thresholds, worth keeping apart (refinement from the companion thread):
+        m* = r/ra  = 1/Pe_cell = 9.90 cells -- where the quadratic law first goes
+                     MATERIALLY wrong (about 25%);
+        2 m*       = 19.80 cells -- where the two branch FORMULAS actually cross.
+   Note the threshold is 1/Pe_cell, so saturation bites at MODEST Peclet, not at Pe ~ 1.
+   r = 0.45, ra = 0.045455, Pe_cell = 0.1010.
+
+   LP bisection vs the two formulas:
+      m   LP k_max   corrected   old m^2/(2r)    old/LP       branch
+      1          1           1           1.11     1.111    diffusive
+      2          4           4           4.44     1.111    diffusive
+      3          9           9          10.00     1.111    diffusive
+      5         26          26          27.78     1.068    diffusive
+      8         62          62          71.11     1.147    diffusive
+     12        124         124         160.00     1.290    advective
+     20        273         273         444.44     1.628    advective
+     32        519         519        1137.78     2.192    advective
+     50        903         903        2777.78     3.076    advective
+   -> the corrected formula reproduces the LP EXACTLY at every m; the old one
+      overestimates by up to 2.2x by m=32 and keeps getting worse.
+
+   IMPORTANT CAVEAT (confirmed and sharpened by the companion thread).  The advective
+   saturation above is an artefact of requiring the stencil to be CENTRED ON ITS TARGET --
+   which is what the original brief specified, but is not necessary.  Put the support on
+   {j0-m .. j0+m} with j0 = round(-ra k).  In eta = j - j0 the conditions become
+        E[eta] = mu',  |mu'| <= 1/2  (the rounding remainder),   E[eta^2] = 2 r k + mu'^2,
+   so the endpoint bound gives  k <= (m^2 - mu'^2)/(2r) -> m^2/(2r):  the DIFFUSIVE branch is
+   recovered at every m, with no advective penalty.  A shifted stencil costs no more to
+   evaluate than a centred one, so this is free.  Verified by the companion thread's LP
+   (27, 71, 159, 444, 1137, 2777 against m^2/(2r) = 28, 71, 160, 444, 1138, 2778).
+   Gain over centred grows without bound: 3.1x at m = 50.
+
+==============================================================================
+3B.  The two thread results are the SAME statement
+==============================================================================
+   Task 2: composing L narrow steps gives a kernel with raw second moment (cell units)
+        M_2(w^{*L}) = L s2 + (L ra)^2,      s2 = 2r - ra^2 = 0.897934,
+   i.e. an effective half-width about the ORIGIN of m = sqrt(L s2 + L^2 ra^2) -- diffusive
+   spreading AND advective displacement, which is exactly what a wide stencil must span.
+   Task 3A: a wide positive stencil of half-width m advances k_max(m) steps.
+   Compose the two and the L's cancel:
+
+         L  m = sqrt(L s2 + L^2 ra^2)    k_max(m)       L    rel err
+         4                     1.9039      3.9910       4   2.25e-03
+        16                     3.8595     15.9658      16   2.14e-03
+        64                     8.1198     63.8864      64   1.77e-03
+       256                    19.1122    255.7298     256   1.06e-03
+      1024                    55.5515   1023.5876    1024   4.03e-04
+      4096                   195.8101   4095.5252    4096   1.16e-04
+
+   Agreement to 2.3e-3 at L=4 improving to 1.2e-4 at L=4096; the residual is exactly
+   ra^2/(2r + 2 ra^2 L).  So: A WIDE POSITIVE STENCIL IS A COMPRESSED COMPOSITE, and the
+   compression ratio is set by how much of the footprint the drift eats.
+
+   NOTE a convention trap: the diffusive width is sqrt(2 alpha t), not sqrt(alpha t).  With
+   sqrt(alpha L dt) the two statements disagree by sqrt(2); with the variance convention,
+   and with the drift term kept, they agree identically.
+
+==============================================================================
+3C.  What the compression costs and what it loses
+==============================================================================
+   Three representations of the same L-step advance, at half-width m:
+     (A) truncate the exact composite to +-m and renormalise  (lossy only in the tail)
+     (B) maximum-entropy NONNEGATIVE stencil matching the first J exact moments
+     (C) the (2m+1)-moment Theta-exact stencil solved directly (the naive route)
+   (B) is positive by construction; (C) is what happens if you fit a wide stencil head-on.
+   Metric: max over well-resolved modes |theta|<=pi/4 of |g(theta) - exact propagator|.
+
+   L = 64   sigma_L = 7.58 cells   formal half-width = 64
+   exact composite (2L+1 = 129 pts): band error = 2.9174e-03
+       m  m/sigma    (A) trunc  ||A-comp||_1
+       8     1.06    3.336e-01     2.629e-01
+      16     2.11    4.248e-02     2.906e-02
+      23     3.03    3.926e-03     1.761e-03
+      31     4.09    2.910e-03     2.286e-05
+      46     6.07    2.917e-03     1.207e-10
+
+   L = 256   sigma_L = 15.16 cells   formal half-width = 256
+   exact composite (2L+1 = 513 pts): band error = 1.1102e-03
+       m  m/sigma    (A) trunc  ||A-comp||_1
+      16     1.06    3.510e-01     2.768e-01
+      31     2.04    5.512e-02     3.769e-02
+      46     3.03    3.995e-03     2.124e-03
+      61     4.02    1.112e-03     4.673e-05
+      91     6.00    1.110e-03     1.121e-09
+
+   L = 1024   sigma_L = 30.32 cells   formal half-width = 1024
+   exact composite (2L+1 = 2049 pts): band error = 8.8302e-04
+       m  m/sigma    (A) trunc  ||A-comp||_1
+      31     1.02    3.772e-01     2.990e-01
+      61     2.01    6.190e-02     4.254e-02
+      91     3.00    4.736e-03     2.540e-03
+     122     4.02    8.567e-04     5.271e-05
+     182     6.00    8.830e-04     1.625e-09
+
+   (A) saturates at the exact-composite error once m >~ 4 sigma: the discarded tail
+   mass is Gaussian-small, so truncating the composite is essentially LOSSLESS.
+   The l1 distance to the untruncated composite falls like the Gaussian tail.
+
+   (B) At FIXED width m = 4 sigma, sweep the number of matched moments J:
+
+     L=64, m=31 (63 points), sigma_L=7.58
+        J    band error       min w   ||w||_1
+        2     8.196e-01    1.57e-02  1.000000
+        3     2.402e-04    1.20e-05  1.000000
+        4     2.406e-04    1.20e-05  1.000000
+        6     7.185e-04    1.28e-05  1.000000
+        8     1.509e-03    1.71e-05  1.000000
+       12     7.119e-03    2.73e-05  1.000000
+     exact composite      2.917e-03 (for reference)
+
+     L=256, m=61 (123 points), sigma_L=15.16
+        J    band error       min w   ||w||_1
+        2     8.057e-01    7.99e-03  1.000000
+        3     3.577e-04    7.48e-06  1.000000
+        4     3.598e-04    7.46e-06  1.000000
+        6     1.021e-03    8.08e-06  1.000000
+        8     2.104e-03    1.15e-05  1.000000
+       12     1.018e-02    1.46e-05  1.000000
+     exact composite      1.110e-03 (for reference)
+
+     L=1024, m=122 (245 points), sigma_L=30.32
+        J    band error       min w   ||w||_1
+        2     8.033e-01    4.04e-03  1.000000
+        3     3.807e-04    3.88e-06  1.000000
+        4     3.816e-04    3.87e-06  1.000000
+        6     1.077e-03    4.24e-06  1.000000
+        8     2.211e-03    6.24e-06  1.000000
+       12     1.059e-02    7.65e-06  1.000000
+     exact composite      8.830e-04 (for reference)
+
+   Reading (B) -- three things happen, two of them unexpected:
+     - J=2 (mass and mean but NO variance) is hopeless at any width.  Width alone buys
+       nothing; the compression is carried by the MOMENTS, not by the support.
+     - J=3, the standard consistency conditions, is already about 4x MORE ACCURATE than
+       the exact composite it is meant to compress.  That is not a paradox: maxent
+       targets the moments of the exact semigroup, whereas the composite faithfully
+       reproduces FTCS's own accumulated defect L*eps_2 (Thm 1').  Compressing a
+       trajectory of a biased integrator can beat the integrator.
+     - J>=6 gets WORSE, monotonically.  Forcing the FULL Gaussian's high moments onto a
+       support truncated at 4 sigma is inconsistent (a truncated Gaussian has smaller
+       high moments), and the optimiser buys those moments by distorting the bulk.
+       More moment information is not automatically better on a bounded footprint.
+     - maxent weights are strictly positive at EVERY J tested (||w||_1 = 1 throughout).
+       So there is no accuracy/positivity tension here; the blow-up in route (C) below
+       is a conditioning failure of the direct solve, not an intrinsic obstruction.
+
+   NOTE (companion thread).  At J = 3 this is NOT an alternative to a moment-matched discrete
+   Gaussian -- it IS one.  Maximising -sum w log w subject to sum w = 1, sum w j = mu,
+   sum w j^2 = M_2 gives w_j proportional to exp(lam_1 j + lam_2 j^2) by construction, and the
+   companion thread verified agreement with their independently root-found kernel to
+   2.8e-17..1.0e-16 at (m,k) = (8,4), (12,10), (20,25), (30,50), (40,100), with band errors
+   identical to every digit.  One construction, two derivations.  The convex-dual route is the
+   one to present because it extends to J > 3 without a bespoke parametrisation -- and 3C shows
+   that going past J = 3 on a truncated footprint makes things worse, so J = 3 (the Gaussian)
+   is also the right stopping point.
+
+   (C) the naive route -- solve the full (2m+1)-moment system directly:
+         m      cond(A)        ||w||_1   usable?
+         2    4.037e+04           8458        NO
+         3    3.678e+06      3.585e+05        NO
+         4    2.333e+08      1.125e+07        NO
+         6    5.234e+11        5.7e+09        NO
+         8    5.752e+14      1.496e+12        NO
+        10    5.292e+17      1.295e+14        NO
+     The moment problem on a lattice is exponentially ill-conditioned: past m~4 the
+     direct solve is meaningless in double precision.  Composition reaches the SAME
+     wide kernel stably, because it never forms the moment matrix.  That is an
+     independent, practical reason to compose rather than to fit wide directly.
+
+==============================================================================
+3D.  Price of the advance: cost ratio
+==============================================================================
+   Accounting 1 (ONE output value, the 'agent queries its inputs' cost): the composite
+   needs its whole light cone, sum_{l=1..L} (2l-1) = L^2 stencil applications at 3
+   mult-adds each = 3L^2.  The wide stencil costs 2m+1.
+   Accounting 2 (a FULL GRID of N points, the PDE-solver cost): composite 3NL, wide (2m+1)N.
+
+   CAREFUL -- two different half-widths are in play, and they are not interchangeable:
+     (i) about the TARGET POINT (3A, 3B): the stencil must span origin AND drifted centre,
+         so m^2 = L s2 + L^2 ra^2 and the drift eats footprint (the advective branch);
+    (ii) about the KERNEL'S OWN MEAN (3C, 3D): the stencil is re-centred at -ra L cells, so
+         only the spread matters and m = ceil(4 sigma_L).
+   Cost uses (ii), because a shifted stencil costs no more to evaluate than a centred one.
+
+        L   sigma_L  m=4sigma   3L^2 (1 pt)    2m+1   ratio 1pt  3L (grid)  ratio grid
+        4      1.90         8            48      17         2.8         12        0.71
+       16      3.79        16           768      33        23.3         48        1.45
+       64      7.58        31         12288      63       195.0        192        3.05
+      256     15.16        61        196608     123      1598.4        768        6.24
+     1024     30.32       122       3145728     245     12839.7       3072       12.54
+     4096     60.65       243      50331648     487    103350.4      12288       25.23
+    16384    121.29       486     805306368     973    827653.0      49152       50.52
+
+   fitted: ratio_1pt ~ L^1.506 (predicted 3/2),   ratio_grid ~ L^0.506 (predicted 1/2)
+
+   This is the precise sense in which coarse-graining buys computation, and the
+   reason is Task 2: the fixed point of the flow is a TWO-PARAMETER family (mean and
+   variance).  Carrying L levels of state is redundant once the kernel has
+   Gaussianised; the wide stencil carries only the 2 numbers that matter, sampled on
+   the O(sqrt(L)) cells where the mass actually lives.  The saving is exactly the
+   formal-to-effective support ratio rho(L) = sqrt(L/s2) of Task 2C.
+
+==============================================================================
+3E.  Classical anchor: this is Runge-Kutta-Chebyshev, and what the frontier buys
+==============================================================================
+   NOT A NEW RESULT -- flagged by the companion thread and verified here independently.
+   The semi-discrete diffusion operator has eigenvalues lambda(theta) = -(4 alpha/dx^2) sin^2(theta/2).
+   Over a superstep tau = k dt, z = lambda tau ranges over [-4 r k, 0].  First-order
+   Runge-Kutta-Chebyshev with m stages has stability polynomial P_m(z) = T_m(1 + z/m^2) and
+   real-axis stability interval |z| <= 2 m^2.  Therefore
+        4 r k <= 2 m^2   <=>   k <= m^2/(2r),
+   which is EXACTLY the diffusive branch of Prop 6.  So the quadratic width-step law, and the
+   L^{1/2} grid speedup of 3D, are the RKC stability scaling rediscovered in stencil language.
+   The composition picture explains WHY (a degree-m polynomial in the shift operator spans
+   m cells and can absorb a step ~ m^2), but the scaling itself is classical.
+
+      m   RKC k_max = m^2/(2r)   Prop 6 diffusive branch
+      2                   4.44                      4.44
+      4                  17.78                     17.78
+      8                  71.11                     71.11
+     16                 284.44                    284.44
+     32                1137.78                   1137.78
+
+   Now the part that is worth knowing.  AT the frontier k = m^2/(2r) the argument becomes
+        1 + z/m^2 = I + (S_+1 - 2I + S_-1)/2 = (S_+1 + S_-1)/2,
+   the averaging operator, whose symbol is cos(theta); and T_m(cos theta) = cos(m theta), the
+   symbol of (S_+m + S_-m)/2.  So the RKC frontier stencil is EXACTLY the two-point endpoint
+   measure -- which is precisely the extremal measure in the Prop 6 sufficiency proof, and
+   precisely the vertex an earlier draft of this script found by LP and dismissed as
+   'pathological'.  It is not pathological; it is the frontier scheme.
+
+      m    nonzero offsets          weights        sum w     M_2 vs 2*alpha*tau   band err
+      3            [-3, 3]        [0.5 0.5] 1.0000000000           1.0000000000      0.766
+      6            [-6, 6]        [0.5 0.5] 1.0000000000           1.0000000000      1.004
+     12          [-12, 12]        [0.5 0.5] 1.0000000000           1.0000000000      1.000
+
+   Read that last column.  At the frontier the scheme is CONSISTENT (all three moment
+   conditions exact), POSITIVE (w >= 0), and STABLE (||w||_1 = 1) -- and its band error is
+   ~1.0, i.e. it carries no information about the solution at all.  A bimodal kernel has the
+   right mass and the right variance and the wrong shape.
+
+   => Consistency + positivity + stability do NOT imply accuracy.  Accuracy is a genuinely
+      independent fourth axis, and the feasibility frontier of Prop 6 is a STABILITY boundary,
+      not an accuracy one.  Any speedup quoted AT the frontier should be read with that caveat.
+
+   And RKC away from the frontier is not positive:
+
+      m   k/k_max         min w     ||w||_1  positive?
+      8      1.00     0.000e+00    1.000000       True
+      8      0.90    -1.115e-01    2.377675      False
+      8      0.70    -1.610e-01    2.596448      False
+      8      0.50    -2.188e-01    2.500000      False
+     16      1.00     0.000e+00    1.000000       True
+     16      0.90    -1.830e-01    2.841296      False
+     16      0.70    -1.297e-01    3.591208      False
+     16      0.50    -1.736e-01    3.317505      False
+   So the classical scheme occupies exactly one point of the positive cone -- its extreme
+   vertex -- and leaves it as soon as you back off for accuracy.  The maximum-entropy stencil
+   of 3C is the opposite choice: same feasible set, interior point, accuracy instead of
+   extremality.
+
+   WHY the frontier scheme carries no information, and the link to Task 4.
+   (1/2)(delta_-m + delta_+m) couples j only to j +- m, so the lattice splits into m residue
+   classes mod m that NEVER exchange information.  On one class the stencil is (0.5, 0, 0.5),
+   which is FTCS for pure diffusion at coarse ratio r_c = alpha*tau/(m dx)^2 -- and that is
+   exactly 0.5, FTCS's own stability limit.  So the frontier scheme is coarse-grid FTCS at its
+   limit, run m-fold redundantly.  (Independently found by the companion thread's Task-3
+   control experiment; T_m(cos theta) = cos(m theta) is the quickest route to it.)
+     m=  3: alpha*tau/(m dx)^2 = 0.500000000000  (= 1/2 exactly)
+     m=  6: alpha*tau/(m dx)^2 = 0.500000000000  (= 1/2 exactly)
+     m= 12: alpha*tau/(m dx)^2 = 0.500000000000  (= 1/2 exactly)
+
+   Now coarsen THAT operator by M = m (Task 4 machinery).  Its symbol is cos(m theta), and the
+   aliases of coarse mode q sit at theta_l = 2 pi (q + l Nc)/N, so
+        m theta_l = 2 pi m q / N + 2 pi l   =>   g_l = cos(2 pi m q / N),
+   independent of l: ALL M aliased eigenvalues coincide, the minimal polynomial has degree 1,
+   and the coarse law is EXACTLY MARKOV -- zero memory.  Measured spread of g_l over l:
+     M=m=  3: max_l |g_l - g_0| = 4.00e-15,  minimal polynomial order 1
+     M=m=  4: max_l |g_l - g_0| = 3.16e-15,  minimal polynomial order 1
+     M=m=  6: max_l |g_l - g_0| = 5.61e-15,  minimal polynomial order 1
+
+   Contrast FTCS coarsened by the same M, which needs exactly M-1 lags (Task 4A).  So the
+   frontier scheme is precisely the point where COARSE-GRAINING IS FREE -- and that is the
+   SAME degeneracy that makes it carry no information.  Memory-free coarse-graining and
+   uselessness are one phenomenon, not two.
+
+   wrote figures/task3_compression.png
