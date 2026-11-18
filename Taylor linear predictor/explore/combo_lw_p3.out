@@ -1,0 +1,22 @@
+inflow_front_picard3, picard 3: against the notebook's LW map (LW guess, picard 1)
+
+unseen 9:
+| method | points | stops | exact bound | true error | wins |
+|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x0.52 | x0.46 | 7/9 |
+| LW+stop(c=1) | x0.53 | 98 | x0.53 | x0.45 | 7/9 |
+| LW+reuse(c=1) | x0.61 | 0 | x1.88 | x0.82 | 6/9 |
+| LW+reuse(c=1)+stop(c=1) | x0.50 | 32 | x1.88 | x0.82 | 6/9 |
+| LW+reuse(c=10)+stop(c=1) | x0.48 | 31 | x5.71 | x1.73 | 5/9 |
+| LW+reuse(c=1)+stop(c=10) | x0.46 | 47 | x1.95 | x0.80 | 6/9 |
+
+new 6:
+| method | points | stops | exact bound | true error | wins |
+|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x0.60 | x0.32 | 6/6 |
+| LW+stop(c=1) | x0.50 | 144 | x0.61 | x0.31 | 6/6 |
+| LW+reuse(c=1) | x0.67 | 0 | x1.23 | x0.56 | 5/6 |
+| LW+reuse(c=1)+stop(c=1) | x0.47 | 66 | x1.25 | x0.56 | 5/6 |
+| LW+reuse(c=10)+stop(c=1) | x0.45 | 59 | x2.26 | x0.36 | 4/6 |
+| LW+reuse(c=1)+stop(c=10) | x0.38 | 71 | x1.26 | x0.55 | 5/6 |
+max identity gap 8.562910173677898e-16

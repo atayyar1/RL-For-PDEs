@@ -1,0 +1,25 @@
+
+inflow_front unseen 9:
+| method | points | stops | exact bound | true error | wins |
+|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 0/9 |
+| LW+stop(c=1) | x0.53 | 98 | x1.01 | x0.99 | 1/9 |
+| LW+reuse(c=1) | x0.61 | 0 | x2.37 | x1.23 | 7/9 |
+| LW+reuse(c=10) | x0.58 | 0 | x6.20 | x1.01 | 6/9 |
+| greedy | x0.52 | 0 | x25.45 | x1.87 | 3/9 |
+| greedy+reuse | x0.38 | 0 | x25.55 | x2.03 | 2/9 |
+| greedy+stop(myopic) | x0.38 | 45 | x25.33 | x1.97 | 2/9 |
+| greedy+stop(myopic)+reuse | x0.33 | 33 | x25.60 | x2.49 | 1/9 |
+
+inflow_front new 6:
+| method | points | stops | exact bound | true error | wins |
+|---|---|---|---|---|---|
+| LW map | x1.00 | 0 | x1.00 | x1.00 | 0/6 |
+| LW+stop(c=1) | x0.50 | 144 | x1.01 | x1.01 | 0/6 |
+| LW+reuse(c=1) | x0.67 | 0 | x1.60 | x0.65 | 5/6 |
+| LW+reuse(c=10) | x0.66 | 0 | x2.69 | x0.89 | 4/6 |
+| greedy | x0.53 | 0 | x15.58 | x1.79 | 2/6 |
+| greedy+reuse | x0.40 | 0 | x15.81 | x1.53 | 2/6 |
+| greedy+stop(myopic) | x0.37 | 62 | x15.18 | x1.74 | 2/6 |
+| greedy+stop(myopic)+reuse | x0.33 | 47 | x15.84 | x2.42 | 2/6 |
+max identity gap 1.1746517387251076e-15
