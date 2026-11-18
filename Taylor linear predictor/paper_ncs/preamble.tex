@@ -1,0 +1,68 @@
+%% ================================================================
+%%  Preamble -- target: Nature Computational Science (Article)
+%%  Limits (third-party guide, verify on nature.com):
+%%    main text <= 3,500 words (excl. abstract, Methods, refs, legends)
+%%    abstract <= 150 words, unreferenced
+%%    <= 6 display items (figures + tables)
+%% ================================================================
+
+%% ---------- Packages ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{setspace}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+\usepackage{cleveref}   % after hyperref
+\usepackage{authblk}
+
+\graphicspath{{figures/}}
+
+%% ---------- Notation (same as MAIN.tex and the workshop draft) ----------
+\newcommand{\zstar}{z^*}
+\newcommand{\ux}{u^*}
+\newcommand{\uhat}{\hat{u}}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bA}{\mathbf{A}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Lop}{\mathcal{L}}
+\newcommand{\Mset}{\mathcal{M}}          % the map (set of points)
+\newcommand{\Sset}{\mathcal{S}}          % a stencil
+\newcommand{\Aset}{\mathcal{A}}          % action set (menu)
+\newcommand{\normone}[1]{\lVert #1 \rVert_1}
+\newcommand{\normtwo}[1]{\lVert #1 \rVert_2}
+\newcommand{\EPS}{\mathrm{EPS}}
+\newcommand{\Nref}{N_{\mathrm{ref}}}
+
+%% ---------- Drafting markers ----------
+%% \NUM{}  = number taken from a notebook/run file; re-check before submitting
+%% \CITE{} = citation not yet resolved to a bibtex key
+%% \TODO{} = missing content; stays red in final mode on purpose
+\newif\ifdraftmode
+\draftmodetrue          % <<-- \draftmodefalse for the submission build
+
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+\newcommand{\CITE}[1]{\textcolor{orange}{\textbf{[cite: #1]}}}
+\ifdraftmode
+  \newcommand{\NUM}[1]{\textcolor{blue}{\underline{#1}}}
+\else
+  \newcommand{\NUM}[1]{#1}
+\fi
+
+%% ---------- Theorem environments ----------
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}

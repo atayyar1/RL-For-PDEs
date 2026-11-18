@@ -1,0 +1,148 @@
+\documentclass[11pt]{article}
+\input{preamble}
+
+%% ---------- Title ----------
+\title{Reinforcement Learning for Discovering Integration Schemes\\
+       for Partial Differential Equations}
+%% Alternative under discussion:
+% \title{Learning to solve partial differential equations at a single point}
+
+\author[1]{Ali Tayyar}
+\author[1]{Joseph Bakarji\thanks{Corresponding author: \texttt{\TODO{email}}}}
+\affil[1]{Department of Mechanical Engineering, American University of Beirut, Beirut, Lebanon}
+\date{}
+
+\begin{document}
+\maketitle
+\onehalfspacing
+
+%% ================================================================
+%%  ABSTRACT  (v1, Nov 17 2026; <= 150 words, no citations)
+%% ================================================================
+\begin{abstract}
+Numerical methods for time-dependent partial differential equations (PDEs) compute the solution over the whole domain, even when only its value at a single point in space and time is needed. We propose a method that computes this value directly. Starting at the query point, it builds a map backward to the initial and boundary data: each point in the map chooses a stencil of points at earlier times, and only those points are ever evaluated. A reinforcement learning agent makes these choices, trading accuracy against the number of points. Its reward weighs each local error by that point's influence on the query, computed with a discrete adjoint, and never uses the exact solution. On Burgers', advection--diffusion and Kuramoto--Sivashinsky equations, the learned maps match the accuracy of classical and goal-oriented adaptive schemes with \TODO{X}-fold fewer points, on queries unseen in training. Without being told, the agent aligns its stencils with the characteristics and widens them where the equation is stiff.
+\end{abstract}
+
+%% ================================================================
+%%  INTRODUCTION  (no heading in Nature format; ~600--800 words)
+%%  Beats:
+%%   (1) Solvers compute the whole field; many tasks need u at one point.
+%%   (2) The value at one point depends only on its domain of dependence,
+%%       and only part of it matters (adjoint / Green's function).
+%%   (3) Goal-oriented adaptivity (DWR) exploits this, but a posteriori,
+%%       on a global mesh, by iteration. Learned discretizations and
+%%       RL for AMR learn resolution, but still on the whole field.
+%%   (4) Here: a backward map from the query, built a priori by an agent;
+%%       goal-oriented adaptivity taken to its limit.
+%%   (5) Results in one paragraph; the physics the agent recovers.
+%% ================================================================
+\TODO{introduction}
+
+%% ================================================================
+%%  RESULTS  (one subsection per main figure; <= 6 display items)
+%% ================================================================
+\section*{Results}
+
+\subsection*{Computing the solution at one point}
+\label{sec:res-map}
+%% Fig. 1: query -> backward map -> influence beta; error identity.
+\TODO{backward map, influence, error identity}
+
+\subsection*{An agent that builds the map}
+\label{sec:res-agent}
+%% Fig. 2: two passes (coarse lattice, then agent); MDP in one schematic.
+\TODO{two-pass method and the decision process}
+
+\subsection*{Fewer points at equal accuracy}
+\label{sec:res-cost}
+%% Fig. 3: error at z* vs points, three PDEs, against baselines.
+\TODO{cost--accuracy results}
+
+\subsection*{The learned stencils follow the characteristics}
+\label{sec:res-char}
+%% Fig. 4: beta and stencil shifts vs characteristic / adjoint; null control.
+\TODO{physical evidence I}
+
+\subsection*{Stiffness sets the stencil width}
+\label{sec:res-stiff}
+%% Fig. 5: KS, wide spacing, instability of compact stencils.
+\TODO{physical evidence II}
+
+\subsection*{Generalization to unseen queries}
+\label{sec:res-gen}
+%% Fig. 6: interpolation vs extrapolation in t*.
+\TODO{held-out queries}
+
+%% ================================================================
+%%  DISCUSSION  (meaning, limitations, outlook)
+%% ================================================================
+\section*{Discussion}
+\TODO{discussion, limitations, outlook}
+
+%% ================================================================
+%%  METHODS  (after the main text in Nature format; full detail)
+%% ================================================================
+\section*{Methods}
+
+\subsection*{Problem setting}
+\label{sec:m-setting}
+\TODO{PDE class, grid, query $\zstar=(x^*,t^*)$, known data}
+
+\subsection*{Taylor weights and admissible stencils}
+\label{sec:m-weights}
+\TODO{min-norm weights, rows, admissibility}
+
+\subsection*{The backward map and the forward pass}
+\label{sec:m-map}
+\TODO{expansion order, forward evaluation, Picard re-solve}
+
+\subsection*{Influence and the error identity}
+\label{sec:m-beta}
+\TODO{$\beta$ recursion, $e(\zstar)=\sum_p \beta_p\delta_p$, bound}
+
+\subsection*{A-priori error score}
+\label{sec:m-score}
+\TODO{Taylor residual with guessed derivatives}
+
+\subsection*{Coarse first pass}
+\label{sec:m-pass1}
+\TODO{uniform backward lattice, local polynomial fit}
+
+\subsection*{Stencil menu}
+\label{sec:m-menu}
+\TODO{admissibility and stability rule}
+
+\subsection*{Decision process and training}
+\label{sec:m-mdp}
+\TODO{state, action, reward, MaskablePPO, multi-query training}
+
+\subsection*{Test problems}
+\label{sec:m-pdes}
+\TODO{Burgers, advection--diffusion, Kuramoto--Sivashinsky}
+
+\subsection*{Baselines and metrics}
+\label{sec:m-baselines}
+\TODO{FD-3, LW, DWR, ETDRK4; equal-cost comparison}
+
+%% ================================================================
+%%  END MATTER
+%% ================================================================
+\section*{Data availability}
+\TODO{data statement}
+
+\section*{Code availability}
+\TODO{repository link}
+
+\bibliographystyle{unsrtnat}
+\bibliography{reference}
+
+\section*{Acknowledgements}
+\TODO{funding}
+
+\section*{Author contributions}
+\TODO{CRediT statement}
+
+\section*{Competing interests}
+The authors declare no competing interests.
+
+\end{document}
